@@ -281,9 +281,10 @@ public class OrthogonalRouter : Router
         return alignment switch
         {
             PortAlignment.Top => p.Add(0, -shapeMargin),
-            PortAlignment.Right => p.Add(shapeMargin, 0),
+            // A corner port leaves horizontally, which keeps it consistent with IsVerticalSide.
+            PortAlignment.Right or PortAlignment.TopRight or PortAlignment.BottomRight => p.Add(shapeMargin, 0),
             PortAlignment.Bottom => p.Add(0, shapeMargin),
-            PortAlignment.Left => p.Add(-shapeMargin, 0),
+            PortAlignment.Left or PortAlignment.TopLeft or PortAlignment.BottomLeft => p.Add(-shapeMargin, 0),
             _ => throw new NotImplementedException()
         };
     }
