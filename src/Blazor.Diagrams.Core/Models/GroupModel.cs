@@ -1,3 +1,4 @@
+using System;
 ﻿using Blazor.Diagrams.Core.Extensions;
 using Blazor.Diagrams.Core.Geometry;
 using System.Collections.Generic;
@@ -10,17 +11,31 @@ public class GroupModel : NodeModel
     private readonly List<NodeModel> _children;
 
     public GroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool autoSize = true)
+        : this(children, new GroupPadding(padding), autoSize)
+    {
+    }
+
+    public GroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool autoSize = true)
     {
         _children = new List<NodeModel>();
 
         Size = Size.Zero;
-        Padding = padding;
+        PaddingBySide = padding;
+        Padding = (byte)Math.Clamp(Math.Round(Math.Min(Math.Min(padding.Left, padding.Top), Math.Min(padding.Right, padding.Bottom))), 0, byte.MaxValue);
         AutoSize = autoSize;
         Initialize(children);
     }
 
     public IReadOnlyList<NodeModel> Children => _children;
+
+    /// <summary>
+    /// The uniform padding given to the constructor. When the group was created with a <see cref="GroupPadding"/>,
+    /// this is its smallest side, rounded; <see cref="PaddingBySide"/> is what sizes the group.
+    /// </summary>
     public byte Padding { get; }
+
+    /// <summary>Space between the children's bounds and the group's edges, per side.</summary>
+    public GroupPadding PaddingBySide { get; }
     public bool AutoSize { get; }
 
     public void AddChild(NodeModel child)
@@ -116,19 +131,27 @@ public class GroupModel : NodeModel
         if (Children.Count == 0)
             return true;
 
-        if (Children.Any(n => n.Size == null))
+        if (GetChildrenBounds() is not { } bounds)
             return false;
 
-        var bounds = Children.GetBounds();
+        var padding = PaddingBySide;
 
-        var newPosition = new Point(bounds.Left - Padding, bounds.Top - Padding);
+        var newPosition = new Point(bounds.Left - padding.Left, bounds.Top - padding.Top);
         if (!Position.Equals(newPosition))
         {
             Position = newPosition;
             TriggerMoving();
         }
 
-        Size = new Size(bounds.Width + Padding * 2, bounds.Height + Padding * 2);
+        Size = new Size(bounds.Width + padding.Left + padding.Right, bounds.Height + padding.Top + padding.Bottom);
         return true;
     }
+
+    /// <summary>
+    /// The area the group wraps, before padding, or null while it cannot be measured yet. By default the union
+    /// of the children's <see cref="NodeModel.Position"/> and <see cref="NodeModel.Size"/>, available once every
+    /// child has a size. Override it when a child's visual extent differs from that rectangle (for example an SVG
+    /// symbol drawn around its origin).
+    /// </summary>
+    protected virtual Rectangle? GetChildrenBounds() => Children.Any(n => n.Size == null) ? null : Children.GetBounds();
 }
