@@ -124,7 +124,8 @@ public class GroupModel : NodeModel
         var newPosition = new Point(bounds.Left - Padding, bounds.Top - Padding);
         if (!Position.Equals(newPosition))
         {
-            Position = newPosition;
+            // NodeModel's version moves the ports with the box; the group's own override would also move the children.
+            base.UpdatePositionSilently(newPosition.X - Position.X, newPosition.Y - Position.Y);
             TriggerMoving();
         }
 
