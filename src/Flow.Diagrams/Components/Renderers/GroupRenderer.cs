@@ -21,7 +21,7 @@ public class GroupRenderer : ComponentBase, IDisposable
 {
     private bool _isSvg;
     private Size? _lastSize;
-    private bool _shouldRender = true;
+    private bool _shouldRender;
 
     /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
@@ -52,16 +52,7 @@ public class GroupRenderer : ComponentBase, IDisposable
     }
 
     /// <summary>Renders only after the group or its visibility changed; any other cause of a render pass is skipped.</summary>
-    protected override bool ShouldRender()
-    {
-        if (_shouldRender)
-        {
-            _shouldRender = false;
-            return true;
-        }
-
-        return false;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     /// <summary>When the group's size differs from the last one seen, re-initializes its ports and refreshes its links.</summary>
     protected override void OnAfterRender(bool firstRender)
@@ -102,6 +93,9 @@ public class GroupRenderer : ComponentBase, IDisposable
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Cleared here, not in ShouldRender: Blazor skips ShouldRender while a render is already queued.
+        _shouldRender = false;
+
         if (!Group.Visible)
             return;
         

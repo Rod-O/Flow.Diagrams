@@ -15,7 +15,7 @@ namespace Flow.Diagrams.Components.Renderers;
 /// </summary>
 public class LinkVertexRenderer : ComponentBase, IDisposable
 {
-    private bool _shouldRender = true;
+    private bool _shouldRender;
 
     /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
@@ -41,17 +41,14 @@ public class LinkVertexRenderer : ComponentBase, IDisposable
     }
 
     /// <summary>Renders only after the vertex changed; any other cause of a render pass is skipped.</summary>
-    protected override bool ShouldRender()
-    {
-        if (!_shouldRender) return false;
-
-        _shouldRender = false;
-        return true;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Cleared here, not in ShouldRender: Blazor skips ShouldRender while a render is already queued.
+        _shouldRender = false;
+
         var componentType = BlazorDiagram.GetComponent(Vertex);
 
         builder.OpenElement(0, "g");

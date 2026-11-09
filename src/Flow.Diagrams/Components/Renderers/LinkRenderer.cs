@@ -16,7 +16,7 @@ namespace Flow.Diagrams.Components.Renderers;
 /// </summary>
 public class LinkRenderer : ComponentBase, IDisposable
 {
-    private bool _shouldRender = true;
+    private bool _shouldRender;
 
     /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
@@ -41,18 +41,14 @@ public class LinkRenderer : ComponentBase, IDisposable
     }
 
     /// <summary>Renders only after the link or its visibility changed; any other cause of a render pass is skipped.</summary>
-    protected override bool ShouldRender()
-    {
-        if (!_shouldRender)
-            return false;
-
-        _shouldRender = false;
-        return true;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Cleared here, not in ShouldRender: Blazor skips ShouldRender while a render is already queued.
+        _shouldRender = false;
+
         if (!Link.Visible)
             return;
         

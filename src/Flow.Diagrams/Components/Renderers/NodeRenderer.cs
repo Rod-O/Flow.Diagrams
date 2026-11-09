@@ -102,18 +102,14 @@ public class NodeRenderer : ComponentBase, IDisposable
     }
 
     /// <summary>Renders only after the node or its visibility changed; any other cause of a render pass is skipped.</summary>
-    protected override bool ShouldRender()
-    {
-        if (!_shouldRender)
-            return false;
-
-        _shouldRender = false;
-        return true;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Cleared here, not in ShouldRender: Blazor skips ShouldRender while a render is already queued.
+        _shouldRender = false;
+
         if (!Node.Visible)
             return;
 
