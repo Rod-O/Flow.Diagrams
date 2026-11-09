@@ -46,6 +46,11 @@ dotnet test tests/Flow.Diagrams.Core.Tests
 dotnet test tests/Flow.Diagrams.Tests
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Changes are recorded as fragments in `changelog.d/`, gathered into
+[CHANGELOG.md](CHANGELOG.md) at each release.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
