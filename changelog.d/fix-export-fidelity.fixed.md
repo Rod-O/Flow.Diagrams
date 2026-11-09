@@ -7,3 +7,6 @@
 - `DiagramSvgExporter`: the document was framed to node and group boxes, so ports sticking out of a node, link strokes
   and arrowheads at the edge, and labels outside the nodes were cut off. The frame now includes ports, strokes, markers
   and an estimate of each label's text before adding `Margin`; exported documents can be larger than before.
+- `DiagramSvgExporter`: each export called `FlowDiagrams.unobserve` on the app's `IJSRuntime` once per measured node
+  when its static renderer was disposed. Node renderers now skip the resize observer while drawing an export, so it
+  makes no JavaScript calls.

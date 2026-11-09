@@ -29,8 +29,8 @@ public static class DiagramSvgExporter
     /// </summary>
     /// <param name="diagram">The diagram to export.</param>
     /// <param name="services">
-    /// The app's services: the renderers resolve theirs (such as <c>IJSRuntime</c>) from it, though a static render
-    /// never calls them.
+    /// The app's services: the renderers resolve theirs (such as <c>IJSRuntime</c>) from it. The export makes no
+    /// JavaScript calls: node renderers skip their resize observer while drawing the document.
     /// </param>
     /// <param name="options">Appearance of the document; <c>null</c> uses the defaults of <see cref="SvgExportOptions"/>.</param>
     /// <remarks>

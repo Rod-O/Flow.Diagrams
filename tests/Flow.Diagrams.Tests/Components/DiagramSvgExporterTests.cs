@@ -181,6 +181,24 @@ public class DiagramSvgExporterTests
         viewBox.Top.Should().BeLessThanOrEqualTo(-3, "half the stroke lies above the line at the source end too");
     }
 
+    [Fact]
+    public async Task ExportAsync_ShouldNotCallTheJSRuntime()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var diagram = new BlazorDiagram();
+        var a = diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+        var b = diagram.Nodes.Add(new SvgNodeModel(new Point(300, 0)));
+        diagram.Links.Add(new LinkModel(a, b));
+
+        // Act
+        await DiagramSvgExporter.ExportAsync(diagram, ctx.Services);
+
+        // Assert
+        ctx.JSInterop.Invocations.Should().BeEmpty("a static render has no element to observe");
+    }
+
     private static Rectangle ViewBox(SvgExport export)
     {
         var v = XDocument.Parse(export.Svg).Root!.Attribute("viewBox")!.Value.Split(' ').Select(n => double.Parse(n, System.Globalization.CultureInfo.InvariantCulture)).ToArray();

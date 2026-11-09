@@ -54,10 +54,20 @@ public sealed class SvgExportCanvas : ComponentBase
         builder.OpenComponent<CascadingValue<BlazorDiagram>>(14);
         builder.AddAttribute(15, nameof(CascadingValue<BlazorDiagram>.Value), Diagram);
         builder.AddAttribute(16, nameof(CascadingValue<BlazorDiagram>.IsFixed), true);
-        builder.AddAttribute(17, nameof(CascadingValue<BlazorDiagram>.ChildContent), (RenderFragment)BuildDrawing);
+        builder.AddAttribute(17, nameof(CascadingValue<BlazorDiagram>.ChildContent), (RenderFragment)BuildExporting);
         builder.CloseComponent();
 
         builder.CloseElement();
+    }
+
+    // Renderers under this cascade know they draw a static document: NodeRenderer then skips its JS resize observer.
+    private void BuildExporting(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<CascadingValue<SvgExportCanvas>>(0);
+        builder.AddAttribute(1, nameof(CascadingValue<SvgExportCanvas>.Value), this);
+        builder.AddAttribute(2, nameof(CascadingValue<SvgExportCanvas>.IsFixed), true);
+        builder.AddAttribute(3, nameof(CascadingValue<SvgExportCanvas>.ChildContent), (RenderFragment)BuildDrawing);
+        builder.CloseComponent();
     }
 
     private void BuildDrawing(RenderTreeBuilder builder)
