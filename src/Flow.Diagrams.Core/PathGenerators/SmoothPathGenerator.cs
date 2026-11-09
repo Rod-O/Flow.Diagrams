@@ -7,15 +7,23 @@ using System;
 
 namespace Flow.Diagrams.Core.PathGenerators;
 
+/// <summary>
+/// Draws links as curves. A link with no route points is one cubic Bezier that leaves each port along its alignment;
+/// with route points the curve is a smooth spline through all of them.
+/// </summary>
 public class SmoothPathGenerator : PathGenerator
 {
     private readonly double _margin;
 
+    /// <summary>Creates the generator.</summary>
+    /// <param name="margin">How far, in diagram units, the curve of a direct link keeps going out of a port before turning; shortened for ends closer than that. Ignored when the link has route points.</param>
     public SmoothPathGenerator(double margin = 125)
     {
         _margin = margin;
     }
 
+    /// <inheritdoc />
+    /// <exception cref="DiagramsException">An end anchor is of a type this generator does not know.</exception>
     public override PathGeneratorResult GetResult(Diagram diagram, BaseLinkModel link, Point[] route, Point source, Point target)
     {
         route = ConcatRouteAndSourceAndTarget(route, source, target);

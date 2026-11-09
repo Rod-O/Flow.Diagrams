@@ -3,8 +3,13 @@ using System.Collections.Generic;
 
 namespace Flow.Diagrams.Core.Geometry;
 
+/// <summary>
+/// An axis-aligned ellipse given by its center and radii, in diagram units. <see cref="Shapes"/> builds one from a node or
+/// port box.
+/// </summary>
 public class Ellipse : IShape
 {
+    /// <summary>Creates an ellipse from its center (<paramref name="cx"/>, <paramref name="cy"/>) and radii.</summary>
     public Ellipse(double cx, double cy, double rx, double ry)
     {
         Cx = cx;
@@ -13,11 +18,22 @@ public class Ellipse : IShape
         Ry = ry;
     }
 
+    /// <summary>X of the center.</summary>
     public double Cx { get; }
+    /// <summary>Y of the center.</summary>
     public double Cy { get; }
+    /// <summary>Horizontal radius; must be non-zero for <see cref="GetIntersectionsWithLine"/>.</summary>
     public double Rx { get; }
+    /// <summary>Vertical radius; must be non-zero for <see cref="GetIntersectionsWithLine"/>.</summary>
     public double Ry { get; }
 
+    /// <summary>
+    /// The points where the segment <paramref name="line"/> meets the ellipse outline, in order along the segment.
+    /// </summary>
+    /// <remarks>
+    /// When the segment's supporting line misses the ellipse entirely, the point of closest approach is still yielded if it
+    /// lies within the segment, so a miss is not reliably an empty result.
+    /// </remarks>
     public IEnumerable<Point> GetIntersectionsWithLine(Line line)
     {
         var a1 = line.Start;
@@ -57,6 +73,11 @@ public class Ellipse : IShape
         }
     }
 
+    /// <summary>
+    /// The outline point at parametric angle <paramref name="a"/> in degrees, where 0 is the right-most point and 90 the
+    /// bottom-most (the Y axis points down). On a non-circular ellipse this is the parametric angle, not the direction of a
+    /// ray from the center.
+    /// </summary>
     public Point? GetPointAtAngle(double a)
     {
         var t = Math.Tan(a / 360 * Math.PI);

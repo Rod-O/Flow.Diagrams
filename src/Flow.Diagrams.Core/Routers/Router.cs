@@ -4,10 +4,13 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Routers;
 
+/// <summary>Decides the intermediate points a link passes through between its two ends. Set per link with <c>BaseLinkModel.Router</c> or for all links through the diagram's default.</summary>
 public abstract class Router
 {
+    /// <summary>The points between source and target, in order and in diagram coordinates; empty for a direct line.</summary>
     public abstract Point[] GetRoute(Diagram diagram, BaseLinkModel link);
 
+    /// <summary>The point on the port's box that faces out in its alignment: the middle of the edge, or the corner for diagonal alignments. <see cref="PortAlignment.TopLeft"/> returns the box's top-left corner.</summary>
     protected static Point GetPortPositionBasedOnAlignment(PortModel port)
     {
         var pt = port.Position;
