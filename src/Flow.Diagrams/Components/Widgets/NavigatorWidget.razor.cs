@@ -12,7 +12,7 @@ namespace Flow.Diagrams.Components.Widgets;
 /// <summary>
 /// A miniature of the whole diagram with a rectangle marking the part currently on screen. It is sized to fit every node and
 /// group plus the current view, and refreshes when the diagram, a node or a group changes. Set <see cref="Width"/> and
-/// <see cref="Height"/>; both default to 0, which makes the miniature unusable.
+/// <see cref="Height"/> to size it; a non-positive value leaves the miniature empty.
 /// </summary>
 public partial class NavigatorWidget : IDisposable
 {
@@ -30,10 +30,10 @@ public partial class NavigatorWidget : IDisposable
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
     /// <summary>Whether nodes whose shape is an ellipse are drawn as ellipses; otherwise, and for every other shape, as their bounding rectangle.</summary>
     [Parameter] public bool UseNodeShape { get; set; } = true;
-    /// <summary>Width of the widget, in screen pixels. Must be set to a positive value.</summary>
-    [Parameter] public double Width { get; set; }
-    /// <summary>Height of the widget, in screen pixels. Must be set to a positive value.</summary>
-    [Parameter] public double Height { get; set; }
+    /// <summary>Width of the widget, in screen pixels; 200 by default. The miniature stays empty while it is not positive.</summary>
+    [Parameter] public double Width { get; set; } = 200;
+    /// <summary>Height of the widget, in screen pixels; 150 by default. The miniature stays empty while it is not positive.</summary>
+    [Parameter] public double Height { get; set; } = 150;
     /// <summary>Space kept around the drawing inside the widget, in screen pixels.</summary>
     [Parameter] public double Margin { get; set; } = 5;
     /// <summary>CSS fill of nodes in the miniature.</summary>
@@ -44,7 +44,7 @@ public partial class NavigatorWidget : IDisposable
     [Parameter] public string ViewStrokeColor { get; set; } = "#40babd";
     /// <summary>Stroke width of the visible-area rectangle, in diagram units, not screen pixels.</summary>
     [Parameter] public int ViewStrokeWidth { get; set; } = 4;
-    /// <summary>Extra CSS classes for the root <c>svg</c> element, added after <c>navigator</c>.</summary>
+    /// <summary>Extra CSS classes for the root <c>svg</c> element, added after <c>navigator</c>; <c>default</c> gives it the look and corner placement of <c>default.styles.css</c>.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS for the root <c>svg</c> element, for positioning the widget over the canvas.</summary>
     [Parameter] public string? Style { get; set; }
@@ -89,7 +89,7 @@ public partial class NavigatorWidget : IDisposable
 
     private void Refresh()
     {
-        if (BlazorDiagram.Container == null)
+        if (BlazorDiagram.Container == null || Width <= 0 || Height <= 0)
             return;
 
         _vX = -BlazorDiagram.Pan.X / BlazorDiagram.Zoom;
@@ -153,10 +153,10 @@ public partial class NavigatorWidget : IDisposable
         builder.SetKey(node);
         builder.AddAttribute(1, "class", "navigator-node");
         builder.AddAttribute(2, "fill", NodeColor);
-        builder.AddAttribute(2, "x", node.Position.X.ToInvariantString());
-        builder.AddAttribute(2, "y", node.Position.Y.ToInvariantString());
-        builder.AddAttribute(2, "width", node.Size!.Width.ToInvariantString());
-        builder.AddAttribute(2, "height", node.Size.Height.ToInvariantString());
+        builder.AddAttribute(3, "x", node.Position.X.ToInvariantString());
+        builder.AddAttribute(4, "y", node.Position.Y.ToInvariantString());
+        builder.AddAttribute(5, "width", node.Size!.Width.ToInvariantString());
+        builder.AddAttribute(6, "height", node.Size.Height.ToInvariantString());
         builder.CloseElement();
     }
 
@@ -166,10 +166,10 @@ public partial class NavigatorWidget : IDisposable
         builder.SetKey(node);
         builder.AddAttribute(1, "class", "navigator-node");
         builder.AddAttribute(2, "fill", NodeColor);
-        builder.AddAttribute(2, "cx", ellipse.Cx.ToInvariantString());
-        builder.AddAttribute(2, "cy", ellipse.Cy.ToInvariantString());
-        builder.AddAttribute(2, "rx",ellipse.Rx.ToInvariantString());
-        builder.AddAttribute(2, "ry", ellipse.Ry.ToInvariantString());
+        builder.AddAttribute(3, "cx", ellipse.Cx.ToInvariantString());
+        builder.AddAttribute(4, "cy", ellipse.Cy.ToInvariantString());
+        builder.AddAttribute(5, "rx",ellipse.Rx.ToInvariantString());
+        builder.AddAttribute(6, "ry", ellipse.Ry.ToInvariantString());
         builder.CloseElement();
     }
 }

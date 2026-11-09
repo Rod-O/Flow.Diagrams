@@ -42,7 +42,8 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
 
     /// <summary>
     /// The node's size in diagram units, or <c>null</c> until it is measured or assigned; bounds, ports and links
-    /// need it. Raises <see cref="SizeChanged"/> when it changes.
+    /// need it. Raises <see cref="SizeChanged"/> when it changes; it does not refresh the node, so on a <see
+    /// cref="ControlledSize"/> node call <see cref="Model.Refresh"/> and <see cref="ReinitializePorts"/> after changing it.
     /// </summary>
     public Size? Size
     {
@@ -65,7 +66,8 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     /// <summary>The group that contains this node, or <c>null</c>.</summary>
     public GroupModel? Group { get; internal set; }
     /// <summary>
-    /// The text the default node widget shows ("Title" when <c>null</c>); custom widgets may ignore it.
+    /// The text the default node widget shows ("Title" when <c>null</c>); custom widgets may ignore it. Setting it does
+    /// not redraw the node: call <see cref="Model.Refresh"/>.
     /// </summary>
     public string? Title { get; set; }
 

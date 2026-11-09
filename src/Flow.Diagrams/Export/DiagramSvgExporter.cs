@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Flow.Diagrams.Core.Behaviors;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
@@ -27,9 +28,29 @@ public static class DiagramSvgExporter
     /// never calls them.
     /// </param>
     /// <param name="options">Appearance of the document; <c>null</c> uses the defaults of <see cref="SvgExportOptions"/>.</param>
+    /// <remarks>
+    /// Models hidden through <see cref="Core.Models.Base.Model.Visible"/> are left out; models hidden only by virtualization
+    /// are included: they are shown for the duration of the export (the live diagram redraws them) and hidden again after it.
+    /// </remarks>
     public static async Task<SvgExport> ExportAsync(BlazorDiagram diagram, IServiceProvider services, SvgExportOptions? options = null)
     {
         options ??= new SvgExportOptions();
+        var virtualization = diagram.GetBehavior<VirtualizationBehavior>();
+        var virtualized = virtualization?.HiddenModels.ToList() ?? new List<Model>();
+        foreach (var model in virtualized)
+            model.Visible = true;
+        try
+        {
+            return await ExportVisibleAsync(diagram, services, options);
+        }
+        finally
+        {
+            virtualization?.CheckVisibility();
+        }
+    }
+
+    private static async Task<SvgExport> ExportVisibleAsync(BlazorDiagram diagram, IServiceProvider services, SvgExportOptions options)
+    {
         var html = HtmlModels(diagram);
         var viewBox = Bounds(diagram) is { } b
             ? new Rectangle(b.Left - options.Margin, b.Top - options.Margin, b.Right + options.Margin, b.Bottom + options.Margin)

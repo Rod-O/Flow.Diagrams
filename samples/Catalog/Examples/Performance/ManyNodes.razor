@@ -1,5 +1,6 @@
 @inherits ExampleBase
 @using System.Diagnostics
+@using Flow.Diagrams.Core.Behaviors
 @attribute [Example("many-nodes", "Many nodes", ExampleCategory.Performance,
     "A grid of nodes, each linked to its right and lower neighbour. Pick how many, and switch virtualization on: nodes outside the viewport stop being drawn, so pan and zoom stay light. Zoom in on a large grid with it off, then on.",
     Order = 1)]
@@ -73,11 +74,8 @@
     private void OnVirtualizationChanged(ChangeEventArgs e)
     {
         Diagram.Options.Virtualization.Enabled = (bool)e.Value!;
-        foreach (var node in Diagram.Nodes)
-            node.Visible = true;
-
-        // Virtualization re-checks what is in view when the view moves.
-        Diagram.SetPan(Diagram.Pan.X + 1, Diagram.Pan.Y);
+        // Virtualization re-checks on its own when the view moves or a model is added or moved; a change of the options needs a nudge.
+        Diagram.GetBehavior<VirtualizationBehavior>()!.CheckVisibility();
     }
     #endregion
 

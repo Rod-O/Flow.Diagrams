@@ -45,9 +45,7 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
             return;
         
         var position = FindPosition();
-        if (position == null)
-            return;
-        
+
         var x = position.X + (Label.Offset?.X ?? 0);
         var y = position.Y + (Label.Offset?.Y ?? 0);
 
@@ -78,7 +76,7 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
         InvokeAsync(StateHasChanged);
     }
 
-    private Point? FindPosition()
+    private Point FindPosition()
     {
         var totalLength = Path.Length;
         var length = Label.Distance switch

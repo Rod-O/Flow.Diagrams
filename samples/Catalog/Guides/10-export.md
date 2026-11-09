@@ -28,7 +28,7 @@ Link labels are HTML by default. They stay in the document as `foreignObject`, w
 Two more things the document inherits from the live diagram:
 
 - **State.** Widgets draw from the model, so a selected node exports in its selected colour if its widget draws one.
-- **Visibility.** Only visible models are exported. With virtualization on, models outside the viewport are hidden and therefore missing from the export. Disable virtualization and set `Visible = true` on the hidden models before exporting.
+- **Visibility.** Models you hid with `Visible = false` are not exported. Models hidden only by virtualization are: the exporter shows them for the duration of the export, so the live diagram redraws them briefly, and hides them again afterwards.
 
 ## Size and units
 
