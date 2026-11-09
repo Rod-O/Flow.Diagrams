@@ -1,5 +1,6 @@
 @using Catalog.Examples.Nodes
 
+@* #region markup *@
 <div class="html-card @(Node.Selected ? "selected" : "")">
     <div class="html-card-header">
         <span class="html-card-badge">@Node.Kind[..1]</span>
@@ -24,6 +25,7 @@
         <PortRenderer @key="port" Port="port" />
     }
 </div>
+@* #endregion *@
 
 <style>
     .html-card { position: relative; width: 220px; background: #fff; border: 1.5px solid #38474d; border-radius: 10px; font: 13px system-ui, sans-serif; color: #1e2326; }

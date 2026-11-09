@@ -1,0 +1,38 @@
+@inherits ExampleBase
+@using Catalog.Examples.Links
+@attribute [Example("port-rules", "Link rules", ExampleCategory.Links,
+    "Which links the user may draw is decided by the ports. Outputs (right) link to free inputs (left) of another node; dragging from an input starts nothing, and a link dropped where it is not allowed disappears.",
+    Order = 8)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        #region factory
+        Diagram.Options.Links.Factory = (diagram, source, target) =>
+            source is PortRulesPort { Flow: PortFlow.Out } output
+                ? new LinkModel(new SinglePortAnchor(output), target) { TargetMarker = LinkMarker.Arrow }
+                : null;
+        #endregion
+
+        var pump = Node(60, 60, "Pump", inputs: 0, outputs: 1);
+        Node(340, 20, "Filter", inputs: 1, outputs: 1);
+        var tank = Node(340, 220, "Tank", inputs: 1, outputs: 1);
+        Node(620, 120, "Drain", inputs: 1, outputs: 0);
+
+        Diagram.Links.Add(new LinkModel(pump.Ports[0], tank.Ports[0]) { TargetMarker = LinkMarker.Arrow });
+    }
+
+    #region ports
+    private NodeModel Node(double x, double y, string title, int inputs, int outputs)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        if (inputs > 0)
+            node.AddPort(new PortRulesPort(node, PortAlignment.Left, PortFlow.In));
+        if (outputs > 0)
+            node.AddPort(new PortRulesPort(node, PortAlignment.Right, PortFlow.Out));
+        return node;
+    }
+    #endregion
+}
