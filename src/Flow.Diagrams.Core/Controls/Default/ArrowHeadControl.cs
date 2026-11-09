@@ -9,18 +9,24 @@ using System.Threading.Tasks;
 
 namespace Flow.Diagrams.Core.Controls.Default;
 
+/// <summary>A draggable arrowhead at one end of a link. Pressing it detaches that end and drags it, so the link can be reconnected elsewhere. Only works on <see cref="BaseLinkModel"/>s and needs <see cref="DragNewLinkBehavior"/>.</summary>
 public class ArrowHeadControl : ExecutableControl
 {
+    /// <summary>Creates the control for the source end when <paramref name="source"/> is true, otherwise the target end; <paramref name="marker"/> sets its size and defaults to a 20 by 20 arrow.</summary>
     public ArrowHeadControl(bool source, LinkMarker? marker = null)
     {
         Source = source;
         Marker = marker ?? LinkMarker.NewArrow(20, 20);
     }
 
+    /// <summary>True for the link's source end, false for its target end.</summary>
     public bool Source { get; }
+    /// <summary>The arrowhead drawn for the control; its width also positions the control along the path.</summary>
     public LinkMarker Marker { get; }
+    /// <summary>Direction the arrowhead points, in degrees; recomputed on every <see cref="GetPosition"/> call and 0 until then.</summary>
     public double Angle { get; private set; }
 
+    /// <summary>A point just inside the link's end, set back by the difference between this control's marker and the link's own; also updates <see cref="Angle"/>. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
     public override Point? GetPosition(Model model)
     {
         if (model is not BaseLinkModel link)
@@ -41,6 +47,7 @@ public class ArrowHeadControl : ExecutableControl
         return p1;
     }
 
+    /// <summary>Starts dragging the end. For the source control the link is first reversed (its source becomes the old target), so the dragged end is always the target. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
     public override ValueTask OnPointerDown(Diagram diagram, Model model, PointerEventArgs e)
     {
         if (model is not BaseLinkModel link)

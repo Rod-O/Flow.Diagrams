@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>The actions bound by default in <see cref="KeyboardShortcutsBehavior"/>, public so they can be rebound to other keys.</summary>
 public static class KeyboardShortcutsDefaults
 {
+    /// <summary>Removes the selected groups, nodes and links that are not locked and that <see cref="Options.DiagramOptions.Constraints"/> allows deleting. Refreshes the diagram once at the end.</summary>
     public static async ValueTask DeleteSelection(Diagram diagram)
     {
         var wasSuspended = diagram.SuspendRefresh;
@@ -38,6 +40,7 @@ public static class KeyboardShortcutsDefaults
         }
     }
 
+    /// <summary>Toggles grouping of the selected nodes: when any of them is in a group, those groups are removed; otherwise two or more ungrouped selected nodes are grouped. Does nothing when <see cref="Options.DiagramOptions.Groups"/> is disabled.</summary>
     public static ValueTask Grouping(Diagram diagram)
     {
         if (!diagram.Options.Groups.Enabled)

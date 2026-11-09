@@ -4,17 +4,23 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Anchors;
 
+/// <summary>Attaches to one point of a port, chosen by the port's <see cref="PortModel.Alignment"/>. The default anchor for links that start or end on a port.</summary>
 public sealed class SinglePortAnchor : Anchor
 {
+    /// <summary>Creates an anchor on <paramref name="port"/>.</summary>
     public SinglePortAnchor(PortModel port) : base(port)
     {
         Port = port;
     }
     
+    /// <summary>The port the anchor is on.</summary>
     public PortModel Port { get; }
+    /// <summary>Whether a link end without a marker attaches at the port's middle instead of its aligned point. Off by default.</summary>
     public bool MiddleIfNoMarker { get; set; } = false;
+    /// <summary>Whether the point is found on the port's shape at the angle of its alignment (the default), or on the port's bounding box. The two differ for non-rectangular ports.</summary>
     public bool UseShapeAndAlignment { get; set; } = true;
 
+    /// <summary>The point on the port facing its <see cref="PortModel.Alignment"/>; null until the port has been measured (<see cref="PortModel.Initialized"/>).</summary>
     public override Point? GetPosition(BaseLinkModel link, Point[] route)
     {
         if (!Port.Initialized)
@@ -53,5 +59,6 @@ public sealed class SinglePortAnchor : Anchor
         };
     }
 
+    /// <inheritdoc />
     public override Point? GetPlainPosition() => Port.MiddlePosition;
 }
