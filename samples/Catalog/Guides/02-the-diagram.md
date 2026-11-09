@@ -103,4 +103,3 @@ A locked node can still be selected, and its ports are not locked with it: users
 
 - A double click is any two clicks within 500 ms, even on two different models. Check the model you receive.
 - Keyboard shortcut keys are compared case-sensitively: `"g"` with Shift held arrives as `"G"`.
-- Virtualization rechecks what is visible only on zoom, pan and canvas resize, not when nodes are added or moved.

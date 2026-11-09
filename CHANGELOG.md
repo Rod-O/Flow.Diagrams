@@ -61,6 +61,16 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `BlazorDiagram.RegisterComponent` threw a plain `Exception` on a duplicate registration; it now throws the
   library's exception.
 - `TouchEventArgs` and `TouchPoint`: nothing raised or consumed them.
+- Virtualization did not recheck a node, group or link added, or a model moved, while the view stayed still, so it kept
+  its visibility. It now rechecks on add and when a drag ends.
+- Turning virtualization off left the models it had hidden hidden. It now tracks the models it hid
+  (`VirtualizationBehavior.HiddenModels`), shows them again on the next check (`CheckVisibility()` is public to do it at once), and no
+  longer overrides a model hidden through `Visible`.
+- `DiagramSvgExporter` left out everything virtualization had hidden. It now includes those models and skips only the ones hidden through `Visible`.
+- `NavigatorWidget` rendered a `NaN` view box without `Width` and `Height` (they defaulted to 0); they default to 200 x 150 and a non-positive size leaves the miniature empty. Its node attributes no longer reuse sequence numbers.
+- `default.styles.css` styled `.diagram-navigator.default`, which the navigator never emits; the rule is now `.navigator.default`
+  (give the widget `Class="default"`). The default SVG group used a yellow fill and an `outline`, which SVG ignores; it now uses a neutral fill and a stroke.
+- `RemoveControlWidget` drew HTML-layer markup inside an `SvgGroupModel`; it now follows `IsSvg()` like the other controls.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

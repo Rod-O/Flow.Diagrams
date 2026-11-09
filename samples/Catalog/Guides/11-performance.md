@@ -35,15 +35,14 @@ Virtualization hides models outside the viewport by setting their `Visible` to `
 | `OnGroups` | `false` | Hide groups outside the view. |
 | `OnLinks` | `false` | Hide links outside the view. |
 
-[VirtualizationBehavior](xref:Flow.Diagrams.Core.Behaviors.VirtualizationBehavior) rechecks only when the zoom, the pan or the canvas size changes. Adding or moving a model does not recheck, and neither does switching the option. The example handles both directions when you toggle it:
+[VirtualizationBehavior](xref:Flow.Diagrams.Core.Behaviors.VirtualizationBehavior) rechecks when the zoom, the pan or the canvas size changes, when a node, group or link is added, and when a drag ends. Switching an option does not recheck by itself: call `CheckVisibility()` on the behavior. The example does it when you toggle virtualization:
 
 {{source many-nodes ManyNodes.razor virtualization}}
 
-- Turning it **on** does nothing until the view moves, so the example nudges the pan by a pixel.
-- Turning it **off** leaves the hidden models hidden, so the example sets `Visible = true` on every node.
-- A model you add outside the view stays drawn until the next pan or zoom.
-- Virtualization overwrites `Visible` for the kinds it covers, so you cannot also use `Visible` to hide nodes yourself while it is on.
-- The SVG exporter skips invisible models: see [Export](guides/export).
+- Turning it **on** applies at the next check, so the example calls `CheckVisibility()`.
+- Turning it **off** (or turning off one kind, such as `OnNodes`) shows again the models it hid at the next check; `CheckVisibility()` does it at once.
+- The behavior remembers the models it hid (`HiddenModels`) and shows only those again, so a model you hid with `Visible = false` stays hidden.
+- The SVG exporter includes the models hidden by virtualization and skips the ones you hid: see [Export](guides/export).
 
 Virtualization reduces what is drawn, not what is computed: models keep their positions and routes, and with `OnLinks` off every link is still drawn.
 
@@ -66,7 +65,7 @@ Hundreds of links over a few dozen nodes stay light here because nothing has to 
 - Build large diagrams inside `Batch`, or with the `IEnumerable` overloads of `Add`.
 - Give nodes a size and `ControlledSize = true` when you know their size.
 - Prefer node-to-node links when the attachment point does not matter.
-- Turn on virtualization for diagrams larger than the screen, and recheck by nudging the pan after bulk changes.
+- Turn on virtualization for diagrams larger than the screen, and call `CheckVisibility()` after changing the options.
 - Call `Refresh()` on the one model you changed, not on the diagram.
 
 The two examples are on the [Many nodes](examples/many-nodes) and [Many links](examples/many-links) pages.
