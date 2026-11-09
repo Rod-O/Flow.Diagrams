@@ -1,0 +1,1 @@
+- `changelog.d/` fragments: each pull request records its change in its own file, and `tools/prepare-release.py` gathers them into `CHANGELOG.md` at release, so parallel branches no longer conflict on the changelog.
