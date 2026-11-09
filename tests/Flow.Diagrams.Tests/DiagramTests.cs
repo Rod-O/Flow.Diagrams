@@ -105,7 +105,7 @@ public class DiagramTests
         var register = () => diagram.RegisterComponent<NodeModel, NodeWidget>();
 
         // Assert
-        register.Should().Throw<BlazorDiagramsException>();
+        register.Should().Throw<FlowDiagramsException>();
     }
 
     private class CustomModel : Model { }

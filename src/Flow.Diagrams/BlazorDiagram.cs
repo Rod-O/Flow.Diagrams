@@ -47,11 +47,11 @@ public class BlazorDiagram : Diagram
     /// <param name="modelType">The model type to map.</param>
     /// <param name="componentType">The component that draws it.</param>
     /// <param name="replace">Whether to overwrite an existing registration for <paramref name="modelType"/>; when <c>false</c> an existing one throws.</param>
-    /// <exception cref="BlazorDiagramsException">A component is already registered for <paramref name="modelType"/> and <paramref name="replace"/> is <c>false</c>.</exception>
+    /// <exception cref="FlowDiagramsException">A component is already registered for <paramref name="modelType"/> and <paramref name="replace"/> is <c>false</c>.</exception>
     public void RegisterComponent(Type modelType, Type componentType, bool replace = false)
     {
         if (!replace && _componentsMapping.ContainsKey(modelType))
-            throw new BlazorDiagramsException($"Component already registered for model '{modelType.Name}'.");
+            throw new FlowDiagramsException($"Component already registered for model '{modelType.Name}'.");
 
         _componentsMapping[modelType] = componentType;
     }

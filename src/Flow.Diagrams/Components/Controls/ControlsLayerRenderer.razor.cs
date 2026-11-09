@@ -59,7 +59,7 @@ public partial class ControlsLayerRenderer : IDisposable
     {
         var componentType = BlazorDiagram.GetComponent(control.GetType());
         if (componentType == null)
-            throw new BlazorDiagramsException(
+            throw new FlowDiagramsException(
                 $"A component couldn't be found for the user action {control.GetType().Name}");
 
         return builder =>
