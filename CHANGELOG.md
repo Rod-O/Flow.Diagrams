@@ -30,6 +30,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   `ControlledSize` were never drawn.
 - `Diagram.SetZoom` ignored `Options.Zoom.Maximum`, so `ZoomToFit` could zoom past it.
 - A group moved by auto-sizing left its ports behind (upstream #581).
+- `LinkHalosBehavior` found only horizontal-by-vertical crossings, so diagonal straight links never got halos; any
+  two crossing segments now do, the halo laid along the upper one.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
