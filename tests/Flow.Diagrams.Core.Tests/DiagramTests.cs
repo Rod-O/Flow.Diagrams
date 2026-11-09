@@ -1,4 +1,4 @@
-﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using FluentAssertions;
 using System;
@@ -18,7 +18,7 @@ public class DiagramTests
         diagram.SetZoom(1.234);
         diagram.UpdatePan(50, 50);
         diagram.SetContainer(new Rectangle(30, 65, 1000, 793));
-        var pt = diagram.GetScreenPoint(100, 200);
+        var pt = diagram.GetScreenPoint(x: 100, y: 200);
 
         // Assert
         pt.X.Should().Be(203.4); // 2*X + panX + left
@@ -138,5 +138,55 @@ public class DiagramTests
         diagram.SetZoom(requested);
 
         diagram.Zoom.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Batch_WhenActionThrows_RestoresRefreshAndRefreshesOnce()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var refreshes = 0;
+        diagram.Changed += () => refreshes++;
+
+        // Act
+        var batch = () => diagram.Batch(() => throw new InvalidOperationException());
+
+        // Assert
+        batch.Should().Throw<InvalidOperationException>();
+        diagram.SuspendRefresh.Should().BeFalse();
+        refreshes.Should().Be(1);
+    }
+
+    [Fact]
+    public void SelectModel_WithUnselectOthers_UnselectsOthersEvenWhenModelIsAlreadySelected()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var first = diagram.Nodes.Add(new NodeModel());
+        var second = diagram.Nodes.Add(new NodeModel());
+        diagram.SelectModel(first, false);
+        diagram.SelectModel(second, false);
+
+        // Act
+        diagram.SelectModel(first, true);
+
+        // Assert
+        first.Selected.Should().BeTrue();
+        second.Selected.Should().BeFalse();
+    }
+
+    [Fact]
+    public void RegisterBehavior_ShouldThrowLibraryException_WhenTheBehaviorTypeIsAlreadyRegistered()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var behavior = diagram.GetBehavior<Flow.Diagrams.Core.Behaviors.SelectionBehavior>()!;
+
+        // Act
+        var register = () => diagram.RegisterBehavior(new Flow.Diagrams.Core.Behaviors.SelectionBehavior(diagram));
+
+        // Assert
+        behavior.Should().NotBeNull();
+        register.Should().Throw<DiagramsException>();
     }
 }

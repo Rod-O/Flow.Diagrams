@@ -7,6 +7,11 @@ using Flow.Diagrams.Core.Models;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>
+/// Moves the selected nodes, groups and other movable models while the pointer is dragged, snapping to
+/// <see cref="Options.DiagramOptions.GridSize"/> when set. Locked models and nodes of a group without auto size stay put. Registered by default.
+/// <see cref="Models.Base.MovableModel.TriggerMoved"/> is called on each moved model when the pointer is released after a real drag.
+/// </summary>
 public class DragMovablesBehavior : Behavior
 {
     private readonly Dictionary<MovableModel, Point> _initialPositions;
@@ -14,6 +19,7 @@ public class DragMovablesBehavior : Behavior
     private double? _lastClientY;
     private bool _moved;
 
+    /// <summary>Starts listening to pointer events of <paramref name="diagram"/>.</summary>
     public DragMovablesBehavior(Diagram diagram) : base(diagram)
     {
         _initialPositions = new Dictionary<MovableModel, Point>();
@@ -33,8 +39,7 @@ public class DragMovablesBehavior : Behavior
             if (sm is not MovableModel movable || movable.Locked)
                 continue;
 
-            // Special case: groups without auto size on
-            if (sm is NodeModel node && node.Group != null && !node.Group.AutoSize)
+            if (sm is NodeModel node && node.Group != null && !node.Group.AllowChildDrag)
                 continue;
 
             var position = movable.Position;
@@ -103,6 +108,7 @@ public class DragMovablesBehavior : Behavior
         return gridSize * Math.Floor((n + gridSize / 2.0) / gridSize);
     }
 
+    /// <summary>Stops listening to pointer events.</summary>
     public override void Dispose()
     {
         _initialPositions.Clear();

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "bin",
+          "files": [
+            "Flow.Diagrams.Core.dll",
+            "Flow.Diagrams.dll",
+            "Flow.Diagrams.Algorithms.dll"
+          ]
+        }
+      ],
+      "dest": "api",
+      "memberLayout": "separatePages",
+      "enumSortOrder": "declaringOrder",
+      "references": [
+        {
+          "src": "bin",
+          "files": [
+            "refs/*.dll",
+            "SvgPathProperties.dll"
+          ]
+        }
+      ]
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "index.md",
+          "toc.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "logo.svg",
+          "favicon.svg"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "Flow.Diagrams",
+      "_appTitle": "Flow.Diagrams API",
+      "_appLogoPath": "logo.svg",
+      "_appFaviconPath": "favicon.svg",
+      "_enableSearch": true,
+      "_disableContribution": true
+    }
+  }
+}

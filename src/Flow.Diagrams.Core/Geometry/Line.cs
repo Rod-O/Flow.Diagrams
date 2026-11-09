@@ -1,16 +1,21 @@
 ﻿namespace Flow.Diagrams.Core.Geometry;
 
+/// <summary>A line segment between two points, in diagram units.</summary>
 public class Line
 {
+    /// <summary>Creates the segment from <paramref name="start"/> to <paramref name="end"/>.</summary>
     public Line(Point start, Point end)
     {
         Start = start;
         End = end;
     }
 
+    /// <summary>First end of the segment.</summary>
     public Point Start { get; }
+    /// <summary>Second end of the segment.</summary>
     public Point End { get; }
 
+    /// <summary>The point where this segment crosses <paramref name="line"/>, end points included; null when they miss or are parallel (collinear overlap counts as parallel).</summary>
     public Point? GetIntersection(Line line)
     {
         var pt1Dir = new Point(End.X - Start.X, End.Y - Start.Y);
@@ -38,5 +43,6 @@ public class Line
         return new Point(Start.X + (alpha * pt1Dir.X / det), Start.Y + (alpha * pt1Dir.Y / det));
     }
 
+    /// <inheritdoc />
     public override string ToString() => $"Line from {Start} to {End}";
 }

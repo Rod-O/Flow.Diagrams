@@ -11,20 +11,24 @@ namespace Flow.Diagrams.Components.Renderers;
 /// </summary>
 public class LinkLabelsRenderer : ComponentBase, IDisposable
 {
+    /// <summary>The link whose labels are drawn; required.</summary>
     [Parameter] public BaseLinkModel Link { get; set; } = null!;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Link.Changed -= OnLinkChanged;
         Link.VisibilityChanged -= OnLinkChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         Link.Changed += OnLinkChanged;
         Link.VisibilityChanged += OnLinkChanged;
     }
 
+    /// <summary>Draws the link's labels along its path; nothing when the link is invisible, has no labels or has no path yet.</summary>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Link.Visible || Link.Labels.Count == 0 || Link.PathGeneratorResult is not { } result)

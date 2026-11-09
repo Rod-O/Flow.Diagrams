@@ -29,11 +29,13 @@
         Node(260, y + 50, "Obstacle");
         var to = Node(480, y + 90, "To");
 
+        #region router
         var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!)
         {
             Router = router,
             TargetMarker = LinkMarker.Arrow,
         };
+        #endregion
         link.Labels.Add(new LinkLabelModel(link, label, 0.15));
         Diagram.Links.Add(link);
     }

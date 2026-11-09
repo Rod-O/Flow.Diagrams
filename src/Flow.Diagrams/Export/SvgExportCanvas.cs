@@ -14,10 +14,14 @@ namespace Flow.Diagrams.Export;
 /// </summary>
 public sealed class SvgExportCanvas : ComponentBase
 {
+    /// <summary>The diagram to draw; required.</summary>
     [Parameter] public BlazorDiagram Diagram { get; set; } = null!;
+    /// <summary>The region of the diagram to draw, in diagram units; becomes the <c>viewBox</c> and, with <see cref="SvgExportOptions.Unit"/>, the document's size. Required.</summary>
     [Parameter] public Rectangle ViewBox { get; set; } = null!;
+    /// <summary>Unit, background and embedded stylesheet of the document. Required.</summary>
     [Parameter] public SvgExportOptions Options { get; set; } = null!;
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var (x, y, w, h) = (ViewBox.Left, ViewBox.Top, ViewBox.Width, ViewBox.Height);

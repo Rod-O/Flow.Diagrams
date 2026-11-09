@@ -1,0 +1,61 @@
+name: Release
+
+# Push a tag vX.Y.Z whose version matches <Version> in src/Directory.Build.props. The workflow tests on every target,
+# packs, creates the GitHub release with the CHANGELOG section as notes, and pushes to nuget.org once the repository
+# variable NUGET_USER (the nuget.org account, with a Trusted Publishing policy for this workflow) is set.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Tag matches the version
+        run: |
+          version=$(dotnet msbuild src/Flow.Diagrams.Core -getProperty:Version)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match Version $version"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Test
+        run: |
+          dotnet test tests/Flow.Diagrams.Core.Tests -c Release
+          dotnet test tests/Flow.Diagrams.Tests -c Release
+
+      - name: Pack
+        run: |
+          for p in Flow.Diagrams.Core Flow.Diagrams Flow.Diagrams.Algorithms; do
+            dotnet pack src/$p -c Release -o artifacts
+          done
+
+      - name: Release notes from the CHANGELOG
+        run: awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} on && /^## / {exit} on' CHANGELOG.md > notes.md
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg --title "Flow.Diagrams $VERSION" --notes-file notes.md
+
+      - name: nuget.org login
+        id: nuget
+        if: vars.NUGET_USER != ''
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to nuget.org
+        if: vars.NUGET_USER != ''
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

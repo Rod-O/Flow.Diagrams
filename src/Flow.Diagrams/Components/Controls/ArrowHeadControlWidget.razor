@@ -1,12 +1,14 @@
-﻿<g transform="rotate(@Control.Angle.ToInvariantString())">
+﻿<g transform="rotate(@Control.GetAngle(Model).ToInvariantString())">
     <path d="@Control.Marker.Path" fill="black" cursor="move"></path>
 </g>
 
 @code
 {
+    /// <summary>The control being drawn; supplies the marker and its angle.</summary>
     [Parameter]
     public ArrowHeadControl Control { get; set; } = null!;
 
+    /// <summary>The link the control belongs to.</summary>
     [Parameter]
     public BaseLinkModel Model { get; set; } = null!;
 }

@@ -1,3 +1,4 @@
+using Flow.Diagrams.Core;
 ﻿using Flow.Diagrams.Components;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
@@ -79,6 +80,36 @@ public class DiagramTests
         componentType.Should().BeNull();
     }
 
+    [Fact]
+    public void GetComponentForModel_ShouldReturnNearestRegisteredAncestor_WhenSubclassIsNotRegistered()
+    {
+        // Arrange
+        var diagram = new BlazorDiagram();
+        diagram.RegisterComponent<Model, NodeWidget>();
+        diagram.RegisterComponent<CustomModel, CustomWidget>();
+
+        // Act
+        var componentType = diagram.GetComponent<DerivedCustomModel>();
+
+        // Assert
+        componentType.Should().Be(typeof(CustomWidget));
+    }
+
+    [Fact]
+    public void RegisterComponent_ShouldThrowLibraryException_WhenModelTypeIsAlreadyRegistered()
+    {
+        // Arrange
+        var diagram = new BlazorDiagram();
+        diagram.RegisterComponent<NodeModel, NodeWidget>();
+
+        // Act
+        var register = () => diagram.RegisterComponent<NodeModel, NodeWidget>();
+
+        // Assert
+        register.Should().Throw<DiagramsException>();
+    }
+
     private class CustomModel : Model { }
+    private class DerivedCustomModel : CustomModel { }
     private class CustomWidget : ComponentBase { }
 }

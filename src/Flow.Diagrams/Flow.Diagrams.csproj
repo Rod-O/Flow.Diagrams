@@ -2,14 +2,10 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <Authors>Rodolfo Ochoa, zHaytam</Authors>
+    <Authors>Rodolfo Ochoa</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AssemblyVersion>3.0.4.1</AssemblyVersion>
-    <FileVersion>3.0.4.1</FileVersion>
     <RepositoryUrl>https://github.com/Rod-O/Flow.Diagrams</RepositoryUrl>
-    <Description>A fully customizable and extensible all-purpose diagrams library for Blazor</Description>
-    <Version>3.0.4.1</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>SVG-first diagram library for Blazor: nodes, ports, links and groups, obstacle-avoiding routing, layers, crossing halos and SVG export.</Description>
     <PackageTags>blazor diagrams diagramming svg drag</PackageTags>
     <PackageId>Flow.Diagrams</PackageId>
     <PackageProjectUrl>https://github.com/Rod-O/Flow.Diagrams</PackageProjectUrl>

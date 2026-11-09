@@ -14,27 +14,77 @@ using Flow.Diagrams.Core.Controls;
 
 namespace Flow.Diagrams.Core;
 
+/// <summary>
+/// The model of one diagram: its <see cref="Nodes"/>, <see cref="Links"/> and <see cref="Groups"/>, the pan and zoom
+/// of its viewport, the registered <see cref="Behavior"/>s, and the pointer, keyboard and wheel events that drive
+/// them. It renders nothing itself; the Blazor subclass <c>BlazorDiagram</c> in the Flow.Diagrams package does.
+/// Pan and zoom are in screen pixels and a unitless scale; positions of models are in diagram units. Changes call
+/// <see cref="Refresh"/>, which raises <see cref="Changed"/> so the renderer redraws.
+/// </summary>
 public abstract class Diagram
 {
     private readonly Dictionary<Type, Behavior> _behaviors;
     private readonly List<SelectableModel> _orderedSelectables;
 
+    /// <summary>
+    /// Raised when a pointer button goes down; the argument is the model under the pointer, or <c>null</c> on the
+    /// empty canvas. Raised by the renderer through <see cref="TriggerPointerDown"/>.
+    /// </summary>
     public event Action<Model?, PointerEventArgs>? PointerDown;
+    /// <summary>
+    /// Raised when the pointer moves over the canvas; the model argument is always <c>null</c> when raised by the
+    /// canvas component.
+    /// </summary>
     public event Action<Model?, PointerEventArgs>? PointerMove;
+    /// <summary>
+    /// Raised when a pointer button goes up; the argument is the model under the pointer, or <c>null</c> on the empty
+    /// canvas.
+    /// </summary>
     public event Action<Model?, PointerEventArgs>? PointerUp;
+    /// <summary>Raised when the pointer enters a node, group or link; the argument is that model.</summary>
     public event Action<Model?, PointerEventArgs>? PointerEnter;
+    /// <summary>Raised when the pointer leaves a node, group or link; the argument is that model.</summary>
     public event Action<Model?, PointerEventArgs>? PointerLeave;
+    /// <summary>Raised when a key is pressed while the canvas has focus.</summary>
     public event Action<KeyboardEventArgs>? KeyDown;
+    /// <summary>
+    /// Raised when the mouse wheel turns over the canvas; <see cref="Behaviors.ZoomBehavior"/> uses it to zoom.
+    /// </summary>
     public event Action<WheelEventArgs>? Wheel;
+    /// <summary>
+    /// Raised on pointer up when the pointer did not move since the matching pointer down on the same model. Raised
+    /// only while <see cref="Behaviors.EventsBehavior"/> is registered.
+    /// </summary>
     public event Action<Model?, PointerEventArgs>? PointerClick;
+    /// <summary>
+    /// Raised right after a <see cref="PointerClick"/> that follows the previous click within 500 ms. Raised only
+    /// while <see cref="Behaviors.EventsBehavior"/> is registered.
+    /// </summary>
     public event Action<Model?, PointerEventArgs>? PointerDoubleClick;
 
+    /// <summary>
+    /// Raised once for each model that becomes selected or unselected; <see cref="UnselectAll"/> therefore raises it
+    /// once per selected model. The argument is that model, whose <see cref="SelectableModel.Selected"/> is already
+    /// updated.
+    /// </summary>
     public event Action<SelectableModel>? SelectionChanged;
+    /// <summary>Raised after <see cref="Pan"/> changes.</summary>
     public event Action? PanChanged;
+    /// <summary>Raised after <see cref="Zoom"/> changes.</summary>
     public event Action? ZoomChanged;
+    /// <summary>Raised after <see cref="Container"/> is set to a different rectangle.</summary>
     public event Action? ContainerChanged;
+    /// <summary>
+    /// Raised by <see cref="Refresh"/> whenever something in the diagram changed and it should be redrawn. Not raised
+    /// while <see cref="SuspendRefresh"/> is <c>true</c>.
+    /// </summary>
     public event Action? Changed;
 
+    /// <summary>
+    /// Creates the layers and, unless <paramref name="registerDefaultBehaviors"/> is <c>false</c>, registers the
+    /// default behaviors (selection, dragging, link creation, pan, zoom, events, keyboard shortcuts, controls and
+    /// virtualization).
+    /// </summary>
     protected Diagram(bool registerDefaultBehaviors = true)
     {
         _behaviors = new Dictionary<Type, Behavior>();
@@ -67,18 +117,50 @@ public abstract class Diagram
         RegisterBehavior(new VirtualizationBehavior(this));
     }
 
+    /// <summary>
+    /// The options that configure this diagram's behaviors; read each time they apply, so changes take effect
+    /// immediately.
+    /// </summary>
     public abstract DiagramOptions Options { get; }
+    /// <summary>The nodes of the diagram, excluding groups.</summary>
     public NodeLayer Nodes { get; }
+    /// <summary>The links of the diagram.</summary>
     public LinkLayer Links { get; }
+    /// <summary>The groups of the diagram; a group is not also in <see cref="Nodes"/>.</summary>
     public GroupLayer Groups { get; }
+    /// <summary>The controls (such as the remove button) attached to models.</summary>
     public ControlsLayer Controls { get; }
+    /// <summary>
+    /// The canvas rectangle in client (screen) pixels, or <c>null</c> until the renderer has measured it and called
+    /// <see cref="SetContainer"/>. Coordinate conversions and zoom-to-fit need it.
+    /// </summary>
     public Rectangle? Container { get; private set; }
+    /// <summary>
+    /// The translation of the viewport in screen pixels; change it with <see cref="SetPan"/> or <see
+    /// cref="UpdatePan"/>.
+    /// </summary>
     public Point Pan { get; private set; } = Point.Zero;
+    /// <summary>The scale of the viewport, 1 by default; change it with <see cref="SetZoom"/>.</summary>
     public double Zoom { get; private set; } = 1;
+    /// <summary>
+    /// While <c>true</c>, <see cref="Refresh"/> does nothing. Prefer <see cref="Batch"/>, which restores it for you.
+    /// </summary>
     public bool SuspendRefresh { get; set; }
+    /// <summary>
+    /// While <c>true</c>, changing <see cref="SelectableModel.Order"/> or <see cref="SelectableModel.Layer"/> does
+    /// not re-sort <see cref="OrderedSelectables"/>. The ordering methods set it internally and always restore it;
+    /// leave it <c>false</c>.
+    /// </summary>
     public bool SuspendSorting { get; set; }
+    /// <summary>
+    /// Every node, link and group in drawing order (by <see cref="SelectableModel.Layer"/>, then <see
+    /// cref="SelectableModel.Order"/>), back to front. This is a live view; link vertices are not in it.
+    /// </summary>
     public IReadOnlyList<SelectableModel> OrderedSelectables => _orderedSelectables;
 
+    /// <summary>
+    /// Raises <see cref="Changed"/> so the diagram is redrawn, unless <see cref="SuspendRefresh"/> is <c>true</c>.
+    /// </summary>
     public void Refresh()
     {
         if (SuspendRefresh)
@@ -87,6 +169,12 @@ public abstract class Diagram
         Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Runs <paramref name="action"/> with refreshes suspended and calls <see cref="Refresh"/> once afterwards.
+    /// Inside an outer batch (or any suspended refresh) it only runs the action and leaves the refresh to the outer
+    /// caller. If the action throws, refreshes are still restored and the diagram refreshed (whatever the action
+    /// changed before throwing is drawn), then the exception propagates.
+    /// </summary>
     public void Batch(Action action)
     {
         if (SuspendRefresh)
@@ -98,13 +186,23 @@ public abstract class Diagram
         }
 
         SuspendRefresh = true;
-        action();
-        SuspendRefresh = false;
-        Refresh();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            SuspendRefresh = false;
+            Refresh();
+        }
     }
 
     #region Selection
 
+    /// <summary>
+    /// Lazily enumerates the selected nodes, then for each link the link itself and its selected vertices, then the
+    /// selected groups.
+    /// </summary>
     public IEnumerable<SelectableModel> GetSelectedModels()
     {
         foreach (var node in Nodes)
@@ -132,19 +230,34 @@ public abstract class Diagram
         }
     }
 
+    /// <summary>
+    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. With <paramref
+    /// name="unselectOthers"/>, everything else is unselected first. If it is already selected, it is left as is
+    /// (no refresh, no event for it); only the others are unselected.
+    /// </summary>
     public void SelectModel(SelectableModel model, bool unselectOthers)
     {
+        if (unselectOthers)
+        {
+            foreach (var other in GetSelectedModels().ToList())
+            {
+                if (other != model)
+                    UnselectModel(other);
+            }
+        }
+
         if (model.Selected)
             return;
-
-        if (unselectOthers)
-            UnselectAll();
 
         model.Selected = true;
         model.Refresh();
         SelectionChanged?.Invoke(model);
     }
 
+    /// <summary>
+    /// Unselects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>; does nothing if it
+    /// is not selected.
+    /// </summary>
     public void UnselectModel(SelectableModel model)
     {
         if (!model.Selected)
@@ -155,6 +268,9 @@ public abstract class Diagram
         SelectionChanged?.Invoke(model);
     }
 
+    /// <summary>
+    /// Unselects every selected model, refreshing each and raising <see cref="SelectionChanged"/> once per model.
+    /// </summary>
     public void UnselectAll()
     {
         foreach (var model in GetSelectedModels())
@@ -170,21 +286,34 @@ public abstract class Diagram
 
     #region Behaviors
 
+    /// <summary>
+    /// Adds <paramref name="behavior"/>, keyed by its exact type. Throws <see cref="Exception"/> if a behavior of
+    /// that type is already registered.
+    /// </summary>
     public void RegisterBehavior(Behavior behavior)
     {
         var type = behavior.GetType();
         if (_behaviors.ContainsKey(type))
-            throw new Exception($"Behavior '{type.Name}' already registered");
+            throw new DiagramsException($"Behavior '{type.Name}' already registered");
 
         _behaviors.Add(type, behavior);
     }
 
+    /// <summary>
+    /// Returns the registered behavior whose exact type is <typeparamref name="T"/>; when there is none, a registered
+    /// behavior that derives from <typeparamref name="T"/> (if several do, which one is unspecified); otherwise <c>null</c>.
+    /// </summary>
     public T? GetBehavior<T>() where T : Behavior
     {
-        var type = typeof(T);
-        return (T?)(_behaviors.ContainsKey(type) ? _behaviors[type] : null);
+        if (_behaviors.TryGetValue(typeof(T), out var exact))
+            return (T)exact;
+
+        return _behaviors.Values.OfType<T>().FirstOrDefault();
     }
 
+    /// <summary>
+    /// Disposes and removes the behavior whose exact type is <typeparamref name="T"/>; does nothing if there is none.
+    /// </summary>
     public void UnregisterBehavior<T>() where T : Behavior
     {
         var type = typeof(T);
@@ -197,6 +326,11 @@ public abstract class Diagram
 
     #endregion
 
+    /// <summary>
+    /// Sets zoom and pan so the selected nodes fit in <see cref="Container"/>, or all nodes when none is selected,
+    /// with <paramref name="margin"/> diagram units around them. Only nodes count (not links) and the zoom is clamped
+    /// to <see cref="DiagramZoomOptions"/>. Does nothing without a container or nodes.
+    /// </summary>
     public void ZoomToFit(double margin = 10)
     {
         if (Container == null || Nodes.Count == 0)
@@ -224,6 +358,10 @@ public abstract class Diagram
         Refresh();
     }
 
+    /// <summary>
+    /// Sets <see cref="Pan"/> to (<paramref name="x"/>, <paramref name="y"/>) screen pixels, raises <see
+    /// cref="PanChanged"/> and refreshes.
+    /// </summary>
     public void SetPan(double x, double y)
     {
         Pan = new Point(x, y);
@@ -231,6 +369,9 @@ public abstract class Diagram
         Refresh();
     }
 
+    /// <summary>
+    /// Moves <see cref="Pan"/> by the given screen pixels, raises <see cref="PanChanged"/> and refreshes.
+    /// </summary>
     public void UpdatePan(double deltaX, double deltaY)
     {
         Pan = Pan.Add(deltaX, deltaY);
@@ -238,6 +379,12 @@ public abstract class Diagram
         Refresh();
     }
 
+    /// <summary>
+    /// Sets <see cref="Zoom"/>, clamped to <see cref="DiagramZoomOptions.Minimum"/> and <see
+    /// cref="DiagramZoomOptions.Maximum"/>, raises <see cref="ZoomChanged"/> and refreshes. <see cref="Pan"/> is left
+    /// as it is, so the view zooms about the viewport origin. Throws <see cref="ArgumentException"/> when <paramref
+    /// name="newZoom"/> is zero or negative.
+    /// </summary>
     public void SetZoom(double newZoom)
     {
         if (newZoom <= 0)
@@ -250,6 +397,10 @@ public abstract class Diagram
         Refresh();
     }
 
+    /// <summary>
+    /// Stores the canvas rectangle; does nothing if it equals the current one. Called by the renderer when the canvas
+    /// is measured or resized.
+    /// </summary>
     public void SetContainer(Rectangle newRect)
     {
         if (newRect.Equals(Container))
@@ -260,35 +411,52 @@ public abstract class Diagram
         Refresh();
     }
 
+    /// <summary>
+    /// Converts a client (screen) position into diagram coordinates, undoing the container offset, <see cref="Pan"/>
+    /// and <see cref="Zoom"/>. Throws if <see cref="Container"/> is not set yet.
+    /// </summary>
     public Point GetRelativeMousePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point((clientX - Container.Left - Pan.X) / Zoom, (clientY - Container.Top - Pan.Y) / Zoom);
     }
 
+    /// <summary>
+    /// Converts a client position into pixels relative to the canvas, without applying pan or zoom. Throws if <see
+    /// cref="Container"/> is not set yet.
+    /// </summary>
     public Point GetRelativePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point(clientX - Container.Left, clientY - Container.Top);
     }
 
-    public Point GetScreenPoint(double clientX, double clientY)
+    /// <summary>
+    /// Converts a position in diagram coordinates into client pixels; the inverse of <see
+    /// cref="GetRelativeMousePoint"/>. Throws if <see cref="Container"/> is not set yet.
+    /// </summary>
+    public Point GetScreenPoint(double x, double y)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
-        return new Point(Zoom * clientX + Container.Left + Pan.X, Zoom * clientY + Container.Top + Pan.Y);
+        return new Point(Zoom * x + Container.Left + Pan.X, Zoom * y + Container.Top + Pan.Y);
     }
 
     #region Ordering
 
+    /// <summary>
+    /// Draws <paramref name="model"/> behind every other model in its <see cref="SelectableModel.Layer"/> by
+    /// renumbering all <see cref="SelectableModel.Order"/> values, then refreshes. Does nothing if the model is not
+    /// in this diagram.
+    /// </summary>
     public void SendToBack(SelectableModel model)
     {
         var minOrder = GetMinOrder();
@@ -313,6 +481,11 @@ public abstract class Diagram
         });
     }
 
+    /// <summary>
+    /// Draws <paramref name="model"/> in front of every other model in its <see cref="SelectableModel.Layer"/> by
+    /// giving it an <see cref="SelectableModel.Order"/> above the current maximum, then refreshes. Does nothing if
+    /// the model is not in this diagram.
+    /// </summary>
     public void SendToFront(SelectableModel model)
     {
         var maxOrder = GetMaxOrder();
@@ -332,11 +505,19 @@ public abstract class Diagram
     }
 
     // The list is sorted by layer first, so its ends hold the extreme orders only when every model is in one layer.
+    /// <summary>
+    /// The smallest <see cref="SelectableModel.Order"/> of any node, link or group, across all layers; 0 when the
+    /// diagram is empty.
+    /// </summary>
     public int GetMinOrder()
     {
         return _orderedSelectables.Count > 0 ? _orderedSelectables.Min(m => m.Order) : 0;
     }
 
+    /// <summary>
+    /// The largest <see cref="SelectableModel.Order"/> of any node, link or group, across all layers; 0 when the
+    /// diagram is empty.
+    /// </summary>
     public int GetMaxOrder()
     {
         return _orderedSelectables.Count > 0 ? _orderedSelectables.Max(m => m.Order) : 0;
@@ -398,22 +579,39 @@ public abstract class Diagram
 
     #region Events
 
+    /// <summary>
+    /// Raises <see cref="PointerDown"/>. The renderer calls it; call it yourself to simulate input.
+    /// </summary>
     public void TriggerPointerDown(Model? model, PointerEventArgs e) => PointerDown?.Invoke(model, e);
 
+    /// <summary>Raises <see cref="PointerMove"/>.</summary>
     public void TriggerPointerMove(Model? model, PointerEventArgs e) => PointerMove?.Invoke(model, e);
 
+    /// <summary>Raises <see cref="PointerUp"/>.</summary>
     public void TriggerPointerUp(Model? model, PointerEventArgs e) => PointerUp?.Invoke(model, e);
 
+    /// <summary>Raises <see cref="PointerEnter"/>.</summary>
     public void TriggerPointerEnter(Model? model, PointerEventArgs e) => PointerEnter?.Invoke(model, e);
 
+    /// <summary>Raises <see cref="PointerLeave"/>.</summary>
     public void TriggerPointerLeave(Model? model, PointerEventArgs e) => PointerLeave?.Invoke(model, e);
 
+    /// <summary>Raises <see cref="KeyDown"/>.</summary>
     public void TriggerKeyDown(KeyboardEventArgs e) => KeyDown?.Invoke(e);
 
+    /// <summary>Raises <see cref="Wheel"/>.</summary>
     public void TriggerWheel(WheelEventArgs e) => Wheel?.Invoke(e);
 
+    /// <summary>
+    /// Raises <see cref="PointerClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it when a press and release
+    /// land on the same model without movement.
+    /// </summary>
     public void TriggerPointerClick(Model? model, PointerEventArgs e) => PointerClick?.Invoke(model, e);
 
+    /// <summary>
+    /// Raises <see cref="PointerDoubleClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it for two clicks within
+    /// 500 ms.
+    /// </summary>
     public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e) => PointerDoubleClick?.Invoke(model, e);
 
     #endregion

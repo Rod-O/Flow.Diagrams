@@ -5,8 +5,13 @@ using System.Linq;
 
 namespace Flow.Diagrams.Core.Extensions;
 
+/// <summary>Extension methods over diagram models.</summary>
 public static class DiagramExtensions
 {
+    /// <summary>
+    /// The smallest rectangle containing every node that has a <see cref="NodeModel.Size"/>, in diagram units; nodes
+    /// without a size are skipped. Returns <see cref="Rectangle.Zero"/> for an empty sequence.
+    /// </summary>
     public static Rectangle GetBounds(this IEnumerable<NodeModel> nodes)
     {
         if (!nodes.Any())

@@ -15,6 +15,7 @@ public class LinkHalosBehavior : Behavior
 {
     private readonly Dictionary<BaseLinkModel, List<Point>?> _polylines = new();
 
+    /// <summary>Computes the halos of the links already in <paramref name="diagram"/> and keeps them current from then on.</summary>
     public LinkHalosBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.Links.Added += OnLinkAdded;
@@ -30,6 +31,7 @@ public class LinkHalosBehavior : Behavior
     /// <summary>Whether two links never break each other. By default, links that share a port.</summary>
     protected virtual bool SameNet(BaseLinkModel a, BaseLinkModel b) => LinkGeometry.SharePort(a, b);
 
+    /// <summary>Stops tracking links; halos already set stay on the links.</summary>
     public override void Dispose()
     {
         Diagram.Links.Added -= OnLinkAdded;
@@ -80,7 +82,9 @@ public class LinkHalosBehavior : Behavior
     /// <summary>Recomputes the halos of <paramref name="changed"/> and of every link drawn above it (all links when null).</summary>
     private void UpdateFrom(BaseLinkModel? changed)
     {
-        var drawn = Diagram.OrderedSelectables.OfType<BaseLinkModel>().Where(l => l.Visible).ToList();
+        // Sorted here: SendToFront and SendToBack raise OrderChanged before the diagram re-sorts its list.
+        var drawn = Diagram.OrderedSelectables.OfType<BaseLinkModel>().Where(l => l.Visible)
+            .OrderBy(l => l.Layer).ThenBy(l => l.Order).ToList();
         var start = changed == null ? 0 : drawn.IndexOf(changed);
         if (start < 0)
             return;
@@ -103,7 +107,7 @@ public class LinkHalosBehavior : Behavior
                 foreach (var (a, b) in LinkGeometry.Segments(over))
                 foreach (var (c, d) in LinkGeometry.Segments(under))
                     if (LinkGeometry.Crossing(a, b, c, d) is { } at)
-                        halos.Add(Halo(at, LinkGeometry.Horizontal(a, b), StrokeWidth(link), StrokeWidth(drawn[lower])));
+                        halos.Add(Halo(at, a, b, d - c, StrokeWidth(link), StrokeWidth(drawn[lower])));
             }
             link.SetHalos(halos);
         }
@@ -115,12 +119,24 @@ public class LinkHalosBehavior : Behavior
     private bool Straight(BaseLinkModel link) =>
         (link.PathGenerator ?? Diagram.Options.Links.DefaultPathGenerator) is StraightPathGenerator;
 
-    private LinkHalo Halo(Point at, bool alongHorizontal, double overWidth, double underWidth)
+    /// <summary>
+    /// The halo at <paramref name="at"/>, laid along the upper segment from <paramref name="a"/> to <paramref
+    /// name="b"/>: long enough to clear the lower stroke, running along <paramref name="under"/>, by the clearance on
+    /// each side, which takes longer the shallower the crossing.
+    /// </summary>
+    private LinkHalo Halo(Point at, Point a, Point b, Point under, double overWidth, double underWidth)
     {
         var half = underWidth / 2 + Clearance;
-        var (start, end) = alongHorizontal
-            ? (new Point(at.X - half, at.Y), new Point(at.X + half, at.Y))
-            : (new Point(at.X, at.Y - half), new Point(at.X, at.Y + half));
-        return new LinkHalo(start, end, overWidth + 2 * Clearance);
+        var width = overWidth + 2 * Clearance;
+        if (LinkGeometry.Horizontal(a, b) && Math.Abs(under.X) < 1e-6)
+            return new LinkHalo(new Point(at.X - half, at.Y), new Point(at.X + half, at.Y), width);
+        if (Math.Abs(a.X - b.X) < 1e-6 && Math.Abs(under.Y) < 1e-6)
+            return new LinkHalo(new Point(at.X, at.Y - half), new Point(at.X, at.Y + half), width);
+
+        var along = (b - a).Normalize();
+        // Below about 15 degrees the halo would erase a long run of the lower link; it stays at four times its square length.
+        var sine = Math.Max(Math.Abs(LinkGeometry.Cross(along, under.Normalize())), 0.25);
+        var offset = along.Multiply(half / sine);
+        return new LinkHalo(at - offset, at + offset, width);
     }
 }

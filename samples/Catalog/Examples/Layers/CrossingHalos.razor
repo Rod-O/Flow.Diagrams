@@ -1,6 +1,6 @@
 @inherits ExampleBase
 @attribute [Example("crossing-halos", "Crossing halos", ExampleCategory.Layers,
-    "Where a link crosses one drawn below it, a halo in the background colour breaks the lower link, so the crossing reads as a bridge. Toggle LinkHalosBehavior to compare; select a lower link and bring it to the front to swap who bridges.",
+    "Where a link crosses one drawn below it, a halo in the background colour breaks the lower link, so the crossing reads as a bridge. Toggle LinkHalosBehavior to compare. The draw-order example swaps which link bridges.",
     Order = 2, New = true)]
 
 <div class="example-column">
@@ -15,10 +15,12 @@
 
     protected override void OnInitialized()
     {
+        #region halos
         Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
         Diagram.Options.Links.HaloColor = "white";
         Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+        #endregion
 
         var west = Node(40, 120, "West");
         var east = Node(560, 120, "East");

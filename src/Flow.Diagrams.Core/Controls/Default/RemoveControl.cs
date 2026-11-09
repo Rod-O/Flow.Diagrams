@@ -7,22 +7,27 @@ using Flow.Diagrams.Core.Positions;
 
 namespace Flow.Diagrams.Core.Controls.Default;
 
+/// <summary>A delete button for a group, node or link. Honors <see cref="Models.Base.Model.Locked"/> and the <see cref="Options.DiagramOptions.Constraints"/> delete checks.</summary>
 public class RemoveControl : ExecutableControl
 {
     private readonly IPositionProvider _positionProvider;
 
+    /// <summary>Creates a button at fractions <paramref name="x"/> and <paramref name="y"/> of the model's bounds, shifted by the offsets; see <see cref="BoundsBasedPositionProvider"/>.</summary>
     public RemoveControl(double x, double y, double offsetX = 0, double offsetY = 0)
         : this(new BoundsBasedPositionProvider(x, y, offsetX, offsetY))
     {
     }
 
+    /// <summary>Creates a button placed by <paramref name="positionProvider"/>.</summary>
     public RemoveControl(IPositionProvider positionProvider)
     {
         _positionProvider = positionProvider;
     }
 
+    /// <inheritdoc />
     public override Point? GetPosition(Model model) => _positionProvider.GetPosition(model);
 
+    /// <summary>Deletes the model when it is not locked and the matching <c>ShouldDelete*</c> constraint returns true; other kinds of model are ignored.</summary>
     public override async ValueTask OnPointerDown(Diagram diagram, Model model, PointerEventArgs _)
     {
         if (await ShouldDeleteModel(diagram, model))

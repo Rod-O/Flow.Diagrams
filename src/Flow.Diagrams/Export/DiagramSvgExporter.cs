@@ -1,5 +1,5 @@
-#if NET8_0_OR_GREATER
 using System.Text.RegularExpressions;
+using Flow.Diagrams.Core.Behaviors;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
@@ -18,13 +18,39 @@ namespace Flow.Diagrams.Export;
 /// </summary>
 public static class DiagramSvgExporter
 {
+    /// <summary>
+    /// Renders the diagram's SVG layer to a standalone SVG document sized to the visible SVG nodes, SVG groups and links plus
+    /// <see cref="SvgExportOptions.Margin"/>; the document is empty but for the margin when there are none.
+    /// </summary>
+    /// <param name="diagram">The diagram to export.</param>
     /// <param name="services">
     /// The app's services: the renderers resolve theirs (such as <c>IJSRuntime</c>) from it, though a static render
     /// never calls them.
     /// </param>
+    /// <param name="options">Appearance of the document; <c>null</c> uses the defaults of <see cref="SvgExportOptions"/>.</param>
+    /// <remarks>
+    /// Models hidden through <see cref="Core.Models.Base.Model.Visible"/> are left out; models hidden only by virtualization
+    /// are included: they are shown for the duration of the export (the live diagram redraws them) and hidden again after it.
+    /// </remarks>
     public static async Task<SvgExport> ExportAsync(BlazorDiagram diagram, IServiceProvider services, SvgExportOptions? options = null)
     {
         options ??= new SvgExportOptions();
+        var virtualization = diagram.GetBehavior<VirtualizationBehavior>();
+        var virtualized = virtualization?.HiddenModels.ToList() ?? new List<Model>();
+        foreach (var model in virtualized)
+            model.Visible = true;
+        try
+        {
+            return await ExportVisibleAsync(diagram, services, options);
+        }
+        finally
+        {
+            virtualization?.CheckVisibility();
+        }
+    }
+
+    private static async Task<SvgExport> ExportVisibleAsync(BlazorDiagram diagram, IServiceProvider services, SvgExportOptions options)
+    {
         var html = HtmlModels(diagram);
         var viewBox = Bounds(diagram) is { } b
             ? new Rectangle(b.Left - options.Margin, b.Top - options.Margin, b.Right + options.Margin, b.Bottom + options.Margin)
@@ -78,4 +104,3 @@ public static class DiagramSvgExporter
         return html;
     }
 }
-#endif

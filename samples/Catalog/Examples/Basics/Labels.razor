@@ -5,7 +5,7 @@
 <div class="example-column">
     <ExampleToolbar>
         <label><input type="checkbox" checked="@Diagram.Options.Links.SvgLabels" @onchange="SetSvgLabels" /> SVG labels</label>
-        <span class="dim">HTML labels sit in the node layer; SVG labels are part of the link and export as vectors.</span>
+        <span class="dim">HTML labels are a foreignObject inside the link's SVG and do not export; SVG labels are text and export as vectors.</span>
     </ExampleToolbar>
     <ExampleCanvas Diagram="Diagram" />
 </div>
@@ -13,6 +13,7 @@
 @code {
     protected override void OnInitialized()
     {
+        #region labels
         Row(0, link => link.AddLabel("Content"));
         Row(1, link =>
         {
@@ -29,6 +30,7 @@
             link.AddLabel("above", 0.5, new Point(0, -20));
             link.AddLabel("below", 0.5, new Point(0, 20));
         });
+        #endregion
     }
 
     private void SetSvgLabels(ChangeEventArgs e)

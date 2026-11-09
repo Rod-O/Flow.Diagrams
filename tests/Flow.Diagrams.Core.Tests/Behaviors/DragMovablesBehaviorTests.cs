@@ -102,12 +102,12 @@ public class DragMovablesBehaviorTests
     }
 
     [Fact]
-    public void Behavior_ShouldNotCallSetPosition_WhenGroupHasNoAutoSize()
+    public void Behavior_ShouldNotCallSetPosition_WhenGroupDisallowsChildDrag()
     {
         // Arrange
         var diagram = new TestDiagram();
         var nodeMock = new Mock<NodeModel>(Point.Zero);
-        var group = new GroupModel(new[] { nodeMock.Object }, autoSize: false);
+        var group = new GroupModel(new[] { nodeMock.Object }, allowChildDrag: false);
         var node = diagram.Nodes.Add(nodeMock.Object);
         diagram.SelectModel(node, false);
 
@@ -122,12 +122,12 @@ public class DragMovablesBehaviorTests
     }
 
     [Fact]
-    public void Behavior_ShouldCallSetPosition_WhenGroupHasAutoSize()
+    public void Behavior_ShouldCallSetPosition_WhenGroupAllowsChildDrag()
     {
         // Arrange
         var diagram = new TestDiagram();
         var nodeMock = new Mock<NodeModel>(Point.Zero);
-        var group = new GroupModel(new[] { nodeMock.Object }, autoSize: true);
+        var group = new GroupModel(new[] { nodeMock.Object }, allowChildDrag: true);
         var node = diagram.Nodes.Add(nodeMock.Object);
         diagram.SelectModel(node, false);
 

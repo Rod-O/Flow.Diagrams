@@ -24,12 +24,16 @@ public class ObstacleRouter : Router
 
     private readonly Router _fallbackRouter;
 
+    /// <summary>Creates the router.</summary>
+    /// <param name="options">The routing costs; defaults when null.</param>
+    /// <param name="fallbackRouter">Used when a link has an end this router cannot route (not a port anchor on a measured node); <see cref="NormalRouter"/> when null.</param>
     public ObstacleRouter(ObstacleRouterOptions? options = null, Router? fallbackRouter = null)
     {
         Options = options ?? new ObstacleRouterOptions();
         _fallbackRouter = fallbackRouter ?? new NormalRouter();
     }
 
+    /// <summary>The costs and clearances this router was created with.</summary>
     public ObstacleRouterOptions Options { get; }
 
     /// <summary>Routes every link that uses this router, then re-routes each against all the others.</summary>
@@ -44,6 +48,12 @@ public class ObstacleRouter : Router
         });
     }
 
+    /// <inheritdoc />
+    /// <remarks>Vertices are ignored, so <c>false</c>.</remarks>
+    public override bool FollowsVertices => false;
+
+    /// <inheritdoc />
+    /// <remarks>Returns an empty route when the two ports face each other on one line with nothing in between.</remarks>
     public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
     {
         if (ResolveEnd(link, link.Source) is not { } from || ResolveEnd(link, link.Target) is not { } to)
@@ -53,7 +63,7 @@ public class ObstacleRouter : Router
         if (Facing(from, to) && !obstacles.Any(o => !o.Equals(from.Owner) && !o.Equals(to.Owner) && CutBy(o, from.At, to.At)))
             return Array.Empty<Point>();
 
-        var s = StubEnd(from, 1);
+        var s = StubEnd(from, link.SourceMarker != null ? Options.MinStub : 1);
         var t = StubEnd(to, link.TargetMarker != null ? Options.MinStub : 1);
         var blocks = obstacles
             .Select(b => b.Inflate(Options.Margin, Options.Margin))

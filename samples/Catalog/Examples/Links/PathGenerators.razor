@@ -8,9 +8,11 @@
 @code {
     protected override void OnInitialized()
     {
+        #region generators
         Row(0, new SmoothPathGenerator(), "Smooth");
         Row(170, new StraightPathGenerator(), "Straight");
         Row(340, new StraightPathGenerator(radius: 20), "Straight, radius 20");
+        #endregion
     }
 
     private void Row(double y, PathGenerator generator, string label)

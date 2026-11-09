@@ -4,8 +4,10 @@ using System;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>Zooms with the mouse wheel around the pointer, by <see cref="Options.DiagramZoomOptions.ScaleFactor"/> per step and within <see cref="Options.DiagramZoomOptions.Minimum"/> and <see cref="Options.DiagramZoomOptions.Maximum"/>. Registered by default; does nothing while <see cref="Options.DiagramZoomOptions.Enabled"/> is false.</summary>
 public class ZoomBehavior : Behavior
 {
+    /// <summary>Starts listening to wheel events of <paramref name="diagram"/>.</summary>
     public ZoomBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.Wheel += Diagram_Wheel;
@@ -48,6 +50,7 @@ public class ZoomBehavior : Behavior
         });
     }
 
+    /// <summary>Stops listening to wheel events.</summary>
     public override void Dispose()
     {
         Diagram.Wheel -= Diagram_Wheel;

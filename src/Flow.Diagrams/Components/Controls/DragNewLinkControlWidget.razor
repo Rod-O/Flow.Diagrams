@@ -17,9 +17,11 @@ else
 
 @code
 {
+    /// <summary>The control being drawn.</summary>
     [Parameter]
     public DragNewLinkControl Control { get; set; } = null!;
 
+    /// <summary>The model the handle belongs to; decides whether the markup is SVG or HTML.</summary>
     [Parameter]
     public Model Model { get; set; } = null!;
 }

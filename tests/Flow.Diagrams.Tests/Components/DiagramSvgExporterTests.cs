@@ -4,6 +4,7 @@ using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Export;
 using Flow.Diagrams.Models;
+using Flow.Diagrams.Options;
 using FluentAssertions;
 using Xunit;
 
@@ -35,6 +36,29 @@ public class DiagramSvgExporterTests
         doc.Descendants(Svg + "g").Count(g => g.Attribute("class")?.Value.StartsWith("diagram-link") == true).Should().Be(1);
         doc.Descendants(Svg + "foreignObject").Should().BeEmpty();
         export.HtmlModels.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldIncludeModelsHiddenOnlyByVirtualization_AndHideThemAgainAfterwards()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram(new BlazorDiagramOptions { Virtualization = { Enabled = true } });
+        diagram.SetContainer(new Rectangle(0, 0, 500, 500));
+        diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+        var offScreen = diagram.Nodes.Add(new SvgNodeModel(new Point(3000, 0)) { Size = new Size(100, 60) });
+        var hiddenByApp = diagram.Nodes.Add(new SvgNodeModel(new Point(100, 100)) { Size = new Size(100, 60), Visible = false });
+        offScreen.Visible.Should().BeFalse();
+
+        // Act
+        var export = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services);
+
+        // Assert
+        var doc = XDocument.Parse(export.Svg);
+        doc.Descendants(Svg + "g").Count(g => g.Attribute("class")?.Value.StartsWith("diagram-node") == true).Should().Be(2);
+        doc.Root!.Attribute("viewBox")!.Value.Should().Be("-10 -10 3120 80");
+        offScreen.Visible.Should().BeFalse();
+        hiddenByApp.Visible.Should().BeFalse();
     }
 
     [Fact]

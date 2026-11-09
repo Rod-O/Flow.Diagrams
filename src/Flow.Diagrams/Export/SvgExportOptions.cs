@@ -1,5 +1,6 @@
 namespace Flow.Diagrams.Export;
 
+/// <summary>Appearance of the document <see cref="DiagramSvgExporter"/> produces.</summary>
 public sealed record SvgExportOptions
 {
     /// <summary>Space around the drawing, in diagram units.</summary>

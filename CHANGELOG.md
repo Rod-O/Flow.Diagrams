@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Flow.Diagrams - 2026-11-08
+## [4.0.0] - 2026-11-09
 
-Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and namespaces `Blazor.Diagrams.*` are now `Flow.Diagrams.*`, and the JavaScript globals are `FlowDiagrams` / `flowDiagramsInternalObject` (static assets under `_content/Flow.Diagrams/`).
+First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and namespaces `Blazor.Diagrams.*` are now `Flow.Diagrams.*`, and the JavaScript globals are `FlowDiagrams` / `flowDiagramsInternalObject` (static assets under `_content/Flow.Diagrams/`). Targets net8.0, net9.0 and net10.0; net6.0 and net7.0 are dropped.
 
 ### Added
 
@@ -19,8 +19,24 @@ Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and name
 - `Options.Links.LabelsOnTop`: labels drawn after every link and node.
 - `Options.Links.SvgLabels`: labels drawn as SVG text instead of HTML in a `foreignObject`.
 - `samples/Catalog`: a gallery of live examples with previews, source and export; `tools/catalog-previews`.
-- `DiagramSvgExporter` (net8+): the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
+- `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
+- Meta (Cmd) in keyboard shortcuts: `KeyboardEventArgs.MetaKey`, and `SetShortcut`/`RemoveShortcut` overloads and
+  `KeysUtils.GetStringRepresentation` with a `meta` argument.
+- `BaseLinkModel.RemoveVertex` and `VertexRemoved`; double-clicking a vertex, which removed it silently, now goes
+  through them.
+
+### Changed
+
+- `ArrowHeadControl.Angle`, set as a side effect of `GetPosition` and shared by every link the control was on, is
+  replaced by `GetAngle(model)`.
+- `Diagram.GetScreenPoint(clientX, clientY)` parameters renamed to `(x, y)`: they are diagram coordinates.
+  Breaking for callers that pass them by name.
+- `GroupModel.AutoSize` (constructor argument `autoSize`) renamed to `AllowChildDrag` (`allowChildDrag`): it never
+  controlled sizing (a group always sizes to its children), only whether a child can be dragged on its own.
+- `PathGeneratorResult` moved to `Flow.Diagrams.Core.PathGenerators` and `BaseLayer<T>` to `Flow.Diagrams.Core.Layers`,
+  next to their siblings.
+- One library exception: `BlazorDiagramsException` is removed and the Blazor layer throws `Flow.Diagrams.Core.DiagramsException`, which Core now also throws for a duplicate behavior and for calls that need the canvas before it is measured (they threw a plain `Exception`).
 
 ### Fixed
 
@@ -30,6 +46,66 @@ Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and name
   `ControlledSize` were never drawn.
 - `Diagram.SetZoom` ignored `Options.Zoom.Maximum`, so `ZoomToFit` could zoom past it.
 - A group moved by auto-sizing left its ports behind (upstream #581).
+- `Rectangle` equality: `object.Equals` and `GetHashCode` were reference-based, so equal rectangles missed as dictionary keys. Now `IEquatable<Rectangle>` with `==` and `!=`.
+- `new Rectangle(left, top, right, bottom)` with swapped edges kept them swapped (`Left > Right`); the edges are now put in order.
+- `Rectangle.GetIntersectionsWithLine` yielded a corner hit twice.
+- `Ellipse.GetIntersectionsWithLine` yielded a point for a segment that missed the ellipse.
+- `Shapes.Circle` used the width as the diameter; it is now inscribed in the shorter side. The `Shapes` factories threw `NullReferenceException` for a node not measured yet; they now give a zero-size shape at its position.
+- `Point.Normalize()` of the zero vector returned NaN coordinates; it returns zero.
+
+### Removed
+
+- `Rectangle.Overlap`, a duplicate of `Rectangle.Intersects`.
+- `Diagram.Batch` left `SuspendRefresh` on when its action threw, and the diagram never redrew again; it now
+  restores it and refreshes, then rethrows.
+- `Diagram.SelectModel(model, unselectOthers: true)` did nothing when `model` was already selected, so the other
+  selected models stayed selected.
+- `BaseLinkModel.SetTarget(null)` was accepted, leaving a null `Target` behind a non-nullable property; it now
+  throws `ArgumentNullException`, like `SetSource`.
+- `BlazorDiagram.GetComponent` returned the first registered base class instead of the nearest, so a model
+  subclass without its own registration could be drawn with a more general widget.
+- `BlazorDiagram.RegisterComponent` threw a plain `Exception` on a duplicate registration; it now throws the
+  library's exception.
+- `TouchEventArgs` and `TouchPoint`: nothing raised or consumed them.
+- Virtualization did not recheck a node, group or link added, or a model moved, while the view stayed still, so it kept
+  its visibility. It now rechecks on add and when a drag ends.
+- Turning virtualization off left the models it had hidden hidden. It now tracks the models it hid
+  (`VirtualizationBehavior.HiddenModels`), shows them again on the next check (`CheckVisibility()` is public to do it at once), and no
+  longer overrides a model hidden through `Visible`.
+- `DiagramSvgExporter` left out everything virtualization had hidden. It now includes those models and skips only the ones hidden through `Visible`.
+- `NavigatorWidget` rendered a `NaN` view box without `Width` and `Height` (they defaulted to 0); they default to 200 x 150 and a non-positive size leaves the miniature empty. Its node attributes no longer reuse sequence numbers.
+- `default.styles.css` styled `.diagram-navigator.default`, which the navigator never emits; the rule is now `.navigator.default`
+  (give the widget `Class="default"`). The default SVG group used a yellow fill and an `outline`, which SVG ignores; it now uses a neutral fill and a stroke.
+- `RemoveControlWidget` drew HTML-layer markup inside an `SvgGroupModel`; it now follows `IsSvg()` like the other controls.
+- `LinkHalosBehavior` found only horizontal-by-vertical crossings, so diagonal straight links never got halos; any
+  two crossing segments now do, the halo laid along the upper one.
+- `LinkHalosBehavior` left stale halos after `SendToFront`/`SendToBack` with links in several layers: it recomputed
+  while the diagram's drawing order was still unsorted, putting the halo on the lower-layer link.
+- `ObstacleRouterOptions.MinStub` applied only to a `TargetMarker`; a `SourceMarker` could sit on a corner. It now
+  applies at whichever end carries a marker.
+- With `OrthogonalRouter` or `ObstacleRouter`, the link widget drew vertex handles and a `Segmentable` link created
+  vertices that moved nothing. New `Router.FollowsVertices` (default `true`, `false` for those two routers): the
+  widget offers vertices only when the router follows them.
+- Group children ignored their own `Layer` and `Order` and were drawn in `Children` order; they are now drawn in
+  their drawing order among themselves (still inside the group's element), and redrawn when it changes.
+- `EventsBehavior` raised a double click for two quick clicks on different models, and a third quick click raised a
+  second one; a double click now needs both clicks on the same model and ends the sequence.
+- `KeyboardShortcutsBehavior` compared keys case-sensitively, so Shift+letter shortcuts (the browser reports `"A"`)
+  and Caps Lock never fired; keys are now compared ignoring case. The default `Ctrl+Alt+g` never fired on macOS, where
+  Option+G types `©`; a key that types neither a letter nor a digit is now matched on its physical key (`Code`).
+- An exception thrown by a shortcut action was unobserved (`async void`); it now goes to the new
+  `KeyboardShortcutsBehavior.ActionFailed` event, and is rethrown only when nothing handles it.
+- The ports of a locked node still started links and received them; they now behave as locked
+  (`DragNewLinkBehavior`, `PortModel.CanAttachTo`).
+- `ReconnectLinksToClosestPorts` ignored `CanAttachTo` and `Locked`, so it could move a link onto a locked port or one
+  your rules refuse, and measured between port corners, so a large port won over a closer small one; it now honours
+  both and measures between centres.
+- `Diagram.GetBehavior<T>()` matched the exact type only, so a registered subclass of `DragNewLinkBehavior` was not
+  found and `DragNewLinkControl` threw, `ArrowHeadControl` threw `NullReferenceException`; it now falls back to a
+  registered subclass, and `ArrowHeadControl` throws `DiagramsException` when the behavior is missing.
+- Dragging the source arrowhead of an `ArrowHeadControl` reversed the link (the old target became the source, and the
+  markers swapped ends); it now moves the source end only, through `DragNewLinkBehavior.StartFrom(link, x, y, source)`,
+  and raises the new `BaseLinkModel.SourceAttached` on drop.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

@@ -1,6 +1,6 @@
 @inherits ExampleBase
 @attribute [Example("layers", "Layers", ExampleCategory.Layers,
-    "Layer is a drawing band: a higher layer is drawn above every lower one. Thin grey signal links sit in layer 0, under the thick process links and the nodes in layer 1. Move the signals to layer 2 and they cross over everything.",
+    "Layer is a drawing band: a higher layer is drawn above every lower one. Thin grey signal links sit in layer 0, under the thick process links and the nodes in layer 1. Move the signals to layer 2 and they cross over the process links. HTML nodes stay above every link whatever their layer: the HTML layer is drawn over the SVG one.",
     Order = 1, New = true)]
 
 <div class="example-column">
@@ -51,12 +51,14 @@
 
     private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, bool process)
     {
+        #region layer
         var link = new LinkModel(a.GetPort(from)!, b.GetPort(to)!)
         {
             Color = process ? "#2471a3" : "#9aa3a7",
             Width = process ? 8 : 1.5,
             Layer = process ? ProcessLayer : SignalLayer,
         };
+        #endregion
         if (!process)
             _signals.Add(link);
         Diagram.Links.Add(link);

@@ -46,12 +46,8 @@
         Diagram.Links.Add(new LinkModel(b.GetPort(PortAlignment.Bottom)!, c.GetPort(PortAlignment.Right)!));
     }
 
-    // Dragging raises Moved for every pixel; one line per drag is enough.
     private void Write(string text)
     {
-        if (_log.Count > 0 && _log[0] == text && text.StartsWith("Moved"))
-            return;
-
         _log.Insert(0, text);
         InvokeAsync(StateHasChanged);
     }

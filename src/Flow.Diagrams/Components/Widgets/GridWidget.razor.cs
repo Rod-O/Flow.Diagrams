@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Components;
 
 namespace Flow.Diagrams.Components.Widgets;
 
+/// <summary>
+/// A background grid that pans and zooms with the diagram. Put it in <see cref="DiagramCanvas.Widgets"/>; it draws a
+/// CSS background, so it is not part of an SVG export.
+/// </summary>
 public partial class GridWidget : IDisposable
 {
     private bool _visible;
@@ -12,24 +16,32 @@ public partial class GridWidget : IDisposable
     private double _posX;
     private double _posY;
     
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
+    /// <summary>Distance between grid lines or points, in diagram units; drawn <c>Size * Zoom</c> pixels apart.</summary>
     [Parameter] public double Size { get; set; } = 20;
+    /// <summary>The grid is hidden when the diagram's zoom is at or below this value, which keeps a dense grid from filling the screen when zoomed out; the default 0 never hides it.</summary>
     [Parameter] public double ZoomThreshold { get; set; } = 0;
+    /// <summary>Whether the grid is drawn as lines or as points.</summary>
     [Parameter] public GridMode Mode { get; set; } = GridMode.Line;
+    /// <summary>CSS color behind the grid.</summary>
     [Parameter] public string BackgroundColor { get; set; } = "rgb(241 241 241)";
 
+    /// <inheritdoc />
     public void Dispose()
     {
         BlazorDiagram.PanChanged -= RefreshPosition;
         BlazorDiagram.ZoomChanged -= RefreshPosition;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         BlazorDiagram.PanChanged += RefreshPosition;
         BlazorDiagram.ZoomChanged += RefreshPosition;
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _posX = BlazorDiagram.Pan.X;
@@ -72,8 +84,11 @@ public partial class GridWidget : IDisposable
     }
 }
 
+/// <summary>How <see cref="GridWidget"/> draws its grid.</summary>
 public enum GridMode
 {
+    /// <summary>A grid of horizontal and vertical lines.</summary>
     Line,
+    /// <summary>A grid of dots at the line intersections.</summary>
     Point
 }

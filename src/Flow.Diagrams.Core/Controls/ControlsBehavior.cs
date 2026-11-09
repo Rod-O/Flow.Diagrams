@@ -3,8 +3,10 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Controls;
 
+/// <summary>Shows and hides each model's <see cref="ControlsContainer"/> according to its <see cref="ControlsContainer.Type"/>: on pointer enter and leave for <see cref="ControlsType.OnHover"/>, on selection and deselection for <see cref="ControlsType.OnSelection"/>. Registered by default.</summary>
 public class ControlsBehavior : Behavior
 {
+    /// <summary>Starts listening to pointer and selection events of <paramref name="diagram"/>.</summary>
     public ControlsBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.PointerEnter += OnPointerEnter;
@@ -52,6 +54,7 @@ public class ControlsBehavior : Behavior
         controls.Hide();
     }
 
+    /// <summary>Stops listening to diagram events.</summary>
     public override void Dispose()
     {
         Diagram.PointerEnter -= OnPointerEnter;

@@ -13,6 +13,10 @@ using Microsoft.JSInterop;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one port and measures it: after the first render it reads the element's bounds and stores the port's position
+/// and size, in diagram units, which links use as their anchor. Use it inside a node or group widget, once per port. Renders nothing while the port is invisible.
+/// </summary>
 public class PortRenderer : ComponentBase, IDisposable
 {
     private ElementReference _element;
@@ -21,13 +25,19 @@ public class PortRenderer : ComponentBase, IDisposable
     private bool _shouldRender = true;
     private bool _updatingDimensions;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    /// <summary>The port to draw; required.</summary>
     [Parameter] public PortModel Port { get; set; } = null!;
+    /// <summary>Extra CSS classes, added after <c>diagram-port</c>, the port's alignment and <c>has-links</c>.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS for the port's element, typically to position it inside the node.</summary>
     [Parameter] public string? Style { get; set; }
+    /// <summary>The port's visible content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Port.Changed -= OnPortChanged;
@@ -35,6 +45,7 @@ public class PortRenderer : ComponentBase, IDisposable
         BlazorDiagram.ContainerChanged -= OnContainerChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -43,6 +54,7 @@ public class PortRenderer : ComponentBase, IDisposable
         Port.VisibilityChanged += OnPortChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -50,6 +62,7 @@ public class PortRenderer : ComponentBase, IDisposable
         _isParentSvg = Port.Parent is SvgNodeModel;
     }
 
+    /// <summary>Renders only after the port or its visibility changed; any other cause of a render pass is skipped.</summary>
     protected override bool ShouldRender()
     {
         if (!_shouldRender)
@@ -59,6 +72,7 @@ public class PortRenderer : ComponentBase, IDisposable
         return true;
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Port.Visible)
@@ -79,6 +93,7 @@ public class PortRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    /// <summary>While the port has not been measured, measures it; if the canvas is not measured yet, waits for it.</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
