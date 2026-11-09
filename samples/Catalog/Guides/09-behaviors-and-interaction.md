@@ -81,7 +81,7 @@ The built-in controls, in `Flow.Diagrams.Core.Controls.Default`:
 | [RemoveControl](xref:Flow.Diagrams.Core.Controls.Default.RemoveControl) | Deletes the model, honouring `Locked` and the `ShouldDelete*` constraints. Placed at fractions of the bounds (`1, 0` is the top-right corner) or by any `IPositionProvider`. |
 | [BoundaryControl](xref:Flow.Diagrams.Core.Controls.Default.BoundaryControl) | A dashed frame 10 units outside the model. |
 | [DragNewLinkControl](xref:Flow.Diagrams.Core.Controls.Default.DragNewLinkControl) | Starts a new link from a node. |
-| [ArrowHeadControl](xref:Flow.Diagrams.Core.Controls.Default.ArrowHeadControl) | A draggable arrowhead at one end of a link, to reconnect it. Dragging the **source** end reverses the link first: the dragged end becomes the target. |
+| [ArrowHeadControl](xref:Flow.Diagrams.Core.Controls.Default.ArrowHeadControl) | A draggable arrowhead at one end of a link, to reconnect that end; the other end stays attached. Dropping it raises `TargetAttached`, or `SourceAttached` for the source end. |
 
 A control of your own is a [Control](xref:Flow.Diagrams.Core.Controls.Control) (it only has a position) or an [ExecutableControl](xref:Flow.Diagrams.Core.Controls.ExecutableControl) (it also acts on pointer down), plus a component that draws it:
 

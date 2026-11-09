@@ -28,7 +28,7 @@ What happens next is set in `Diagram.Options.Links` ([DiagramLinkOptions](xref:F
 
 {{source snapping Snapping.razor snapping}}
 
-When a dragged link attaches, the link raises `TargetAttached`. That is the event to listen to if you store user-drawn links somewhere; `Diagram.Links.Added` fires earlier, when the drag starts and the link has no target yet.
+When a dragged link attaches, the link raises `TargetAttached` (`SourceAttached` when an `ArrowHeadControl` moved its source end). That is the event to listen to if you store user-drawn links somewhere; `Diagram.Links.Added` fires earlier, when the drag starts and the link has no target yet.
 
 ## Markers
 

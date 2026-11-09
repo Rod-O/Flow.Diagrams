@@ -24,6 +24,11 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - Meta (Cmd) in keyboard shortcuts: `KeyboardEventArgs.MetaKey`, and `SetShortcut`/`RemoveShortcut` overloads and
   `KeysUtils.GetStringRepresentation` with a `meta` argument.
 
+### Changed
+
+- `ArrowHeadControl.Angle`, set as a side effect of `GetPosition` and shared by every link the control was on, is
+  replaced by `GetAngle(model)`.
+
 ### Fixed
 
 - `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523), and once
@@ -47,6 +52,9 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `Diagram.GetBehavior<T>()` matched the exact type only, so a registered subclass of `DragNewLinkBehavior` was not
   found and `DragNewLinkControl` threw, `ArrowHeadControl` threw `NullReferenceException`; it now falls back to a
   registered subclass, and `ArrowHeadControl` throws `DiagramsException` when the behavior is missing.
+- Dragging the source arrowhead of an `ArrowHeadControl` reversed the link (the old target became the source, and the
+  markers swapped ends); it now moves the source end only, through `DragNewLinkBehavior.StartFrom(link, x, y, source)`,
+  and raises the new `BaseLinkModel.SourceAttached` on drop.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

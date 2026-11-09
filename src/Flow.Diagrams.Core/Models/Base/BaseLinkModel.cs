@@ -22,6 +22,8 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public event Action<BaseLinkModel, Anchor, Anchor>? TargetChanged;
     /// <summary>Raised when a link the user dragged is dropped on a target and attached to it.</summary>
     public event Action<BaseLinkModel>? TargetAttached;
+    /// <summary>Raised when the user dragged the source end of the link, dropped it on a model and it attached there.</summary>
+    public event Action<BaseLinkModel>? SourceAttached;
 
     /// <summary>Creates a link between the two anchors with a generated <see cref="Model.Id"/>.</summary>
     protected BaseLinkModel(Anchor source, Anchor target)
@@ -203,6 +205,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// Triggers the TargetAttached event
     /// </summary>
     public void TriggerTargetAttached() => TargetAttached?.Invoke(this);
+
+    /// <summary>Raises <see cref="SourceAttached"/>.</summary>
+    public void TriggerSourceAttached() => SourceAttached?.Invoke(this);
 
     private void GeneratePath()
     {
