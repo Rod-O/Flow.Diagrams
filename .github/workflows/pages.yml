@@ -2,7 +2,7 @@ name: Catalog to GitHub Pages
 
 on:
   push:
-    branches: [nodecad]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
