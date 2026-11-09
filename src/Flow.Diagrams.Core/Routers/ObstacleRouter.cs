@@ -1,4 +1,3 @@
-using System.Buffers;
 using Flow.Diagrams.Core.Anchors;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
@@ -24,6 +23,8 @@ public class ObstacleRouter : Router
     private static readonly Direction[] Directions = { Direction.Left, Direction.Right, Direction.Up, Direction.Down };
 
     private readonly Router _fallbackRouter;
+    // The search's working arrays, kept between routes; taken while in use, so a concurrent route makes its own.
+    private Scratch? _scratch;
 
     /// <summary>Creates the router.</summary>
     /// <param name="options">The routing costs; defaults when null.</param>
@@ -73,10 +74,19 @@ public class ObstacleRouter : Router
 
         var xs = Axis(blocks.SelectMany(b => new[] { b.Left, b.Right }), s.X, t.X);
         var ys = Axis(blocks.SelectMany(b => new[] { b.Top, b.Bottom }), s.Y, t.Y);
-        var placed = PlacedRoutes(diagram, link);
-        var path = Search(xs, ys, blocks, s, from.Exit, t, Opposite(to.Exit), placed)
-                   // No grid path: an honest dogleg, visibly wrong, rather than nothing.
-                   ?? new List<Point> { s, new(t.X, s.Y), t };
+        var scratch = Interlocked.Exchange(ref _scratch, null) ?? new Scratch();
+        List<Point>? path;
+        try
+        {
+            PlacedSegments(diagram, link, scratch.Segments);
+            path = Search(xs, ys, blocks, s, from.Exit, t, Opposite(to.Exit), scratch);
+        }
+        finally
+        {
+            _scratch = scratch;
+        }
+        // No grid path: an honest dogleg, visibly wrong, rather than nothing.
+        path ??= new List<Point> { s, new(t.X, s.Y), t };
 
         var route = Simplify(new[] { from.At }.Concat(path).Append(to.At));
         return route.Skip(1).Take(route.Count - 2).ToArray();
@@ -141,40 +151,55 @@ public class ObstacleRouter : Router
         return lines.ToList();
     }
 
-    /// <summary>The full polylines of the other links already routed that are not of this link's net.</summary>
-    private List<List<Point>> PlacedRoutes(Diagram diagram, BaseLinkModel link)
+    /// <summary>
+    /// Fills <paramref name="segments"/> with the segments of the full polylines of the other links already routed that
+    /// are not of this link's net, link by link, from source to target.
+    /// </summary>
+    private void PlacedSegments(Diagram diagram, BaseLinkModel link, List<(Point C, Point D)> segments)
     {
-        var placed = new List<List<Point>>();
+        segments.Clear();
         foreach (var other in diagram.Links)
         {
-            if (!ReferenceEquals(other, link) && !SameNet(other, link) && LinkGeometry.Polyline(other) is { } polyline)
-                placed.Add(polyline);
+            if (ReferenceEquals(other, link) || SameNet(other, link) || other.Route is not { } route)
+                continue;
+            // As LinkGeometry.Polyline, without building the list.
+            var source = other.Source.GetPosition(other, route);
+            var target = other.Target.GetPosition(other, route);
+            if (source == null || target == null)
+                continue;
+            var previous = source;
+            foreach (var point in route)
+            {
+                segments.Add((previous, point));
+                previous = point;
+            }
+            segments.Add((previous, target));
         }
-        return placed;
     }
 
     private List<Point>? Search(List<double> xs, List<double> ys, List<Rectangle> blocks, Point s, Direction startDir,
-        Point t, Direction arriveDir, List<List<Point>> placed)
+        Point t, Direction arriveDir, Scratch scratch)
     {
         static int Index(double v, List<double> axis) => axis.FindIndex(x => Math.Abs(x - v) < 1e-9);
         var (sx, sy, tx, ty) = (Index(s.X, xs), Index(s.Y, ys), Index(t.X, xs), Index(t.Y, ys));
 
-        using var steps = new GridSteps(xs, ys, new PlacedSegments(placed, xs[0], ys[0], xs[^1], ys[^1], this));
+        var steps = new GridSteps(xs, ys, new SegmentIndex(scratch, xs[0], ys[0], xs[^1], ys[^1], this), scratch);
         steps.Block(blocks);
 
         // A state is a grid point and the direction it was reached in: (y * width + x) * 4 + direction.
         var width = xs.Count;
-        var (best, from) = (steps.Best, steps.From);
-        var queue = new PriorityQueue<int, double>();
+        var from = scratch.From;
+        var queue = scratch.Queue;
+        queue.Clear();
         var start = GridSteps.State(sx, sy, startDir, width);
-        best[start] = 0;
+        steps.SetBest(start, 0);
         queue.Enqueue(start, 0);
 
         var goal = -1;
         var goalCost = double.MaxValue;
         while (queue.TryDequeue(out var cur, out var cost))
         {
-            if (cost > best[cur] || cost >= goalCost)
+            if (cost > steps.Best(cur) || cost >= goalCost)
                 continue;
             var (x, y, curDir) = (cur / 4 % width, cur / 4 / width, (Direction)(cur % 4));
             if (x == tx && y == ty)
@@ -196,14 +221,14 @@ public class ObstacleRouter : Router
                 if (nx < 0 || ny < 0 || nx >= xs.Count || ny >= ys.Count)
                     continue;
                 var step = GridSteps.State(x, y, dir, width);
-                if (steps.Cut[step] || steps.Inside[ny * width + nx])
+                if (steps.Blocked(step, ny * width + nx))
                     continue;
                 var next = GridSteps.State(nx, ny, dir, width);
                 var length = Math.Abs(xs[x] - xs[nx]) + Math.Abs(ys[y] - ys[ny]);
                 var c = cost + length + (dir == curDir ? 0 : Options.BendCost) + steps.Penalty(step, x, y, nx, ny);
-                if (best[next] <= c)
+                if (steps.Best(next) <= c)
                     continue;
-                best[next] = c;
+                steps.SetBest(next, c);
                 from[next] = cur;
                 queue.Enqueue(next, c);
             }
@@ -296,15 +321,18 @@ public class ObstacleRouter : Router
         return list;
     }
 
-    private static bool StrictlyContains(Rectangle r, Point p) =>
-        p.X > r.Left + Eps && p.X < r.Right - Eps && p.Y > r.Top + Eps && p.Y < r.Bottom - Eps;
+    private static bool StrictlyContains(Rectangle r, Point p) => StrictlyContains(r, p.X, p.Y);
+
+    private static bool StrictlyContains(Rectangle r, double x, double y) =>
+        x > r.Left + Eps && x < r.Right - Eps && y > r.Top + Eps && y < r.Bottom - Eps;
 
     /// <summary>True when an axis-parallel segment passes through the rectangle's interior.</summary>
-    private static bool CutBy(Rectangle r, Point a, Point b) => Horizontal(a, b)
-        ? a.Y > r.Top + Eps && a.Y < r.Bottom - Eps && Math.Max(a.X, b.X) > r.Left + Eps && Math.Min(a.X, b.X) < r.Right - Eps
-        : a.X > r.Left + Eps && a.X < r.Right - Eps && Math.Max(a.Y, b.Y) > r.Top + Eps && Math.Min(a.Y, b.Y) < r.Bottom - Eps;
+    private static bool CutBy(Rectangle r, Point a, Point b) => CutBy(r, a.X, a.Y, b.X, b.Y);
 
-    private static double Length(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+    private static bool CutBy(Rectangle r, double ax, double ay, double bx, double by) => Math.Abs(ay - by) < Eps
+        ? ay > r.Top + Eps && ay < r.Bottom - Eps && Math.Max(ax, bx) > r.Left + Eps && Math.Min(ax, bx) < r.Right - Eps
+        : ax > r.Left + Eps && ax < r.Right - Eps && Math.Max(ay, by) > r.Top + Eps && Math.Min(ay, by) < r.Bottom - Eps;
+
     private static bool Horizontal(Point a, Point b) => Math.Abs(a.Y - b.Y) < Eps;
     private static bool Near(Point a, Point b) => Math.Abs(a.X - b.X) < Eps && Math.Abs(a.Y - b.Y) < Eps;
 
@@ -326,50 +354,30 @@ public class ObstacleRouter : Router
     /// near it; what it costs next to the placed routes, the first time the search takes it. A step is the grid point
     /// it leaves and its direction, indexed like a search state.
     /// </summary>
-    private sealed class GridSteps : IDisposable
+    private sealed class GridSteps
     {
         private readonly List<double> _xs;
         private readonly List<double> _ys;
-        private readonly PlacedSegments _placed;
-        private readonly double[] _penalty;
+        private readonly SegmentIndex _placed;
+        private readonly Scratch _scratch;
+        private readonly int _mark;
 
-        // Rented, since a grid of a few thousand points would put every array on the large object heap; a rented array
-        // may be longer than asked, and only the first States or Points entries are used.
-        public GridSteps(List<double> xs, List<double> ys, PlacedSegments placed)
+        public GridSteps(List<double> xs, List<double> ys, SegmentIndex placed, Scratch scratch)
         {
-            (_xs, _ys, _placed) = (xs, ys, placed);
-            var points = xs.Count * ys.Count;
-            var states = points * 4;
-            Cut = ArrayPool<bool>.Shared.Rent(states);
-            Array.Clear(Cut, 0, states);
-            Inside = ArrayPool<bool>.Shared.Rent(points);
-            Array.Clear(Inside, 0, points);
-            _penalty = ArrayPool<double>.Shared.Rent(states);
-            Array.Fill(_penalty, double.NaN, 0, states);
-            Best = ArrayPool<double>.Shared.Rent(states);
-            Array.Fill(Best, double.PositiveInfinity, 0, states);
-            From = ArrayPool<int>.Shared.Rent(states);
+            (_xs, _ys, _placed, _scratch) = (xs, ys, placed, scratch);
+            _mark = scratch.Begin(xs.Count * ys.Count);
         }
 
-        /// <summary>Whether the step passes through a block's interior.</summary>
-        public bool[] Cut { get; }
+        /// <summary>Whether the step passes through a block's interior, or ends strictly inside one (grid point y * width + x).</summary>
+        public bool Blocked(int step, int end) => _scratch.CutMark[step] == _mark || _scratch.InsideMark[end] == _mark;
 
-        /// <summary>Whether the grid point (y * width + x) is strictly inside a block.</summary>
-        public bool[] Inside { get; }
+        /// <summary>The search's cheapest known cost of the state; infinite until reached.</summary>
+        public double Best(int state) => _scratch.BestMark[state] == _mark ? _scratch.Best[state] : double.PositiveInfinity;
 
-        /// <summary>The search's cheapest known cost of each state; infinite until reached.</summary>
-        public double[] Best { get; }
-
-        /// <summary>The state each reached state was reached from.</summary>
-        public int[] From { get; }
-
-        public void Dispose()
+        public void SetBest(int state, double cost)
         {
-            ArrayPool<bool>.Shared.Return(Cut);
-            ArrayPool<bool>.Shared.Return(Inside);
-            ArrayPool<double>.Shared.Return(_penalty);
-            ArrayPool<double>.Shared.Return(Best);
-            ArrayPool<int>.Shared.Return(From);
+            _scratch.Best[state] = cost;
+            _scratch.BestMark[state] = _mark;
         }
 
         public static int State(int x, int y, Direction dir, int width) => (y * width + x) * 4 + (int)dir;
@@ -377,14 +385,17 @@ public class ObstacleRouter : Router
         /// <summary>What the step from (x, y) to (nx, ny) costs next to the placed routes.</summary>
         public double Penalty(int step, int x, int y, int nx, int ny)
         {
-            var penalty = _penalty[step];
-            if (double.IsNaN(penalty))
-                _penalty[step] = penalty = _placed.Penalty(new Point(_xs[x], _ys[y]), new Point(_xs[nx], _ys[ny]));
+            if (_scratch.PenaltyMark[step] == _mark)
+                return _scratch.Penalty[step];
+            var penalty = _placed.Penalty(new Point(_xs[x], _ys[y]), new Point(_xs[nx], _ys[ny]));
+            _scratch.Penalty[step] = penalty;
+            _scratch.PenaltyMark[step] = _mark;
             return penalty;
         }
 
         public void Block(List<Rectangle> blocks)
         {
+            var width = _xs.Count;
             foreach (var block in blocks)
             {
                 // Only the points and steps that touch the block can be inside it or cut it.
@@ -392,34 +403,29 @@ public class ObstacleRouter : Router
                 var (y0, y1) = Points(_ys, block.Top - 1, block.Bottom + 1);
                 for (var y = y0; y <= y1; y++)
                 for (var x = x0; x <= x1; x++)
-                    Inside[y * _xs.Count + x] |= StrictlyContains(block, new Point(_xs[x], _ys[y]));
+                    if (StrictlyContains(block, _xs[x], _ys[y]))
+                        _scratch.InsideMark[y * width + x] = _mark;
 
-                ForEachStep(block.Left - 1, block.Top - 1, block.Right + 1, block.Bottom + 1,
-                    (step, a, b) => Cut[step] |= CutBy(block, a, b));
-            }
-        }
-
-        /// <summary>Calls <paramref name="visit"/> for every step, in both directions, whose span meets the box.</summary>
-        private void ForEachStep(double left, double top, double right, double bottom, Action<int, Point, Point> visit)
-        {
-            var width = _xs.Count;
-            var (x0, x1) = Points(_xs, left, right);
-            var (y0, y1) = Points(_ys, top, bottom);
-            var (sx0, sx1) = (Math.Max(x0 - 1, 0), Math.Min(x1, width - 2));
-            var (sy0, sy1) = (Math.Max(y0 - 1, 0), Math.Min(y1, _ys.Count - 2));
-            for (var y = y0; y <= y1; y++)
-            for (var x = sx0; x <= sx1; x++)
-            {
-                var (a, b) = (new Point(_xs[x], _ys[y]), new Point(_xs[x + 1], _ys[y]));
-                visit(State(x, y, Direction.Right, width), a, b);
-                visit(State(x + 1, y, Direction.Left, width), b, a);
-            }
-            for (var y = sy0; y <= sy1; y++)
-            for (var x = x0; x <= x1; x++)
-            {
-                var (a, b) = (new Point(_xs[x], _ys[y]), new Point(_xs[x], _ys[y + 1]));
-                visit(State(x, y, Direction.Down, width), a, b);
-                visit(State(x, y + 1, Direction.Up, width), b, a);
+                var (sx0, sx1) = (Math.Max(x0 - 1, 0), Math.Min(x1, width - 2));
+                var (sy0, sy1) = (Math.Max(y0 - 1, 0), Math.Min(y1, _ys.Count - 2));
+                for (var y = y0; y <= y1; y++)
+                for (var x = sx0; x <= sx1; x++)
+                {
+                    var (left, right, at) = (_xs[x], _xs[x + 1], _ys[y]);
+                    if (CutBy(block, left, at, right, at))
+                        _scratch.CutMark[State(x, y, Direction.Right, width)] = _mark;
+                    if (CutBy(block, right, at, left, at))
+                        _scratch.CutMark[State(x + 1, y, Direction.Left, width)] = _mark;
+                }
+                for (var y = sy0; y <= sy1; y++)
+                for (var x = x0; x <= x1; x++)
+                {
+                    var (at, top, bottom) = (_xs[x], _ys[y], _ys[y + 1]);
+                    if (CutBy(block, at, top, at, bottom))
+                        _scratch.CutMark[State(x, y, Direction.Down, width)] = _mark;
+                    if (CutBy(block, at, bottom, at, top))
+                        _scratch.CutMark[State(x, y + 1, Direction.Up, width)] = _mark;
+                }
             }
         }
 
@@ -449,53 +455,66 @@ public class ObstacleRouter : Router
     }
 
     /// <summary>
-    /// The segments of the placed routes, bucketed on a coarse grid so that a step is priced against the segments near
-    /// it only. Those are summed in the order they were placed, as when every segment was visited, so the total is the
-    /// same to the last bit.
+    /// The placed segments bucketed on a coarse grid, so that a step is priced against the segments near it only.
+    /// Those are summed in the order they were placed, as when every segment was visited, so the total is the same to
+    /// the last bit.
     /// </summary>
-    private sealed class PlacedSegments
+    private sealed class SegmentIndex
     {
         private const int MaxColumns = 128;
 
         private readonly ObstacleRouter _router;
-        private readonly List<(Point C, Point D)> _segments = new();
-        private readonly List<int>?[] _cells;
+        private readonly List<(Point C, Point D)> _segments;
         private readonly double _left, _top, _cellWidth, _cellHeight;
         private readonly int _columns, _rows;
+        // The segments of cell k are _entries[_cellStart[k] .. _cellStart[k + 1]), in placing order.
+        private readonly int[] _cellStart;
+        private readonly int[] _entries;
         private readonly int[] _seen;
-        private readonly List<int> _near = new();
+        private readonly List<int> _near;
         private int _query;
 
-        /// <param name="placed">The placed routes.</param>
+        /// <param name="scratch">Holds the placed segments, and the arrays the index is built in.</param>
         /// <param name="left">Left of the area the steps lie in.</param>
         /// <param name="top">Top of that area.</param>
         /// <param name="right">Right of that area.</param>
         /// <param name="bottom">Bottom of that area.</param>
         /// <param name="router">The router whose costs price a step.</param>
-        public PlacedSegments(List<List<Point>> placed, double left, double top, double right, double bottom, ObstacleRouter router)
+        public SegmentIndex(Scratch scratch, double left, double top, double right, double bottom, ObstacleRouter router)
         {
-            _router = router;
-            foreach (var route in placed)
-                for (var i = 0; i + 1 < route.Count; i++)
-                    _segments.Add((route[i], route[i + 1]));
-
+            (_router, _segments, _near) = (router, scratch.Segments, scratch.Near);
             _columns = _rows = Math.Clamp((int)Math.Sqrt(_segments.Count), 1, MaxColumns);
             (_left, _top) = (left, top);
             _cellWidth = Math.Max((right - left) / _columns, Eps);
             _cellHeight = Math.Max((bottom - top) / _rows, Eps);
-            _cells = new List<int>?[_columns * _rows];
-            _seen = new int[_segments.Count];
+            var cells = _columns * _rows;
+            _cellStart = Scratch.Cleared(ref scratch.CellStart, cells + 1, 0);
+            _seen = Scratch.Cleared(ref scratch.Seen, _segments.Count, 0);
 
-            // A segment costs a step nothing unless the step comes within the hugging distance of its box.
+            // A segment costs a step nothing unless the step comes within the hugging distance of its box. Counted
+            // first, then filled, so that every cell lists its segments in placing order without a list of its own.
             var reach = Math.Max(router.Options.Margin * 1.5, 0) + 1;
+            var total = 0;
             for (var i = 0; i < _segments.Count; i++)
             {
-                var (c, d) = _segments[i];
-                var (c0, c1) = (Column(Math.Min(c.X, d.X) - reach), Column(Math.Max(c.X, d.X) + reach));
-                var (r0, r1) = (Row(Math.Min(c.Y, d.Y) - reach), Row(Math.Max(c.Y, d.Y) + reach));
+                var (c0, c1, r0, r1) = Cells(i, reach);
                 for (var row = r0; row <= r1; row++)
                 for (var column = c0; column <= c1; column++)
-                    (_cells[row * _columns + column] ??= new List<int>()).Add(i);
+                    _cellStart[row * _columns + column + 1]++;
+                total += (c1 - c0 + 1) * (r1 - r0 + 1);
+            }
+            for (var k = 0; k < cells; k++)
+                _cellStart[k + 1] += _cellStart[k];
+
+            _entries = Scratch.Sized(ref scratch.Entries, total);
+            var fill = Scratch.Sized(ref scratch.Fill, cells);
+            Array.Copy(_cellStart, fill, cells);
+            for (var i = 0; i < _segments.Count; i++)
+            {
+                var (c0, c1, r0, r1) = Cells(i, reach);
+                for (var row = r0; row <= r1; row++)
+                for (var column = c0; column <= c1; column++)
+                    _entries[fill[row * _columns + column]++] = i;
             }
         }
 
@@ -509,10 +528,10 @@ public class ObstacleRouter : Router
             for (var row = r0; row <= r1; row++)
             for (var column = c0; column <= c1; column++)
             {
-                if (_cells[row * _columns + column] is not { } cell)
-                    continue;
-                foreach (var i in cell)
+                var cell = row * _columns + column;
+                for (var k = _cellStart[cell]; k < _cellStart[cell + 1]; k++)
                 {
+                    var i = _entries[k];
                     if (_seen[i] == _query)
                         continue;
                     _seen[i] = _query;
@@ -528,9 +547,79 @@ public class ObstacleRouter : Router
             return cost;
         }
 
+        private (int C0, int C1, int R0, int R1) Cells(int segment, double reach)
+        {
+            var (c, d) = _segments[segment];
+            return (Column(Math.Min(c.X, d.X) - reach), Column(Math.Max(c.X, d.X) + reach),
+                Row(Math.Min(c.Y, d.Y) - reach), Row(Math.Max(c.Y, d.Y) + reach));
+        }
+
         // Clamped in floating point first, so that coordinates far outside the area cannot overflow the cast.
         private int Column(double x) => (int)Math.Clamp(Math.Floor((x - _left) / _cellWidth), 0, _columns - 1);
         private int Row(double y) => (int)Math.Clamp(Math.Floor((y - _top) / _cellHeight), 0, _rows - 1);
+    }
+
+    /// <summary>
+    /// Working storage of one search, reused by the next; the arrays grow to the largest grid routed so far. An entry
+    /// of a marked array holds for the current search only when its mark is the search's, so nothing is cleared
+    /// between searches.
+    /// </summary>
+    private sealed class Scratch
+    {
+        private int _mark;
+
+        public readonly List<(Point C, Point D)> Segments = new();
+        public readonly List<int> Near = new();
+        public readonly PriorityQueue<int, double> Queue = new();
+        public int[] CutMark = Array.Empty<int>();
+        public int[] InsideMark = Array.Empty<int>();
+        public double[] Penalty = Array.Empty<double>();
+        public int[] PenaltyMark = Array.Empty<int>();
+        public double[] Best = Array.Empty<double>();
+        public int[] BestMark = Array.Empty<int>();
+        public int[] From = Array.Empty<int>();
+        public int[] CellStart = Array.Empty<int>();
+        public int[] Entries = Array.Empty<int>();
+        public int[] Fill = Array.Empty<int>();
+        public int[] Seen = Array.Empty<int>();
+
+        /// <summary>Sizes the grid arrays for <paramref name="points"/> grid points and returns the new search's mark.</summary>
+        public int Begin(int points)
+        {
+            var states = points * 4;
+            Sized(ref InsideMark, points);
+            Sized(ref CutMark, states);
+            Sized(ref PenaltyMark, states);
+            Sized(ref BestMark, states);
+            Sized(ref Penalty, states);
+            Sized(ref Best, states);
+            Sized(ref From, states);
+            if (_mark == int.MaxValue)
+            {
+                // The marks are about to wrap: clearing them makes every entry stale again.
+                Array.Clear(InsideMark);
+                Array.Clear(CutMark);
+                Array.Clear(PenaltyMark);
+                Array.Clear(BestMark);
+                _mark = 0;
+            }
+            return ++_mark;
+        }
+
+        /// <summary>The array, grown to at least <paramref name="length"/>; its contents are left as they are.</summary>
+        public static T[] Sized<T>(ref T[] array, int length)
+        {
+            if (array.Length < length)
+                array = new T[Math.Max(length, array.Length * 2)];
+            return array;
+        }
+
+        /// <summary>The array, grown to at least <paramref name="length"/>, with its first <paramref name="length"/> entries set to <paramref name="value"/>.</summary>
+        public static T[] Cleared<T>(ref T[] array, int length, T value)
+        {
+            Array.Fill(Sized(ref array, length), value, 0, length);
+            return array;
+        }
     }
 
     /// <summary>Where a route ends: the line's end point, the side it leaves from, and the node it belongs to.</summary>
