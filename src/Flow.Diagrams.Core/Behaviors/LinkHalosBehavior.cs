@@ -134,7 +134,8 @@ public class LinkHalosBehavior : Behavior
             return new LinkHalo(new Point(at.X, at.Y - half), new Point(at.X, at.Y + half), width);
 
         var along = (b - a).Normalize();
-        var sine = Math.Abs(LinkGeometry.Cross(along, under.Normalize()));
+        // Below about 15 degrees the halo would erase a long run of the lower link; it stays at four times its square length.
+        var sine = Math.Max(Math.Abs(LinkGeometry.Cross(along, under.Normalize())), 0.25);
         var offset = along.Multiply(half / sine);
         return new LinkHalo(at - offset, at + offset, width);
     }

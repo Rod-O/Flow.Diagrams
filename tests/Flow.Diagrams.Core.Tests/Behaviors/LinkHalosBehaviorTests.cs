@@ -143,6 +143,26 @@ public class LinkHalosBehaviorTests
     }
 
     [Fact]
+    public void ShallowCrossing_ShouldCapTheHaloAtFourTimesItsSquareLength()
+    {
+        // Arrange: a link that falls 20 over 600, about 2 degrees, under a horizontal one.
+        var diagram = StraightDiagram();
+        diagram.RegisterBehavior(new LinkHalosBehavior(diagram));
+        var a = AddNode(diagram, 0, 0, 100, 60);
+        var b = AddNode(diagram, 700, 0, 100, 60);
+        var c = AddNode(diagram, 0, 10, 100, 60);
+        var d = AddNode(diagram, 700, -10, 100, 60);
+        diagram.Links.Add(new LinkModel(new SinglePortAnchor(Port(c, PortAlignment.Right)), new SinglePortAnchor(Port(d, PortAlignment.Left))));
+
+        // Act
+        var horizontal = diagram.Links.Add(new LinkModel(new SinglePortAnchor(Port(a, PortAlignment.Right)), new SinglePortAnchor(Port(b, PortAlignment.Left))));
+
+        // Assert: half the lower stroke (1) + clearance (2) is 3 each way when square; capped at 4 times that.
+        var halo = horizontal.Halos.Should().ContainSingle().Subject;
+        Math.Abs(halo.End.X - halo.Start.X).Should().BeApproximately(2 * 3 * 4, 1e-9);
+    }
+
+    [Fact]
     public void SendToFrontWithinALowerLayer_ShouldKeepTheHaloOnTheUpperLayersLink()
     {
         // Arrange: the vertical link's layer puts it above the horizontal one whatever their orders.
