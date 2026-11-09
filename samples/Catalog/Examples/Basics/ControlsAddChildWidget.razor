@@ -1,0 +1,14 @@
+@using Catalog.Examples.Basics
+@* #region widget *@
+@* Nodes here are HTML, so the control is drawn in the HTML layer; its wrapper div sits at GetPosition. *@
+<div class="add-child-control" title="Add a child">+</div>
+
+@code {
+    [Parameter] public ControlsAddChild Control { get; set; } = null!;
+    [Parameter] public Model Model { get; set; } = null!;
+}
+@* #endregion *@
+
+<style>
+    .add-child-control { width: 22px; height: 22px; margin: -11px; display: grid; place-items: center; border-radius: 50%; background: #6e9a1e; color: #fff; font: 700 15px/1 system-ui, sans-serif; }
+</style>

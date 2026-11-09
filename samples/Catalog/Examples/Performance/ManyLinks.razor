@@ -42,12 +42,14 @@
 
         var random = new Random(11);
         var seen = new HashSet<(int, int)>();
+        #region links
         while (seen.Count < _linkCount)
         {
             var (a, b) = (random.Next(NodeCount), random.Next(NodeCount));
             if (a != b && seen.Add((Math.Min(a, b), Math.Max(a, b))))
                 Diagram.Links.Add(new LinkModel(Diagram.Nodes[a], Diagram.Nodes[b]) { Color = "rgba(31, 111, 178, .3)", Width = 1 });
         }
+        #endregion
     }
 
     private void OnCountChanged(ChangeEventArgs e)

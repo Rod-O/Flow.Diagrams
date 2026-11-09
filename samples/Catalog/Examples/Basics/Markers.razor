@@ -11,9 +11,11 @@
         Row(1, "Circle", LinkMarker.Circle, LinkMarker.Circle);
         Row(2, "Square", LinkMarker.Square, LinkMarker.Square);
         Row(3, "Sized", LinkMarker.NewRectangle(10, 20), LinkMarker.NewArrow(20, 10));
+        #region custom
         Row(4, "Custom",
             new LinkMarker("M 0 -8 L 3 -8 3 8 0 8 z M 4 -8 7 -8 7 8 4 8 z M 8 -8 16 0 8 8 z", 16),
             new LinkMarker("M 0 -8 L 8 -8 4 0 8 8 0 8 4 0 z", 8));
+        #endregion
     }
 
     private void Row(int index, string label, LinkMarker source, LinkMarker target)

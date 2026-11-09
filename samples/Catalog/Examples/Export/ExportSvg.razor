@@ -1,6 +1,8 @@
 @inherits ExampleBase
+@* #region inject *@
 @using Flow.Diagrams.Export
 @inject IServiceProvider Services
+@* #endregion *@
 @attribute [Example("export-svg", "Export to SVG", ExampleCategory.Export,
     "DiagramSvgExporter renders the diagram's SVG layer as a standalone document, ready to convert to PDF. Export, then compare the document with the live diagram.",
     Order = 1, New = true)]
@@ -55,7 +57,9 @@
         Link(b, PortAlignment.Bottom, c, PortAlignment.Top, "24 V DC");
     }
 
+    #region export
     private async Task Export() => _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions { Margin = 16 });
+    #endregion
 
     private Catalog.Examples.Nodes.SvgShapesNode Add(Catalog.Examples.Nodes.SvgShapesNode node)
     {

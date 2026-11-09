@@ -69,6 +69,7 @@
         await Fit();
     }
 
+    #region virtualization
     private void OnVirtualizationChanged(ChangeEventArgs e)
     {
         Diagram.Options.Virtualization.Enabled = (bool)e.Value!;
@@ -78,6 +79,7 @@
         // Virtualization re-checks what is in view when the view moves.
         Diagram.SetPan(Diagram.Pan.X + 1, Diagram.Pan.Y);
     }
+    #endregion
 
     // Nodes are measured after they are drawn; fit once their sizes are known.
     private async Task Fit()

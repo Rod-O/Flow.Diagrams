@@ -1,0 +1,43 @@
+@inherits ExampleBase
+@using Catalog.Examples.Links
+@attribute [Example("custom-links", "Custom link widgets", ExampleCategory.Links,
+    "A link model with a property of its own, drawn by its own widget: copper is a solid line, fiber a hollow one, wireless a dashed one. Select a link or drag a node; the widget redraws from the routed path.",
+    Order = 8)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        #region register
+        Diagram.RegisterComponent<CustomLinksModel, CustomLinksWidget>();
+        #endregion
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 6);
+
+        var router = Node(40, 160, "Router");
+        var core = Node(300, 160, "Core switch");
+        var access = Node(560, 60, "Access switch");
+        var ap = Node(560, 260, "Access point");
+
+        Connect(router, core, CustomLinksMedium.Fiber);
+        Connect(core, access, CustomLinksMedium.Copper);
+        Connect(core, ap, CustomLinksMedium.Wireless);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+
+    #region add
+    private void Connect(NodeModel from, NodeModel to, CustomLinksMedium medium) =>
+        Diagram.Links.Add(new CustomLinksModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!, medium)
+        {
+            TargetMarker = LinkMarker.Arrow,
+        });
+    #endregion
+}
