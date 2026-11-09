@@ -130,4 +130,23 @@ public class KeyboardShortcutsDefaultsTests
         diagram.Links.Count.Should().Be(0);
         refreshes.Should().Be(1);
     }
+
+    [Fact]
+    public async Task DeleteSelection_WhenAConstraintThrows_RestoresRefreshAndRefreshes()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.Options.Constraints.ShouldDeleteNode = _ => throw new InvalidOperationException();
+        diagram.Nodes.Add(new NodeModel { Selected = true });
+        var refreshes = 0;
+        diagram.Changed += () => refreshes++;
+
+        // Act
+        var delete = async () => await KeyboardShortcutsDefaults.DeleteSelection(diagram);
+
+        // Assert
+        await delete.Should().ThrowAsync<InvalidOperationException>();
+        diagram.SuspendRefresh.Should().BeFalse();
+        refreshes.Should().Be(1);
+    }
 }
