@@ -6,8 +6,14 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Algorithms;
 
+/// <summary>Layout helpers that rewire links; they change the diagram's links but never its nodes.</summary>
 public static class LinksReconnectionAlgorithms
 {
+    /// <summary>
+    /// Moves both ends of every link to the closest pair of ports on the same two nodes (or groups), measured between the ports'
+    /// <c>Position</c>s. Only links attached at both ends with a <c>SinglePortAnchor</c> are considered; the others are skipped.
+    /// Ports that have not been rendered and measured yet all sit at the origin, so call it after the diagram has rendered.
+    /// </summary>
     public static void ReconnectLinksToClosestPorts(this Diagram diagram)
     {
         // Only refresh ports once

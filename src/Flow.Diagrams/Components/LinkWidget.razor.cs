@@ -5,11 +5,18 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Flow.Diagrams.Components;
 
+/// <summary>
+/// The default widget for a <see cref="LinkModel"/>: its path, markers, vertex handles and, unless
+/// <c>LabelsOnTop</c> is set, its labels. It also draws a wide transparent helper path that makes the link easy to pick and,
+/// for a segmentable link, to drag a new vertex out of.
+/// </summary>
 public partial class LinkWidget
 {
     private bool _hovered;
 
+    /// <summary>The diagram the link belongs to.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
+    /// <summary>The link to draw. A custom link type that derives from <c>BaseLinkModel</c> but not <see cref="LinkModel"/> needs its own widget registered.</summary>
     [Parameter] public LinkModel Link { get; set; } = null!;
 
     private RenderFragment GetSelectionHelperPath(string color, string d, int index)

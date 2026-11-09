@@ -9,24 +9,36 @@ using SvgPathProperties;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one link label at its place along the link's path: as SVG when <c>Options.Links.SvgLabels</c> is set, otherwise as
+/// HTML inside a <c>foreignObject</c>. The label's <c>Distance</c> picks the place: 0 to 1 is a fraction of the path's
+/// length, above 1 is a length from the start, below 0 a length back from the end, and <c>null</c> spreads the link's labels
+/// evenly. Its <c>Offset</c> then moves it.
+/// </summary>
 public class LinkLabelRenderer : ComponentBase, IDisposable
 {
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
+    /// <summary>The label to draw; required.</summary>
     [Parameter] public LinkLabelModel Label { get; set; } = null!;
+    /// <summary>The link's full path, which the label's position is measured along; required.</summary>
     [Parameter] public SvgPath Path { get; set; } = null!;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Label.Changed -= OnLabelChanged;
         Label.VisibilityChanged -= OnLabelChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         Label.Changed += OnLabelChanged;
         Label.VisibilityChanged += OnLabelChanged;
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Label.Visible)

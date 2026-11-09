@@ -12,6 +12,11 @@ using Microsoft.JSInterop;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one node: a wrapper element (<c>g</c> for an <see cref="Models.SvgNodeModel"/>, <c>div</c> otherwise) positioned at the node's
+/// position, holding the widget registered for the node's type, or a default widget. It forwards pointer events to the diagram,
+/// and measures the node to set its <c>Size</c> unless the node has a controlled size. Renders nothing while the node is invisible.
+/// </summary>
 public class NodeRenderer : ComponentBase, IDisposable
 {
     private bool _becameVisible;
@@ -20,12 +25,15 @@ public class NodeRenderer : ComponentBase, IDisposable
     private DotNetObjectReference<NodeRenderer>? _reference;
     private bool _shouldRender;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
 
+    /// <summary>The node to draw; required.</summary>
     [Parameter] public NodeModel Node { get; set; } = null!;
 
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         try
@@ -46,6 +54,10 @@ public class NodeRenderer : ComponentBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Called from JavaScript when the node's element is resized. Stores the new size, converted from screen pixels to diagram units,
+    /// and refreshes the node, its links and its ports; a zero size (the node is not rendered) and an unchanged size are ignored.
+    /// </summary>
     [JSInvokable]
     public void OnResize(Size size)
     {
@@ -66,6 +78,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         Node.ReinitializePorts();
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -75,6 +88,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         Node.VisibilityChanged += OnVisibilityChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -82,6 +96,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         _isSvg = Node is SvgNodeModel;
     }
 
+    /// <summary>Renders only after the node or its visibility changed; any other cause of a render pass is skipped.</summary>
     protected override bool ShouldRender()
     {
         if (!_shouldRender)
@@ -91,6 +106,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         return true;
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Node.Visible)
@@ -132,6 +148,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    /// <summary>Starts observing the element's size, on the first render or when the node becomes visible, unless the node has a controlled size.</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try

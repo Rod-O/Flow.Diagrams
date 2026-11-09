@@ -12,28 +12,38 @@ using Microsoft.JSInterop;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one group: a wrapper element (<c>g</c> for an <see cref="Models.SvgGroupModel"/>, <c>div</c> otherwise) holding the widget
+/// registered for the group's type, or <see cref="DefaultGroupWidget"/>. It forwards pointer events to the diagram, and
+/// re-initializes the group's ports and links whenever the group's size changes. Renders nothing while the group is invisible.
+/// </summary>
 public class GroupRenderer : ComponentBase, IDisposable
 {
     private bool _isSvg;
     private Size? _lastSize;
     private bool _shouldRender = true;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
 
+    /// <summary>The group to draw; required.</summary>
     [Parameter] public GroupModel Group { get; set; } = null!;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Group.Changed -= OnGroupChanged;
         Group.VisibilityChanged -= OnGroupChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         Group.Changed += OnGroupChanged;
         Group.VisibilityChanged += OnGroupChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -41,6 +51,7 @@ public class GroupRenderer : ComponentBase, IDisposable
         _isSvg = Group is SvgGroupModel;
     }
 
+    /// <summary>Renders only after the group or its visibility changed; any other cause of a render pass is skipped.</summary>
     protected override bool ShouldRender()
     {
         if (_shouldRender)
@@ -52,6 +63,7 @@ public class GroupRenderer : ComponentBase, IDisposable
         return false;
     }
 
+    /// <summary>When the group's size differs from the last one seen, re-initializes its ports and refreshes its links.</summary>
     protected override void OnAfterRender(bool firstRender)
     {
         try
@@ -87,6 +99,7 @@ public class GroupRenderer : ComponentBase, IDisposable
         return FormattableString.Invariant($"top: {top}px; left: {left}px; width: {width}px; height: {height}px");
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Group.Visible)

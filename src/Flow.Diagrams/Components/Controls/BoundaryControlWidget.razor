@@ -27,9 +27,11 @@ else
 
 @code
 {
+    /// <summary>The control being drawn; supplies the bounds.</summary>
     [Parameter]
     public BoundaryControl Control { get; set; } = null!;
 
+    /// <summary>The model whose boundary is drawn; decides whether the markup is SVG or HTML.</summary>
     [Parameter]
     public Model Model { get; set; } = null!;
 }
