@@ -2,18 +2,34 @@
 
 namespace Flow.Diagrams.Core.Models.Base;
 
+/// <summary>A model the user can select and that has a place in the drawing order.</summary>
 public abstract class SelectableModel : Model
 {
     private int _order;
     private int _layer;
 
+    /// <summary>
+    /// Raised when <see cref="Order"/> or <see cref="Layer"/> changes; the diagram re-sorts its drawing order in
+    /// response.
+    /// </summary>
     public event Action<SelectableModel>? OrderChanged;
 
+    /// <summary>Creates a model with a generated <see cref="Model.Id"/>.</summary>
     protected SelectableModel() { }
 
+    /// <summary>Creates a model with the given <paramref name="id"/>.</summary>
     protected SelectableModel(string id) : base(id) { }
 
+    /// <summary>
+    /// Whether the model is selected. Read-only from outside the library; select through <see
+    /// cref="Diagram.SelectModel"/> and <see cref="Diagram.UnselectModel"/>.
+    /// </summary>
     public bool Selected { get; internal set; }
+    /// <summary>
+    /// Position in the drawing order within the <see cref="Layer"/>; higher is drawn in front. A model added with 0
+    /// is given the highest order plus one. Changing it raises <see cref="OrderChanged"/>; <see
+    /// cref="Diagram.SendToBack"/> and <see cref="Diagram.SendToFront"/> are the usual way to change it.
+    /// </summary>
     public int Order
     {
         get => _order;

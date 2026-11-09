@@ -4,10 +4,16 @@ using System.Linq;
 
 namespace Flow.Diagrams.Core.Layers;
 
+/// <summary>The links of a diagram. Adding a link attaches it to its anchors' models and routes it.</summary>
 public class LinkLayer : BaseLayer<BaseLinkModel>
 {
+    /// <summary>Creates the layer for <paramref name="diagram"/>.</summary>
     public LinkLayer(Diagram diagram) : base(diagram) { }
 
+    /// <summary>
+    /// Sets the link's <see cref="BaseLinkModel.Diagram"/>, registers it with the models its anchors point to,
+    /// refreshes it and follows later anchor changes.
+    /// </summary>
     protected override void OnItemAdded(BaseLinkModel link)
     {
         link.Diagram = Diagram;
@@ -19,6 +25,10 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
         link.TargetChanged += OnLinkTargetChanged;
     }
 
+    /// <summary>
+    /// Clears the link's diagram, unregisters it from its anchors' models, removes its controls and removes the links
+    /// attached to it.
+    /// </summary>
     protected override void OnItemRemoved(BaseLinkModel link)
     {
         link.Diagram = null;

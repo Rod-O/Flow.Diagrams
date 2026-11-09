@@ -6,15 +6,25 @@ using System.Linq;
 
 namespace Flow.Diagrams.Core.Models;
 
+/// <summary>
+/// A node that wraps other nodes: it positions and sizes itself around its <see cref="Children"/> plus padding, and
+/// moving the group moves them. Groups live in <see cref="Diagram.Groups"/>, not <see cref="Diagram.Nodes"/>;
+/// children stay in <see cref="Diagram.Nodes"/>.
+/// </summary>
 public class GroupModel : NodeModel
 {
     private readonly List<NodeModel> _children;
 
+    /// <summary>
+    /// Creates a group around <paramref name="children"/> with the same <paramref name="padding"/> in diagram units
+    /// on every side.
+    /// </summary>
     public GroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool autoSize = true)
         : this(children, new GroupPadding(padding), autoSize)
     {
     }
 
+    /// <summary>Creates a group around <paramref name="children"/> with the given padding per side.</summary>
     public GroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool autoSize = true)
     {
         _children = new List<NodeModel>();
@@ -26,6 +36,7 @@ public class GroupModel : NodeModel
         Initialize(children);
     }
 
+    /// <summary>The nodes the group wraps, including nested groups.</summary>
     public IReadOnlyList<NodeModel> Children => _children;
 
     /// <summary>
@@ -36,8 +47,16 @@ public class GroupModel : NodeModel
 
     /// <summary>Space between the children's bounds and the group's edges, per side.</summary>
     public GroupPadding PaddingBySide { get; }
+    /// <summary>
+    /// When <c>false</c>, a selected child is not moved on its own by dragging (the group still resizes to its
+    /// children); when <c>true</c> children can be dragged individually. Sizing follows the children in both cases.
+    /// </summary>
     public bool AutoSize { get; }
 
+    /// <summary>
+    /// Adds <paramref name="child"/>, sets its <see cref="NodeModel.Group"/>, and resizes the group when the children
+    /// can be measured.
+    /// </summary>
     public void AddChild(NodeModel child)
     {
         _children.Add(child);
@@ -51,6 +70,7 @@ public class GroupModel : NodeModel
         }
     }
 
+    /// <summary>Removes <paramref name="child"/> and resizes the group; does nothing if it is not a child.</summary>
     public void RemoveChild(NodeModel child)
     {
         if (!_children.Remove(child))
@@ -67,6 +87,7 @@ public class GroupModel : NodeModel
         }
     }
 
+    /// <summary>Moves the group and every child by the same offset, then refreshes them and their links.</summary>
     public override void SetPosition(double x, double y)
     {
         var deltaX = x - Position.X;
@@ -83,6 +104,7 @@ public class GroupModel : NodeModel
         RefreshLinks();
     }
 
+    /// <summary>Moves the group and every child by the given offset without refreshing links.</summary>
     public override void UpdatePositionSilently(double deltaX, double deltaY)
     {
         base.UpdatePositionSilently(deltaX, deltaY);
@@ -93,6 +115,10 @@ public class GroupModel : NodeModel
         Refresh();
     }
 
+    /// <summary>
+    /// Releases every child (they stay in the diagram) and empties the group; the group itself is not removed from
+    /// <see cref="Diagram.Groups"/>.
+    /// </summary>
     public void Ungroup()
     {
         foreach (var child in Children)
@@ -126,6 +152,10 @@ public class GroupModel : NodeModel
         }
     }
 
+    /// <summary>
+    /// Recomputes the group's position and size from <see cref="GetChildrenBounds"/> and the padding. Returns
+    /// <c>false</c> when the children cannot be measured yet, in which case nothing changed.
+    /// </summary>
     protected virtual bool UpdateDimensions()
     {
         if (Children.Count == 0)
