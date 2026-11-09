@@ -18,7 +18,7 @@ public sealed class SvgExportCanvas : ComponentBase
     [Parameter] public BlazorDiagram Diagram { get; set; } = null!;
     /// <summary>The region of the diagram to draw, in diagram units; becomes the <c>viewBox</c> and, with <see cref="SvgExportOptions.Unit"/>, the document's size. Required.</summary>
     [Parameter] public Rectangle ViewBox { get; set; } = null!;
-    /// <summary>Unit, background and embedded stylesheet of the document. Required.</summary>
+    /// <summary>Unit, background, font family and embedded stylesheet of the document. Required.</summary>
     [Parameter] public SvgExportOptions Options { get; set; } = null!;
 
     /// <inheritdoc />
@@ -30,32 +30,44 @@ public sealed class SvgExportCanvas : ComponentBase
         builder.AddAttribute(2, "width", w.ToInvariantString() + Options.Unit);
         builder.AddAttribute(3, "height", h.ToInvariantString() + Options.Unit);
         builder.AddAttribute(4, "viewBox", FormattableString.Invariant($"{x} {y} {w} {h}"));
+        if (Options.FontFamily != null)
+            builder.AddAttribute(5, "font-family", Options.FontFamily);
 
         if (Options.Css != null)
         {
-            builder.OpenElement(5, "style");
-            builder.AddContent(6, Options.Css);
+            builder.OpenElement(6, "style");
+            builder.AddContent(7, Options.Css);
             builder.CloseElement();
         }
 
         if (Options.Background != null)
         {
-            builder.OpenElement(7, "rect");
-            builder.AddAttribute(8, "x", x.ToInvariantString());
-            builder.AddAttribute(9, "y", y.ToInvariantString());
-            builder.AddAttribute(10, "width", w.ToInvariantString());
-            builder.AddAttribute(11, "height", h.ToInvariantString());
-            builder.AddAttribute(12, "fill", Options.Background);
+            builder.OpenElement(8, "rect");
+            builder.AddAttribute(9, "x", x.ToInvariantString());
+            builder.AddAttribute(10, "y", y.ToInvariantString());
+            builder.AddAttribute(11, "width", w.ToInvariantString());
+            builder.AddAttribute(12, "height", h.ToInvariantString());
+            builder.AddAttribute(13, "fill", Options.Background);
             builder.CloseElement();
         }
 
-        builder.OpenComponent<CascadingValue<BlazorDiagram>>(13);
-        builder.AddAttribute(14, nameof(CascadingValue<BlazorDiagram>.Value), Diagram);
-        builder.AddAttribute(15, nameof(CascadingValue<BlazorDiagram>.IsFixed), true);
-        builder.AddAttribute(16, nameof(CascadingValue<BlazorDiagram>.ChildContent), (RenderFragment)BuildDrawing);
+        builder.OpenComponent<CascadingValue<BlazorDiagram>>(14);
+        builder.AddAttribute(15, nameof(CascadingValue<BlazorDiagram>.Value), Diagram);
+        builder.AddAttribute(16, nameof(CascadingValue<BlazorDiagram>.IsFixed), true);
+        builder.AddAttribute(17, nameof(CascadingValue<BlazorDiagram>.ChildContent), (RenderFragment)BuildExporting);
         builder.CloseComponent();
 
         builder.CloseElement();
+    }
+
+    // Renderers under this cascade know they draw a static document: NodeRenderer then skips its JS resize observer.
+    private void BuildExporting(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<CascadingValue<SvgExportCanvas>>(0);
+        builder.AddAttribute(1, nameof(CascadingValue<SvgExportCanvas>.Value), this);
+        builder.AddAttribute(2, nameof(CascadingValue<SvgExportCanvas>.IsFixed), true);
+        builder.AddAttribute(3, nameof(CascadingValue<SvgExportCanvas>.ChildContent), (RenderFragment)BuildDrawing);
+        builder.CloseComponent();
     }
 
     private void BuildDrawing(RenderTreeBuilder builder)

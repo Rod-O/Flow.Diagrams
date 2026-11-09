@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using Bunit;
+using Flow.Diagrams.Core.Anchors;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Export;
@@ -101,6 +102,106 @@ public class DiagramSvgExporterTests
         var texts = XDocument.Parse(svgLabels.Svg).Descendants(Svg + "text").ToList();
         texts.Select(t => t.Value).Should().Equal("4-20 mA", "4-20 mA");
         texts[0].Attribute("fill")!.Value.Should().Be("none", "the halo comes first, stroke only, under the text");
-        texts.Should().OnlyContain(t => t.Attribute("font-family") != null, "a standalone document has no page font to inherit");
+        texts.Should().OnlyContain(t => t.Attribute("font-family") == null, "labels inherit the family, like node text");
+        XDocument.Parse(svgLabels.Svg).Root!.Attribute("font-family")!.Value.Should().EndWith("sans-serif",
+            "a standalone document has no page font, so the root gives every text one");
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldSetTheFontFamilyOnTheRoot_UnlessItIsNull()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+
+        // Act
+        var byDefault = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services);
+        var custom = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { FontFamily = "\"IBM Plex Sans\", sans-serif" });
+        var unset = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { FontFamily = null });
+
+        // Assert
+        XDocument.Parse(byDefault.Svg).Root!.Attribute("font-family")!.Value.Should().Be("Helvetica, Arial, sans-serif");
+        XDocument.Parse(custom.Svg).Root!.Attribute("font-family")!.Value.Should().Be("\"IBM Plex Sans\", sans-serif");
+        XDocument.Parse(unset.Svg).Root!.Attribute("font-family").Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldFrameProtrudingPortsAndLabelsOutsideTheNodes()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.Options.Links.SvgLabels = true;
+        var a = diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+        var b = diagram.Nodes.Add(new SvgNodeModel(new Point(300, 0)) { Size = new Size(100, 60) });
+        var top = a.AddPort(PortAlignment.Top);
+        top.Position = new Point(40, -10);
+        top.Size = new Size(20, 20);
+        var bottom = b.AddPort(PortAlignment.Bottom);
+        bottom.Position = new Point(340, 50);
+        bottom.Size = new Size(20, 20);
+        var link = new LinkModel(a, b);
+        link.Labels.Add(new LinkLabelModel(link, "4-20 mA", offset: new Point(0, 100)));
+        diagram.Links.Add(link);
+
+        // Act
+        var export = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { Margin = 0 });
+
+        // Assert
+        var viewBox = ViewBox(export);
+        viewBox.Top.Should().BeLessThanOrEqualTo(-10, "the top port sticks out 10 above its node");
+        var labelCentre = link.PathGeneratorResult!.FullPath.GetPointAtLength(link.PathGeneratorResult.FullPath.Length / 2);
+        viewBox.Bottom.Should().BeGreaterThanOrEqualTo(labelCentre.Y + 100 + 6, "the label's text reaches half a line below its centre");
+        viewBox.Left.Should().BeLessThanOrEqualTo(labelCentre.X - 7 * 0.6 * 12 / 2, "seven characters centred on the label's position");
+        viewBox.Right.Should().BeGreaterThanOrEqualTo(labelCentre.X + 7 * 0.6 * 12 / 2);
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldFrameLinkStrokesAndMarkers()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.Links.Add(new LinkModel(new PositionAnchor(new Point(0, 0)), new PositionAnchor(new Point(200, 0)))
+        {
+            Width = 6,
+            TargetMarker = LinkMarker.Arrow,
+        });
+
+        // Act
+        var export = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { Margin = 0 });
+
+        // Assert
+        var viewBox = ViewBox(export);
+        viewBox.Left.Should().BeLessThanOrEqualTo(0);
+        viewBox.Right.Should().BeGreaterThanOrEqualTo(200, "the arrowhead's tip ends the link");
+        viewBox.Top.Should().BeLessThanOrEqualTo(-5, "the arrowhead is 10 wide across the link");
+        viewBox.Bottom.Should().BeGreaterThanOrEqualTo(5);
+        viewBox.Top.Should().BeLessThanOrEqualTo(-3, "half the stroke lies above the line at the source end too");
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldNotCallTheJSRuntime()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var diagram = new BlazorDiagram();
+        var a = diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+        var b = diagram.Nodes.Add(new SvgNodeModel(new Point(300, 0)));
+        diagram.Links.Add(new LinkModel(a, b));
+
+        // Act
+        await DiagramSvgExporter.ExportAsync(diagram, ctx.Services);
+
+        // Assert
+        ctx.JSInterop.Invocations.Should().BeEmpty("a static render has no element to observe");
+    }
+
+    private static Rectangle ViewBox(SvgExport export)
+    {
+        var v = XDocument.Parse(export.Svg).Root!.Attribute("viewBox")!.Value.Split(' ').Select(n => double.Parse(n, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        return new Rectangle(v[0], v[1], v[0] + v[2], v[1] + v[3]);
     }
 }

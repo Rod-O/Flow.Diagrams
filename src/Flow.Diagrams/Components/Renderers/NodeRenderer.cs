@@ -3,6 +3,7 @@ using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
+using Flow.Diagrams.Export;
 using Flow.Diagrams.Extensions;
 using Flow.Diagrams.Models;
 using Microsoft.AspNetCore.Components;
@@ -15,7 +16,7 @@ namespace Flow.Diagrams.Components.Renderers;
 /// <summary>
 /// Draws one node: a wrapper element (<c>g</c> for an <see cref="Models.SvgNodeModel"/>, <c>div</c> otherwise) positioned at the node's
 /// position, holding the widget registered for the node's type, or a default widget. It forwards pointer events to the diagram,
-/// and measures the node to set its <c>Size</c> unless the node has a controlled size. Renders nothing while the node is invisible.
+/// and measures the node to set its <c>Size</c> unless the node has a controlled size or is drawn by <see cref="SvgExportCanvas"/>. Renders nothing while the node is invisible.
 /// </summary>
 public class NodeRenderer : ComponentBase, IDisposable
 {
@@ -33,6 +34,10 @@ public class NodeRenderer : ComponentBase, IDisposable
 
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
 
+    [CascadingParameter] private SvgExportCanvas? ExportCanvas { get; set; }
+
+    private bool ObservesResizes => !Node.ControlledSize && ExportCanvas == null;
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -41,7 +46,7 @@ public class NodeRenderer : ComponentBase, IDisposable
             Node.Changed -= OnNodeChanged;
             Node.VisibilityChanged -= OnVisibilityChanged;
 
-            if (_element.Id != null && !Node.ControlledSize && JsRuntime != null)
+            if (_element.Id != null && ObservesResizes && JsRuntime != null)
             {
                 _ = JsRuntime.UnobserveResizes(_element);
             }
@@ -148,7 +153,7 @@ public class NodeRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
-    /// <summary>Starts observing the element's size, on the first render or when the node becomes visible, unless the node has a controlled size.</summary>
+    /// <summary>Starts observing the element's size, on the first render or when the node becomes visible, unless the node has a controlled size or is being exported.</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
@@ -160,7 +165,7 @@ public class NodeRenderer : ComponentBase, IDisposable
             {
                 _becameVisible = false;
 
-                if (!Node.ControlledSize)
+                if (ObservesResizes)
                 {
                     await JsRuntime.ObserveResizes(_element, _reference!);
                 }

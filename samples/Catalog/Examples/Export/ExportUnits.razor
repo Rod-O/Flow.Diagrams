@@ -51,7 +51,7 @@
 
 @code {
     #region css
-    private const string LabelStyle = "text { font-family: Arial, Helvetica, sans-serif; letter-spacing: .03em; }";
+    private const string LabelStyle = "text { letter-spacing: .03em; }";
     #endregion
 
     private SvgExport? _export;
@@ -119,6 +119,7 @@
             Unit = _unit,
             Margin = _margin,
             Background = _whiteBackground ? "white" : null,
+            FontFamily = "\"IBM Plex Sans\", Helvetica, Arial, sans-serif",
             Css = _embedCss ? LabelStyle : null,
         });
         #endregion
