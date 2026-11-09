@@ -122,7 +122,8 @@ public class NodeRenderer : ComponentBase, IDisposable
         var classes = new StringBuilder("diagram-node")
             .AppendIf(" locked", Node.Locked)
             .AppendIf(" selected", Node.Selected)
-            .AppendIf(" grouped", Node.Group != null);
+            .AppendIf(" grouped", Node.Group != null)
+            .AppendIf(" " + Node.CssClass, !string.IsNullOrWhiteSpace(Node.CssClass));
 
         builder.OpenElement(0, _isSvg ? "g" : "div");
         builder.AddAttribute(1, "class", classes.ToString());

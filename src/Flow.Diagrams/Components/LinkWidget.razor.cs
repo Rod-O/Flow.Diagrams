@@ -1,4 +1,5 @@
 ﻿using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Export;
 using Flow.Diagrams.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -9,7 +10,8 @@ namespace Flow.Diagrams.Components;
 /// The default widget for a <see cref="LinkModel"/>: its path, markers, vertex handles and, unless
 /// <c>LabelsOnTop</c> is set, its labels. It also draws a wide transparent helper path that makes the link easy to pick and,
 /// for a segmentable link, to drag a new vertex out of. Vertex handles and new vertices are offered only when the link's
-/// router <see cref="Core.Routers.Router.FollowsVertices"/>.
+/// router <see cref="Core.Routers.Router.FollowsVertices"/>. A link with a <see cref="LinkModel.Flow"/> gets a dashed stroke whose
+/// offset the stylesheet's <c>diagram-link-flow</c> animation moves; the SVG export draws it solid.
 /// </summary>
 public partial class LinkWidget
 {
@@ -20,8 +22,24 @@ public partial class LinkWidget
     /// <summary>The link to draw. A custom link type that derives from <c>BaseLinkModel</c> but not <see cref="LinkModel"/> needs its own widget registered.</summary>
     [Parameter] public LinkModel Link { get; set; } = null!;
 
+    [CascadingParameter] private SvgExportCanvas? ExportCanvas { get; set; }
+
+    // The export is a still document: a flowing link is drawn as if it had no flow.
+    private LinkFlow? DrawnFlow => ExportCanvas == null ? Link.Flow : null;
+
     private bool FollowsVertices => (Link.Router ?? BlazorDiagram.Options.Links.DefaultRouter).FollowsVertices;
     private bool CreatesVertices => Link.Segmentable && FollowsVertices;
+
+    // One keyframes rule serves every link: it moves the dash offset by one period, in the period's time at this speed.
+    private static string? FlowStyle(LinkFlow flow)
+    {
+        if (flow.Speed <= 0)
+            return null;
+
+        var period = flow.Dash + flow.Gap;
+        var style = FormattableString.Invariant($"--diagram-flow-period:{period}px;--diagram-flow-duration:{period / flow.Speed}s");
+        return flow.Reverse ? style + ";animation-direction:reverse" : style;
+    }
 
     private RenderFragment GetSelectionHelperPath(string color, string d, int index)
     {

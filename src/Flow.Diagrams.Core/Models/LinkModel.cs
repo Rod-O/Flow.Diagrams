@@ -3,9 +3,11 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Models;
 
-/// <summary>The standard link: a <see cref="BaseLinkModel"/> with a color and width.</summary>
+/// <summary>The standard link: a <see cref="BaseLinkModel"/> with a color, a width and an optional <see cref="Flow"/>.</summary>
 public class LinkModel : BaseLinkModel
 {
+    private LinkFlow? _flow;
+
     /// <summary>Creates a link between two anchors.</summary>
     public LinkModel(Anchor source, Anchor target) : base(source, target) { }
 
@@ -41,4 +43,20 @@ public class LinkModel : BaseLinkModel
     public string? SelectedColor { get; set; }
     /// <summary>Stroke width in diagram units; 2 by default.</summary>
     public double Width { get; set; } = 2;
+    /// <summary>
+    /// Marching dashes along the stroke showing what flows through the link, or <c>null</c> (the default) for a plain
+    /// stroke. Drawn by <c>LinkWidget</c>; changing it redraws the link.
+    /// </summary>
+    public LinkFlow? Flow
+    {
+        get => _flow;
+        set
+        {
+            if (Equals(value, _flow))
+                return;
+
+            _flow = value;
+            RaiseChanged();
+        }
+    }
 }

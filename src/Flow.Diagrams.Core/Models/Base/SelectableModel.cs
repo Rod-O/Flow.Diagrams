@@ -7,6 +7,7 @@ public abstract class SelectableModel : Model
 {
     private int _order;
     private int _layer;
+    private string? _cssClass;
 
     /// <summary>
     /// Raised when <see cref="Order"/> or <see cref="Layer"/> changes; the diagram re-sorts its drawing order in
@@ -25,6 +26,24 @@ public abstract class SelectableModel : Model
     /// cref="Diagram.SelectModel"/> and <see cref="Diagram.UnselectModel"/>.
     /// </summary>
     public bool Selected { get; internal set; }
+    /// <summary>
+    /// Extra CSS classes, space-separated, that the renderer adds to the model's wrapper element next to the classes
+    /// the library sets (<c>selected</c>, <c>locked</c>, ...), so an app can style and animate a model with plain CSS;
+    /// <c>diagram-pulse</c> is a built-in highlight. Rendered for nodes, groups and links, and kept in the SVG export.
+    /// Changing it redraws the model; <c>null</c> adds nothing.
+    /// </summary>
+    public string? CssClass
+    {
+        get => _cssClass;
+        set
+        {
+            if (value == _cssClass)
+                return;
+
+            _cssClass = value;
+            RaiseChanged();
+        }
+    }
     /// <summary>
     /// Position in the drawing order within the <see cref="Layer"/>; higher is drawn in front. A model added with 0
     /// is given the highest order plus one. Changing it raises <see cref="OrderChanged"/>; <see

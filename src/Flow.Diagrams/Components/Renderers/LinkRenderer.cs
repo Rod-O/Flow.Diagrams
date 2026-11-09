@@ -60,6 +60,7 @@ public class LinkRenderer : ComponentBase, IDisposable
         var classes = new StringBuilder()
             .Append("diagram-link")
             .AppendIf(" attached", Link.IsAttached)
+            .AppendIf(" " + Link.CssClass, !string.IsNullOrWhiteSpace(Link.CssClass))
             .ToString();
 
         builder.OpenElement(0, "g");

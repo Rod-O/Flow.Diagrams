@@ -55,4 +55,7 @@ public abstract class Model
     /// Raises <see cref="Changed"/> so the model is redrawn. Overrides may recompute derived state first.
     /// </summary>
     public virtual void Refresh() => Changed?.Invoke(this);
+
+    // Redraw without the derived-state work an override of Refresh may do, such as routing a link again.
+    private protected void RaiseChanged() => Changed?.Invoke(this);
 }
