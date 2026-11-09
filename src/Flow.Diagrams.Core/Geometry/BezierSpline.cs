@@ -5,7 +5,7 @@ namespace Flow.Diagrams.Core.Geometry;
 /// <summary>
 /// Bezier Spline methods
 /// </summary>
-/// <remarks>
+/// <remarks><code>
 /// Modified: Peter Lee (peterlee.com.cn &lt; at &gt; gmail.com)
 ///   Update: 2009-03-16
 /// 
@@ -113,7 +113,7 @@ namespace Flow.Diagrams.Core.Geometry;
 ///               P1[n-1] + 3.5P1[n]   = (8Q[n-1] + Q[n]) / 2
 ///  
 /// From this set of equations, P1[1..n] are easy but tedious to solve.
-/// </remarks>
+/// </code></remarks>
 	public static class BezierSpline
 {
     /// <summary>

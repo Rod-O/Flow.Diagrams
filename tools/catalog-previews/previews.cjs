@@ -28,7 +28,7 @@ if (!base) {
   for (const id of ids) {
     errors = [];
     await page.goto(`${base.replace(/\/$/, '')}/examples/${id}`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('.example-canvas .diagram-canvas', { timeout: 10000 }).catch(() => errors.push('no canvas'));
+    await page.waitForSelector('.example-body .diagram-canvas', { timeout: 10000 }).catch(() => errors.push('no canvas'));
     await page.waitForTimeout(1200);
     const r = await page.evaluate(() => {
       const q = s => document.querySelectorAll(s).length;
@@ -47,7 +47,7 @@ if (!base) {
     console.log(`${ok ? 'OK  ' : 'FAIL'} ${id.padEnd(28)} nodes=${r.nodes} groups=${r.groups} links=${r.links}`);
     for (const e of [...new Set(errors)].slice(0, 5)) console.log('       ' + e);
     if (outDir && ok) {
-      const canvas = await page.$('.example-canvas');
+      const canvas = (await page.$('.example-canvas')) ?? (await page.$('.example-body .diagram-canvas'));
       await canvas.screenshot({ path: path.join(outDir, `${id}.png`) });
     }
   }

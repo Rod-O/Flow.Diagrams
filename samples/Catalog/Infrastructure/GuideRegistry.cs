@@ -83,11 +83,20 @@ public static partial class GuideRegistry
         var start = lines.FindIndex(l => Regex.IsMatch(l, $@"#region\s+{Regex.Escape(name)}\b"));
         if (start < 0)
             return null;
-        var end = lines.FindIndex(start + 1, l => l.Contains("#endregion"));
+        // Regions nest: find the matching #endregion, and leave the markers of inner regions out of the excerpt.
+        var depth = 0;
+        var end = -1;
+        for (var i = start + 1; i < lines.Count && end < 0; i++)
+        {
+            if (lines[i].Contains("#region"))
+                depth++;
+            else if (lines[i].Contains("#endregion") && depth-- == 0)
+                end = i;
+        }
         if (end < 0)
             return null;
 
-        var body = lines.Skip(start + 1).Take(end - start - 1).ToList();
+        var body = lines.Skip(start + 1).Take(end - start - 1).Where(l => !l.Contains("#region") && !l.Contains("#endregion")).ToList();
         var indent = body.Where(l => l.Trim().Length > 0).Select(l => l.Length - l.TrimStart().Length).DefaultIfEmpty(0).Min();
         return string.Join('\n', body.Select(l => l.Length >= indent ? l[indent..] : l.TrimStart()));
     }
