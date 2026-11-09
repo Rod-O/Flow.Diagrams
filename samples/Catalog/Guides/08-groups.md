@@ -38,9 +38,9 @@ Use `PaddingBySide`. The older `Padding` property is a single byte: the construc
 
 The group's size waits for its children's sizes. HTML nodes are measured after their first render, so until then the group has zero size. The children's area is the union of their `Position` and `Size`; if a child draws outside that box (an SVG symbol drawn around its origin, say), override `GetChildrenBounds`.
 
-### The AutoSize trap
+### Dragging children
 
-The constructor's `autoSize` argument does not control sizing. Sizing follows the children either way. `AutoSize` decides whether a child can be dragged on its own: with `false`, [DragMovablesBehavior](xref:Flow.Diagrams.Core.Behaviors.DragMovablesBehavior) skips selected nodes of that group. Clicking a child selects the child, not the group, so with `false` dragging a child moves nothing; the user moves the group by its frame.
+The group always sizes to its children. `AllowChildDrag` (constructor argument `allowChildDrag`, default `true`) decides whether a child can be dragged on its own: with `false`, [DragMovablesBehavior](xref:Flow.Diagrams.Core.Behaviors.DragMovablesBehavior) skips selected nodes of that group. Clicking a child selects the child, not the group, so with `false` dragging a child moves nothing; the user moves the group by its frame.
 
 ## Custom group widgets
 
