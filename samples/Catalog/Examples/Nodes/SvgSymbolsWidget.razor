@@ -1,0 +1,58 @@
+@using Catalog.Examples.Nodes
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var stroke = Node.Selected ? "#6e9a1e" : "#38474d";
+    var portY = Node.Symbol == Symbol.Tank ? h - 25 : h / 2;
+}
+
+@switch (Node.Symbol)
+{
+    case Symbol.Tank:
+        <path d="@($"M 2,2 H {w - 2} V {h - 14} Q {w - 2},{h - 2} {w / 2},{h - 2} Q 2,{h - 2} 2,{h - 14} Z")" fill="#fff" stroke="@stroke" stroke-width="2" />
+        <path d="@($"M 4,{h * .45} H {w - 4} V {h - 14} Q {w - 4},{h - 4} {w / 2},{h - 4} Q 4,{h - 4} 4,{h - 14} Z")" fill="#bcdcf5" />
+        break;
+    case Symbol.Pump:
+        <circle cx="@(w / 2)" cy="@(h / 2)" r="@(w / 2 - 2)" fill="#fff" stroke="@stroke" stroke-width="2" />
+        <polygon points="@($"{w * .32},{h * .25} {w * .78},{h * .5} {w * .32},{h * .75}")" fill="@stroke" />
+        break;
+    case Symbol.Valve:
+        <polygon points="@($"2,{h * .2} {w / 2},{h / 2} 2,{h * .8}")" fill="#fff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        <polygon points="@($"{w - 2},{h * .2} {w / 2},{h / 2} {w - 2},{h * .8}")" fill="#fff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case Symbol.Motor:
+        <circle cx="@(w / 2)" cy="@(h / 2)" r="@(w / 2 - 2)" fill="#fff4d6" stroke="@stroke" stroke-width="2" />
+        <g><text x="@(w / 2)" y="@(h / 2)" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="@stroke">M</text></g>
+        break;
+    case Symbol.Sensor:
+        <circle cx="@(w / 2)" cy="@(h / 2)" r="@(w / 2 - 2)" fill="#eef6dc" stroke="@stroke" stroke-width="2" />
+        <line x1="2" y1="@(h / 2)" x2="@(w - 2)" y2="@(h / 2)" stroke="@stroke" stroke-width="1.5" />
+        <g><text x="@(w / 2)" y="@(h * .36)" text-anchor="middle" dominant-baseline="central" font-size="13" fill="@stroke">FT</text></g>
+        <g><text x="@(w / 2)" y="@(h * .68)" text-anchor="middle" dominant-baseline="central" font-size="11" fill="@stroke">101</text></g>
+        break;
+}
+@if (Node.Symbol == Symbol.Motor)
+{
+    <g><text x="@(w + 8)" y="@(h / 2)" dominant-baseline="central" font-size="12" fill="#5f676b">@Node.Tag</text></g>
+}
+else
+{
+    <g><text x="@(w / 2)" y="@(h + 16)" text-anchor="middle" font-size="12" fill="#5f676b">@Node.Tag</text></g>
+}
+
+@foreach (var port in Node.Ports)
+{
+    var (cx, cy) = port.Alignment switch
+    {
+        PortAlignment.Top => (w / 2, 0.0),
+        PortAlignment.Bottom => (w / 2, h),
+        PortAlignment.Left => (0.0, portY),
+        _ => (w, portY),
+    };
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@cx" cy="@cy" r="4.5" fill="#fff" stroke="#38474d" stroke-width="1.5" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public SvgSymbolsNode Node { get; set; } = null!;
+}

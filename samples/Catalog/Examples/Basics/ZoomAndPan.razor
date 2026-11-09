@@ -1,0 +1,41 @@
+@inherits ExampleBase
+@attribute [Example("zoom-and-pan", "Zoom and pan", ExampleCategory.Basics,
+    "Scroll the wheel to zoom, drag the background to pan. The toolbar does the same from code and can switch either off.", Order = 8)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="() => ZoomBy(1 / 1.25)">Zoom out</button>
+        <button @onclick="() => ZoomBy(1.25)">Zoom in</button>
+        <button @onclick="() => Diagram.ZoomToFit(40)">Zoom to fit</button>
+        <span class="dim">@((Diagram.Zoom * 100).ToString("0"))%</span>
+        <label><input type="checkbox" checked="@Diagram.Options.Zoom.Enabled" @onchange="e => Diagram.Options.Zoom.Enabled = (bool)e.Value!" /> Wheel zoom</label>
+        <label><input type="checkbox" checked="@Diagram.Options.AllowPanning" @onchange="e => Diagram.Options.AllowPanning = (bool)e.Value!" /> Panning</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" Fit="false" />
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.ZoomChanged += () => InvokeAsync(StateHasChanged);
+
+        for (var row = 0; row < 5; row++)
+        {
+            NodeModel? previous = null;
+            for (var column = 0; column < 4; column++)
+            {
+                var node = Diagram.Nodes.Add(new NodeModel(new Point(40 + column * 220, 40 + row * 110)) { Title = $"{row + 1}.{column + 1}" });
+                node.AddPort(PortAlignment.Left);
+                node.AddPort(PortAlignment.Right);
+
+                if (previous != null)
+                    Diagram.Links.Add(new LinkModel(previous.GetPort(PortAlignment.Right)!, node.GetPort(PortAlignment.Left)!));
+
+                previous = node;
+            }
+        }
+    }
+
+    private void ZoomBy(double factor) =>
+        Diagram.SetZoom(Math.Clamp(Diagram.Zoom * factor, Diagram.Options.Zoom.Minimum, Diagram.Options.Zoom.Maximum));
+}

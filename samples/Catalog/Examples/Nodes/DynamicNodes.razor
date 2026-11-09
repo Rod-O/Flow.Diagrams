@@ -1,0 +1,86 @@
+@inherits ExampleBase
+@attribute [Example("dynamic-nodes", "Dynamic nodes", ExampleCategory.Nodes,
+    "The diagram changes while it runs. Add nodes at random places, connect two random nodes, remove the selection or clear everything; the diagram updates from the model alone.", Order = 6)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="AddNode">Add node</button>
+        <button @onclick="ConnectRandom">Connect two random nodes</button>
+        <button @onclick="RemoveSelected">Remove selected</button>
+        <button @onclick="Clear">Clear</button>
+        <span class="dim">@Diagram.Nodes.Count nodes, @Diagram.Links.Count links</span>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" Fit="false" />
+</div>
+
+@code {
+    private static readonly PortAlignment[] Sides = [PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left];
+    private readonly Random _random = new();
+    private int _counter;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Nodes.Added += _ => InvokeAsync(StateHasChanged);
+        Diagram.Nodes.Removed += _ => InvokeAsync(StateHasChanged);
+        Diagram.Links.Added += _ => InvokeAsync(StateHasChanged);
+        Diagram.Links.Removed += _ => InvokeAsync(StateHasChanged);
+
+        var a = NewNode(new Point(60, 60));
+        var b = NewNode(new Point(340, 60));
+        var c = NewNode(new Point(200, 240));
+        Connect(a, b);
+        Connect(b, c);
+    }
+
+    private void AddNode()
+    {
+        var area = Diagram.Container;
+        var x = _random.NextDouble() * Math.Max(1, (area?.Width ?? 700) - 160);
+        var y = _random.NextDouble() * Math.Max(1, (area?.Height ?? 400) - 80);
+        NewNode(new Point((x - Diagram.Pan.X) / Diagram.Zoom, (y - Diagram.Pan.Y) / Diagram.Zoom));
+    }
+
+    private void ConnectRandom()
+    {
+        if (Diagram.Nodes.Count < 2)
+            return;
+
+        var first = _random.Next(Diagram.Nodes.Count);
+        var second = (first + 1 + _random.Next(Diagram.Nodes.Count - 1)) % Diagram.Nodes.Count;
+        Connect(Diagram.Nodes[first], Diagram.Nodes[second]);
+    }
+
+    private void RemoveSelected()
+    {
+        foreach (var node in Diagram.Nodes.Where(n => n.Selected).ToList())
+            Diagram.Nodes.Remove(node);
+
+        foreach (var link in Diagram.Links.Where(l => l.Selected).ToList())
+            Diagram.Links.Remove(link);
+    }
+
+    private void Clear()
+    {
+        Diagram.Links.Clear();
+        Diagram.Nodes.Clear();
+    }
+
+    private NodeModel NewNode(Point position)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(position) { Title = $"Node {++_counter}" });
+        foreach (var side in Sides)
+            node.AddPort(side);
+        return node;
+    }
+
+    // Join the sides that face each other, so links do not loop around the nodes.
+    private void Connect(NodeModel from, NodeModel to)
+    {
+        var (dx, dy) = (to.Position.X - from.Position.X, to.Position.Y - from.Position.Y);
+        var (fromSide, toSide) = Math.Abs(dx) >= Math.Abs(dy)
+            ? dx >= 0 ? (PortAlignment.Right, PortAlignment.Left) : (PortAlignment.Left, PortAlignment.Right)
+            : dy >= 0 ? (PortAlignment.Bottom, PortAlignment.Top) : (PortAlignment.Top, PortAlignment.Bottom);
+
+        Diagram.Links.Add(new LinkModel(from.GetPort(fromSide)!, to.GetPort(toSide)!) { TargetMarker = LinkMarker.Arrow });
+    }
+}

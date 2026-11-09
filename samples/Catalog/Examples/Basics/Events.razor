@@ -1,0 +1,66 @@
+@inherits ExampleBase
+@attribute [Example("events", "Diagram events", ExampleCategory.Basics,
+    "The diagram and its collections raise events. Move a node, select things, draw a link from a port, delete with the Delete key, and watch the log.", Order = 9)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="() => _log.Clear()">Clear log</button>
+        <span class="dim">Nodes.Added/Removed, Links.Added/Removed, SelectionChanged, NodeModel.Moved</span>
+    </ExampleToolbar>
+    <div class="events-split">
+        <ExampleCanvas Diagram="Diagram" />
+        <ol class="events-log">
+            @foreach (var entry in _log)
+            {
+                <li>@entry</li>
+            }
+        </ol>
+    </div>
+</div>
+
+<style>
+    .events-split { flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 12px; min-height: 0; }
+    .events-log { margin: 0; padding: 10px 12px 10px 32px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font: 12px/1.6 var(--mono); }
+</style>
+
+@code {
+    private readonly List<string> _log = [];
+
+    protected override void OnInitialized()
+    {
+        Diagram.Nodes.Added += node =>
+        {
+            node.Moved += _ => Write($"Moved: {node.Title}");
+            Write($"Node added: {node.Title}");
+        };
+        Diagram.Nodes.Removed += node => Write($"Node removed: {node.Title}");
+        Diagram.Links.Added += _ => Write("Link added");
+        Diagram.Links.Removed += _ => Write("Link removed");
+        Diagram.SelectionChanged += model =>
+            Write($"{(model.Selected ? "Selected" : "Unselected")}: {(model is NodeModel node ? node.Title : model.GetType().Name)}");
+
+        var a = Node(60, 80, "A");
+        var b = Node(360, 80, "B");
+        var c = Node(210, 260, "C");
+        Diagram.Links.Add(new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!));
+        Diagram.Links.Add(new LinkModel(b.GetPort(PortAlignment.Bottom)!, c.GetPort(PortAlignment.Right)!));
+    }
+
+    // Dragging raises Moved for every pixel; one line per drag is enough.
+    private void Write(string text)
+    {
+        if (_log.Count > 0 && _log[0] == text && text.StartsWith("Moved"))
+            return;
+
+        _log.Insert(0, text);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}

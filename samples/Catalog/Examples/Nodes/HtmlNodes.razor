@@ -1,0 +1,27 @@
+@inherits ExampleBase
+@using Catalog.Examples.Nodes
+@attribute [Example("html-nodes", "HTML nodes", ExampleCategory.Nodes,
+    "A node model paired with a Blazor component through RegisterComponent: here a card with a badge and editable fields. Edit a field, then drag the card.", Order = 3)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<HtmlNodesNode, HtmlNodesCard>();
+
+        var web = Add(new HtmlNodesNode(new Point(40, 60), "Web shop", "Application", "Ana", "Production"));
+        var api = Add(new HtmlNodesNode(new Point(360, 60), "Orders API", "Service", "Luis", "Production"));
+        var db = Add(new HtmlNodesNode(new Point(360, 270), "Orders DB", "Database", "Marta", "Staging"));
+
+        Diagram.Links.Add(new LinkModel(web.GetPort(PortAlignment.Right)!, api.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+        Diagram.Links.Add(new LinkModel(api.GetPort(PortAlignment.Bottom)!, db.GetPort(PortAlignment.Top)!) { TargetMarker = LinkMarker.Arrow });
+    }
+
+    private HtmlNodesNode Add(HtmlNodesNode node)
+    {
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return Diagram.Nodes.Add(node);
+    }
+}

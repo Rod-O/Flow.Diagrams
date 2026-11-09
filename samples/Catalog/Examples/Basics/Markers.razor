@@ -1,0 +1,40 @@
+@inherits ExampleBase
+@attribute [Example("markers", "Link markers", ExampleCategory.Basics,
+    "A marker is an SVG path drawn at either end of a link. Built-in arrows, circles and squares, factories for custom sizes, and any path of your own.", Order = 3)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Row(0, "Arrow", LinkMarker.Arrow, LinkMarker.Arrow);
+        Row(1, "Circle", LinkMarker.Circle, LinkMarker.Circle);
+        Row(2, "Square", LinkMarker.Square, LinkMarker.Square);
+        Row(3, "Sized", LinkMarker.NewRectangle(10, 20), LinkMarker.NewArrow(20, 10));
+        Row(4, "Custom",
+            new LinkMarker("M 0 -8 L 3 -8 3 8 0 8 z M 4 -8 7 -8 7 8 4 8 z M 8 -8 16 0 8 8 z", 16),
+            new LinkMarker("M 0 -8 L 8 -8 4 0 8 8 0 8 4 0 z", 8));
+    }
+
+    private void Row(int index, string label, LinkMarker source, LinkMarker target)
+    {
+        var y = 20 + index * 90;
+        var from = Node(40, y, "A");
+        var to = Node(420, y, "B");
+        var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!)
+        {
+            SourceMarker = source,
+            TargetMarker = target,
+        };
+        link.Labels.Add(new LinkLabelModel(link, label, offset: new Point(0, -14)));
+        Diagram.Links.Add(link);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

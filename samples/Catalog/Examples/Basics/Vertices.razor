@@ -1,0 +1,44 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Core.PathGenerators
+@attribute [Example("vertices", "Link vertices", ExampleCategory.Basics,
+    "A Segmentable link takes vertices that bend it. Click a link to add a vertex, drag a vertex to move it, double-click a vertex to remove it.", Order = 5)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        var a = Node(40, 40, "A");
+        var b = Node(220, 300, "B");
+        var c = Node(520, 60, "C");
+
+        var straight = new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!)
+        {
+            PathGenerator = new StraightPathGenerator(),
+            Segmentable = true,
+        };
+        straight.Labels.Add(new LinkLabelModel(straight, "Straight"));
+        straight.Vertices.Add(new LinkVertexModel(straight, new Point(240, 90)));
+        straight.Vertices.Add(new LinkVertexModel(straight, new Point(120, 240)));
+
+        var smooth = new LinkModel(b.GetPort(PortAlignment.Right)!, c.GetPort(PortAlignment.Left)!)
+        {
+            PathGenerator = new SmoothPathGenerator(),
+            Segmentable = true,
+        };
+        smooth.Labels.Add(new LinkLabelModel(smooth, "Smooth"));
+        smooth.Vertices.Add(new LinkVertexModel(smooth, new Point(440, 360)));
+        smooth.Vertices.Add(new LinkVertexModel(smooth, new Point(380, 160)));
+
+        Diagram.Links.Add(straight);
+        Diagram.Links.Add(smooth);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

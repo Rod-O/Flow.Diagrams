@@ -1,0 +1,58 @@
+@inherits ExampleBase
+@attribute [Example("drag-and-drop", "Drag and drop", ExampleCategory.Nodes,
+    "Drag a kind from the palette onto the canvas to create a node where you drop it. The palette uses plain HTML5 drag events; GetRelativeMousePoint turns the drop position into diagram coordinates.", Order = 5)]
+
+<div class="dnd">
+    <div class="dnd-palette">
+        @foreach (var kind in _kinds)
+        {
+            <div class="dnd-item" draggable="true" @ondragstart="() => _dragged = kind">
+                <strong>@kind.Title</strong>
+                <small>@kind.Description</small>
+            </div>
+        }
+    </div>
+    <div class="dnd-canvas" @ondragover:preventDefault @ondrop="Drop">
+        <ExampleCanvas Diagram="Diagram" Fit="false" />
+    </div>
+</div>
+
+<style>
+    .dnd { flex: 1; display: grid; grid-template-columns: 200px 1fr; gap: 12px; min-height: 0; }
+    .dnd-palette { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .dnd-item { display: grid; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: grab; background: var(--bg); }
+    .dnd-item small { color: var(--dim); }
+    .dnd-canvas { display: flex; min-height: 0; }
+    .dnd-canvas > * { flex: 1; }
+</style>
+
+@code {
+    private sealed record Kind(string Title, string Description, params PortAlignment[] Ports);
+
+    private readonly Kind[] _kinds =
+    [
+        new("Source", "one output", PortAlignment.Right),
+        new("Process", "input and output", PortAlignment.Left, PortAlignment.Right),
+        new("Sink", "one input", PortAlignment.Left),
+    ];
+
+    private Kind? _dragged;
+
+    protected override void OnInitialized() => Add(_kinds[1], new Point(260, 140));
+
+    private void Drop(DragEventArgs e)
+    {
+        if (_dragged == null)
+            return;
+
+        Add(_dragged, Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY));
+        _dragged = null;
+    }
+
+    private void Add(Kind kind, Point position)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(position) { Title = kind.Title });
+        foreach (var alignment in kind.Ports)
+            node.AddPort(alignment);
+    }
+}

@@ -1,0 +1,47 @@
+@using Catalog.Examples.Nodes
+
+<div class="html-card @(Node.Selected ? "selected" : "")">
+    <div class="html-card-header">
+        <span class="html-card-badge">@Node.Kind[..1]</span>
+        <strong>@Node.Name</strong>
+        <small>@Node.Kind</small>
+    </div>
+    <div class="html-card-body">
+        <label>Owner
+            <input @bind="Node.Owner" @bind:event="oninput" @onpointerdown:stopPropagation />
+        </label>
+        <label>Environment
+            <select @bind="Node.Environment" @onpointerdown:stopPropagation>
+                <option>Development</option>
+                <option>Staging</option>
+                <option>Production</option>
+            </select>
+        </label>
+    </div>
+
+    @foreach (var port in Node.Ports)
+    {
+        <PortRenderer @key="port" Port="port" />
+    }
+</div>
+
+<style>
+    .html-card { position: relative; width: 220px; background: #fff; border: 1.5px solid #38474d; border-radius: 10px; font: 13px system-ui, sans-serif; color: #1e2326; }
+    .html-card .diagram-port { position: absolute; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: #fff; border: 1.5px solid #38474d; cursor: pointer; }
+    .html-card .diagram-port.has-links, .html-card .diagram-port:hover { background: #38474d; }
+    .html-card .diagram-port.top { top: 0; left: 50%; }
+    .html-card .diagram-port.bottom { bottom: 0; left: 50%; }
+    .html-card .diagram-port.left { left: 0; top: 50%; }
+    .html-card .diagram-port.right { right: 0; top: 50%; }
+    .html-card.selected { border-color: #6e9a1e; box-shadow: 0 0 0 3px #eef6dc; }
+    .html-card-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #eef6dc; border-radius: 8px 8px 0 0; border-bottom: 1px solid #dfe3e1; }
+    .html-card-header small { margin-left: auto; color: #5f676b; }
+    .html-card-badge { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #6e9a1e; color: #fff; font-weight: 700; }
+    .html-card-body { display: grid; gap: 6px; padding: 10px; }
+    .html-card-body label { display: grid; gap: 2px; color: #5f676b; }
+    .html-card-body input, .html-card-body select { font: inherit; padding: 3px 6px; border: 1px solid #dfe3e1; border-radius: 5px; }
+</style>
+
+@code {
+    [Parameter] public HtmlNodesNode Node { get; set; } = null!;
+}

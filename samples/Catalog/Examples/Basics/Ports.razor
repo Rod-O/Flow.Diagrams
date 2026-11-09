@@ -1,0 +1,31 @@
+@inherits ExampleBase
+@attribute [Example("ports", "Ports", ExampleCategory.Basics,
+    "A port is where links attach. A node can have a port on each of eight alignments, corners included. Drag from any port to draw another link.", Order = 2)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        var hub = Diagram.Nodes.Add(new NodeModel(new Point(340, 190)) { Title = "Hub" });
+        foreach (var alignment in Enum.GetValues<PortAlignment>())
+            hub.AddPort(alignment);
+
+        Satellite(hub, PortAlignment.Top, 340, 30);
+        Satellite(hub, PortAlignment.TopRight, 600, 30);
+        Satellite(hub, PortAlignment.Right, 640, 190);
+        Satellite(hub, PortAlignment.BottomRight, 600, 350);
+        Satellite(hub, PortAlignment.Bottom, 340, 350);
+        Satellite(hub, PortAlignment.BottomLeft, 80, 350);
+        Satellite(hub, PortAlignment.Left, 40, 190);
+        Satellite(hub, PortAlignment.TopLeft, 80, 30);
+    }
+
+    private void Satellite(NodeModel hub, PortAlignment alignment, double x, double y)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = alignment.ToString() });
+        var facing = Enum.GetValues<PortAlignment>()[((int)alignment + 4) % 8];
+        node.AddPort(facing);
+        Diagram.Links.Add(new LinkModel(hub.GetPort(alignment)!, node.GetPort(facing)!) { TargetMarker = LinkMarker.Arrow });
+    }
+}

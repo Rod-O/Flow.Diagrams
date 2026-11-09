@@ -1,0 +1,46 @@
+@inherits ExampleBase
+@attribute [Example("snap-to-grid", "Snap to grid", ExampleCategory.Basics,
+    "Options.GridSize makes nodes snap to a grid as you drag them; GridWidget draws the same grid. Drag a node, then change the grid size.", Order = 7)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Grid size <input type="range" min="10" max="100" step="10" value="@_gridSize" @oninput="SetGridSize" /> @_gridSize px</label>
+        <label><input type="checkbox" checked="@Diagram.Options.GridSnapToCenter" @onchange="SetSnapToCenter" /> Snap node centre</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" Fit="false">
+        <Widgets>
+            <GridWidget Size="_gridSize" Mode="GridMode.Line" />
+        </Widgets>
+    </ExampleCanvas>
+</div>
+
+@code {
+    private int _gridSize = 50;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.GridSize = _gridSize;
+
+        var a = Node(50, 50, "A");
+        var b = Node(350, 250, "B");
+        var c = Node(350, 50, "C");
+        Diagram.Links.Add(new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+        Diagram.Links.Add(new LinkModel(a.GetPort(PortAlignment.Right)!, c.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+    }
+
+    private void SetGridSize(ChangeEventArgs e)
+    {
+        _gridSize = int.Parse(e.Value!.ToString()!);
+        Diagram.Options.GridSize = _gridSize;
+    }
+
+    private void SetSnapToCenter(ChangeEventArgs e) => Diagram.Options.GridSnapToCenter = (bool)e.Value!;
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

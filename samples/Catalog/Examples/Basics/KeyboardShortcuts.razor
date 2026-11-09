@@ -1,0 +1,51 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Core.Behaviors
+@attribute [Example("keyboard-shortcuts", "Keyboard shortcuts", ExampleCategory.Basics,
+    "KeyboardShortcutsBehavior maps key combinations to actions. Click the canvas to focus it, select nodes (Shift-click adds to the selection) and try the shortcuts listed above.", Order = 10)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <span><kbd>Delete</kbd> delete selection</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd> group or ungroup selected nodes</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> select all nodes (added in code)</span>
+        <span><kbd>Shift</kbd>+drag box select</span>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+<style>
+    kbd { font: 11px var(--mono); padding: 1px 5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Groups.Enabled = true;
+
+        Diagram.GetBehavior<KeyboardShortcutsBehavior>()!.SetShortcut("a", ctrl: true, shift: true, alt: false, SelectAll);
+
+        var a = Node(60, 60, "A");
+        var b = Node(300, 60, "B");
+        var c = Node(180, 220, "C");
+        var d = Node(520, 220, "D");
+        Diagram.Links.Add(new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!));
+        Diagram.Links.Add(new LinkModel(b.GetPort(PortAlignment.Bottom)!, c.GetPort(PortAlignment.Right)!));
+        Diagram.Links.Add(new LinkModel(c.GetPort(PortAlignment.Right)!, d.GetPort(PortAlignment.Left)!));
+    }
+
+    private ValueTask SelectAll(Flow.Diagrams.Core.Diagram diagram)
+    {
+        foreach (var node in diagram.Nodes)
+            diagram.SelectModel(node, unselectOthers: false);
+
+        return ValueTask.CompletedTask;
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}
