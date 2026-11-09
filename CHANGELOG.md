@@ -22,6 +22,11 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
 
+### Changed
+
+- `Diagram.GetScreenPoint(clientX, clientY)` parameters renamed to `(x, y)`: they are diagram coordinates.
+  Breaking for callers that pass them by name.
+
 ### Fixed
 
 - `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523), and once

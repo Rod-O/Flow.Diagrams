@@ -436,16 +436,16 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Converts a position given in diagram coordinates (despite the parameter names) into client pixels; the inverse
-    /// of <see cref="GetRelativeMousePoint"/>. Throws if <see cref="Container"/> is not set yet.
+    /// Converts a position in diagram coordinates into client pixels; the inverse of <see
+    /// cref="GetRelativeMousePoint"/>. Throws if <see cref="Container"/> is not set yet.
     /// </summary>
-    public Point GetScreenPoint(double clientX, double clientY)
+    public Point GetScreenPoint(double x, double y)
     {
         if (Container == null)
             throw new Exception(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
-        return new Point(Zoom * clientX + Container.Left + Pan.X, Zoom * clientY + Container.Top + Pan.Y);
+        return new Point(Zoom * x + Container.Left + Pan.X, Zoom * y + Container.Top + Pan.Y);
     }
 
     #region Ordering

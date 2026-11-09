@@ -18,7 +18,7 @@ public class DiagramTests
         diagram.SetZoom(1.234);
         diagram.UpdatePan(50, 50);
         diagram.SetContainer(new Rectangle(30, 65, 1000, 793));
-        var pt = diagram.GetScreenPoint(100, 200);
+        var pt = diagram.GetScreenPoint(x: 100, y: 200);
 
         // Assert
         pt.X.Should().Be(203.4); // 2*X + panX + left
