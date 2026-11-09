@@ -287,13 +287,15 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Returns the registered behavior whose exact type is <typeparamref name="T"/>, or <c>null</c>; a subclass
-    /// registered under its own type is not found.
+    /// Returns the registered behavior whose exact type is <typeparamref name="T"/>; when there is none, a registered
+    /// behavior that derives from <typeparamref name="T"/> (if several do, which one is unspecified); otherwise <c>null</c>.
     /// </summary>
     public T? GetBehavior<T>() where T : Behavior
     {
-        var type = typeof(T);
-        return (T?)(_behaviors.ContainsKey(type) ? _behaviors[type] : null);
+        if (_behaviors.TryGetValue(typeof(T), out var exact))
+            return (T)exact;
+
+        return _behaviors.Values.OfType<T>().FirstOrDefault();
     }
 
     /// <summary>

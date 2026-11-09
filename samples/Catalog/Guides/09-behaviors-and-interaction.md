@@ -14,7 +14,7 @@ Register it once the diagram exists:
 
 {{source custom-behavior CustomBehavior.razor register}}
 
-The diagram keeps one behavior per exact type. `RegisterBehavior` throws if that type is already registered, `GetBehavior<T>()` returns the instance of exactly `T` or `null`, and `UnregisterBehavior<T>()` calls `Dispose` and removes it:
+The diagram keeps one behavior per exact type. `RegisterBehavior` throws if that type is already registered, `GetBehavior<T>()` returns the instance of exactly `T`, else a registered subclass of `T`, else `null`, and `UnregisterBehavior<T>()` calls `Dispose` and removes it:
 
 {{source custom-behavior CustomBehavior.razor toggle}}
 
@@ -38,7 +38,7 @@ The diagram keeps one behavior per exact type. `RegisterBehavior` throws if that
 
 To turn something off, prefer its option when there is one (`AllowPanning`, `Options.Zoom.Enabled`, `AllowMultiSelection`) and unregister the behavior otherwise. Behaviors handle each event in registration order, so a behavior you add runs after the built-in ones.
 
-**Replacing a built-in behavior.** Unregister it and register your class. Do not subclass it to keep the lookups working: lookups use the exact type, so `GetBehavior<DragNewLinkBehavior>()` returns `null` for a registered subclass. The built-in `LinkWidget`, `DragNewLinkControl` and `ArrowHeadControl` look up `DragNewLinkBehavior` that way, and the two controls fail without it.
+**Replacing a built-in behavior.** Unregister it and register your class; a subclass keeps the built-in lookups working, since `GetBehavior<DragNewLinkBehavior>()` finds it. `UnregisterBehavior<T>()` still matches the exact type only. The built-in `LinkWidget`, `DragNewLinkControl` and `ArrowHeadControl` look up `DragNewLinkBehavior`, and the two controls throw a `DiagramsException` without it.
 
 ## Clicks and double clicks
 

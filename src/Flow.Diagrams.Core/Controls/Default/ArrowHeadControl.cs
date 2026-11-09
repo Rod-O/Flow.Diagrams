@@ -47,13 +47,14 @@ public class ArrowHeadControl : ExecutableControl
         return p1;
     }
 
-    /// <summary>Starts dragging the end. For the source control the link is first reversed (its source becomes the old target), so the dragged end is always the target. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
+    /// <summary>Starts dragging the end. For the source control the link is first reversed (its source becomes the old target), so the dragged end is always the target. Throws <see cref="DiagramsException"/> for a model that is not a link, or when the diagram has no <see cref="DragNewLinkBehavior"/>.</summary>
     public override ValueTask OnPointerDown(Diagram diagram, Model model, PointerEventArgs e)
     {
         if (model is not BaseLinkModel link)
             throw new DiagramsException("ArrowHeadControl only works for models of type BaseLinkModel");
 
-        var dnlb = diagram.GetBehavior<DragNewLinkBehavior>()!;
+        var dnlb = diagram.GetBehavior<DragNewLinkBehavior>()
+                   ?? throw new DiagramsException("DragNewLinkBehavior was not found");
         if (Source)
         {
             link.SetSource(link.Target);

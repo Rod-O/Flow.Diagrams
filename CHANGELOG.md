@@ -44,6 +44,9 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `ReconnectLinksToClosestPorts` ignored `CanAttachTo` and `Locked`, so it could move a link onto a locked port or one
   your rules refuse, and measured between port corners, so a large port won over a closer small one; it now honours
   both and measures between centres.
+- `Diagram.GetBehavior<T>()` matched the exact type only, so a registered subclass of `DragNewLinkBehavior` was not
+  found and `DragNewLinkControl` threw, `ArrowHeadControl` threw `NullReferenceException`; it now falls back to a
+  registered subclass, and `ArrowHeadControl` throws `DiagramsException` when the behavior is missing.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
