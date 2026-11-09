@@ -29,6 +29,16 @@ Reference `Flow.Diagrams` and add its assets to the host page:
 <script src="_content/Flow.Diagrams/script.min.js"></script>
 ```
 
+## Catalog
+
+`samples/Catalog` is a gallery of 44 live examples, from a first diagram to a P&ID, each with its source and SVG export.
+
+```
+dotnet run --project samples/Catalog
+```
+
+`tools/catalog-previews` checks every example in a headless browser and regenerates the gallery's previews.
+
 ## Building and testing
 
 ```

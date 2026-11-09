@@ -18,12 +18,17 @@ Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and name
 - `LinkHalosBehavior` (opt-in): breaks a lower link where an upper link crosses it (`Options.Links.HaloColor`).
 - `Options.Links.LabelsOnTop`: labels drawn after every link and node.
 - `Options.Links.SvgLabels`: labels drawn as SVG text instead of HTML in a `foreignObject`.
+- `samples/Catalog`: a gallery of live examples with previews, source and export; `tools/catalog-previews`.
 - `DiagramSvgExporter` (net8+): the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
 
 ### Fixed
 
-- `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523).
+- `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523), and once
+  that was fixed, started their routes at the port box corner instead of where the link ends, slanting the first leg.
+- `PortRenderer` gave up measuring a port drawn before the canvas was measured; the links of nodes with
+  `ControlledSize` were never drawn.
+- `Diagram.SetZoom` ignored `Options.Zoom.Maximum`, so `ZoomToFit` could zoom past it.
 - A group moved by auto-sizing left its ports behind (upstream #581).
 
 ## Diagrams (3.0.4.1) - 2026-03-02

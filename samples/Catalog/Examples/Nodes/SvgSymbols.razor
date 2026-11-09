@@ -9,6 +9,7 @@
     protected override void OnInitialized()
     {
         Diagram.RegisterComponent<SvgSymbolsNode, SvgSymbolsWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
 
         var feed = Add(Symbol.Tank, 40, 110, "T-101", PortAlignment.Right);
