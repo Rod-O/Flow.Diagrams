@@ -312,16 +312,18 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Disposes and removes the behavior whose exact type is <typeparamref name="T"/>; does nothing if there is none.
+    /// Disposes and removes the behavior that <see cref="GetBehavior{T}"/> returns: the one whose exact type is
+    /// <typeparamref name="T"/>, else a registered behavior that derives from <typeparamref name="T"/>. Does nothing
+    /// if there is none.
     /// </summary>
     public void UnregisterBehavior<T>() where T : Behavior
     {
-        var type = typeof(T);
-        if (!_behaviors.ContainsKey(type))
+        var behavior = GetBehavior<T>();
+        if (behavior == null)
             return;
 
-        _behaviors[type].Dispose();
-        _behaviors.Remove(type);
+        behavior.Dispose();
+        _behaviors.Remove(behavior.GetType());
     }
 
     #endregion

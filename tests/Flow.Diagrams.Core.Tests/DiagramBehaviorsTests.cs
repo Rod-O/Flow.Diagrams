@@ -44,6 +44,36 @@ public class DiagramBehaviorsTests
     }
 
     [Fact]
+    public void UnregisterBehavior_ShouldRemoveARegisteredSubclass_WhenTheExactTypeIsNotRegistered()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.UnregisterBehavior<DragNewLinkBehavior>();
+        diagram.RegisterBehavior(new CustomDragNewLinkBehavior(diagram));
+
+        // Act
+        diagram.UnregisterBehavior<DragNewLinkBehavior>();
+
+        // Assert
+        diagram.GetBehavior<DragNewLinkBehavior>().Should().BeNull();
+    }
+
+    [Fact]
+    public void UnregisterBehavior_ShouldRemoveTheExactType_BeforeASubclass()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var custom = new CustomDragNewLinkBehavior(diagram);
+        diagram.RegisterBehavior(custom);
+
+        // Act
+        diagram.UnregisterBehavior<DragNewLinkBehavior>();
+
+        // Assert
+        diagram.GetBehavior<DragNewLinkBehavior>().Should().BeSameAs(custom);
+    }
+
+    [Fact]
     public async Task DragNewLinkControl_ShouldStartALink_WhenASubclassOfDragNewLinkBehaviorIsRegistered()
     {
         // Arrange
