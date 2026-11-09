@@ -34,6 +34,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   two crossing segments now do, the halo laid along the upper one.
 - `LinkHalosBehavior` left stale halos after `SendToFront`/`SendToBack` with links in several layers: it recomputed
   while the diagram's drawing order was still unsorted, putting the halo on the lower-layer link.
+- `ObstacleRouterOptions.MinStub` applied only to a `TargetMarker`; a `SourceMarker` could sit on a corner. It now
+  applies at whichever end carries a marker.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

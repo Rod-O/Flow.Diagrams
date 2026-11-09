@@ -86,6 +86,27 @@ public class ObstacleRouterTests
     }
 
     [Fact]
+    public void GetRoute_SourceWithMarker_ShouldKeepAStraightLegForTheArrowhead()
+    {
+        // Arrange: the target-marker case reversed; the arrowhead now sits at the source end.
+        var diagram = new TestDiagram();
+        var router = new ObstacleRouter(new ObstacleRouterOptions { MinStub = 40 });
+        var a = AddNode(diagram, 230, 0, 100, 60);
+        var b = AddNode(diagram, 300, 200, 100, 60);
+        var link = Connect(diagram, router, Port(b, PortAlignment.Left), Port(a, PortAlignment.Bottom));
+        link.SourceMarker = LinkMarker.Arrow;
+
+        // Act
+        var polyline = Polyline(link, router.GetRoute(diagram, link));
+
+        // Assert
+        var (start, first) = (polyline[0], polyline[1]);
+        first.Y.Should().Be(start.Y);
+        (start.X - first.X).Should().BeGreaterThanOrEqualTo(40);
+        Orthogonal(polyline).Should().BeTrue();
+    }
+
+    [Fact]
     public void GetRoute_CornerPort_ShouldLeaveHorizontally()
     {
         // Arrange
