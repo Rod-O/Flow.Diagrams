@@ -77,11 +77,10 @@ These rules guard only what the user draws. Links you add in code are not checke
 
 ## Reconnecting to the closest ports
 
-`ReconnectLinksToClosestPorts`, an extension method in `Flow.Diagrams.Algorithms`, moves both ends of every port-to-port link to the closest pair of ports on the same two nodes ([example](examples/reconnect-to-closest-ports)). Distances are measured between the ports' `Position`s, so call it after the diagram has rendered: unmeasured ports all sit where they were created.
+`ReconnectLinksToClosestPorts`, an extension method in `Flow.Diagrams.Algorithms`, moves both ends of every port-to-port link to the closest pair of ports on the same two nodes ([example](examples/reconnect-to-closest-ports)). Distances are measured between the ports' centres, so call it after the diagram has rendered: unmeasured ports all sit where they were created. It only picks pairs the source port's `CanAttachTo` accepts, never moves a link onto a locked port, and leaves locked links, and links with an end on a locked port or node, where they are.
 
 ## Traps
 
 - `Links.Added` fires when the user starts dragging a link, while its target is still a `PositionAnchor`. If it is dropped on nothing it is removed again. To act on finished links, handle the link's `TargetAttached` event or check `IsAttached`.
-- `ReconnectLinksToClosestPorts` does not ask `CanAttachTo` and ignores `Locked`: it can move a link onto a locked port or break your rules.
 - `Shapes.Circle` uses the node's width as the diameter and ignores its height; use `Shapes.Ellipse` for an oval.
 - `LinkAnchor` distances: from 0 to 1 is a fraction of the path, above 1 a length in diagram units, negative a length from the end; exactly 1 is the end of the path.

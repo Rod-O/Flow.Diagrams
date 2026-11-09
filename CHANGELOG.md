@@ -41,6 +41,9 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   `KeyboardShortcutsBehavior.ActionFailed` event, and is rethrown only when nothing handles it.
 - The ports of a locked node still started links and received them; they now behave as locked
   (`DragNewLinkBehavior`, `PortModel.CanAttachTo`).
+- `ReconnectLinksToClosestPorts` ignored `CanAttachTo` and `Locked`, so it could move a link onto a locked port or one
+  your rules refuse, and measured between port corners, so a large port won over a closer small one; it now honours
+  both and measures between centres.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
