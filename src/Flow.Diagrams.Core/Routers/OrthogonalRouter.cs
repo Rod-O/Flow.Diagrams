@@ -47,8 +47,8 @@ public class OrthogonalRouter : Router
         var sideAVertical = IsVerticalSide(sideA);
         var sideB = targetPort.Alignment;
         var sideBVertical = IsVerticalSide(sideB);
-        var originA = GetPortPositionBasedOnAlignment(sourcePort);
-        var originB = GetPortPositionBasedOnAlignment(targetPort);
+        var originA = Origin(spa1, link);
+        var originB = Origin(targetAnchor, link);
         var shapeA = sourcePort.Parent.GetBounds(includePorts: true)!;
         var shapeB = targetPort.Parent.GetBounds(includePorts: true)!;
         var inflatedA = shapeA.Inflate(shapeMargin, shapeMargin);
@@ -271,6 +271,19 @@ public class OrthogonalRouter : Router
 
         // Reduce repeated points and filter out those who touch shapes
         return gridPoints;
+    }
+
+    /// <summary>
+    /// Where the route leaves a port: on the port box's edge along the exit direction, so the first antenna clears the
+    /// shape, and level with the link's real end across it, so the first leg is straight. They differ on corner ports,
+    /// where the anchor puts the end on the port's shape, inside the box corner.
+    /// </summary>
+    private static Point Origin(SinglePortAnchor anchor, BaseLinkModel link)
+    {
+        var edge = GetPortPositionBasedOnAlignment(anchor.Port);
+        if (anchor.GetPosition(link, Array.Empty<Point>()) is not { } end)
+            return edge;
+        return IsVerticalSide(anchor.Port.Alignment) ? new Point(end.X, edge.Y) : new Point(edge.X, end.Y);
     }
 
     private static bool IsVerticalSide(PortAlignment alignment)

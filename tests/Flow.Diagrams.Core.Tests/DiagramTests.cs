@@ -30,6 +30,7 @@ public class DiagramTests
     {
         // Arrange
         var diagram = new TestDiagram();
+        diagram.Options.Zoom.Maximum = 10; // room for the fit this test computes
         diagram.SetContainer(new Rectangle(new Point(0, 0), new Size(1080, 768)));
         diagram.Nodes.Add(new NodeModel(new Point(50, 50))
         {
@@ -51,6 +52,7 @@ public class DiagramTests
     {
         // Arrange
         var diagram = new TestDiagram();
+        diagram.Options.Zoom.Maximum = 10; // room for the fit this test computes
         diagram.SetContainer(new Rectangle(new Point(0, 0), new Size(1080, 768)));
         diagram.Nodes.Add(new NodeModel(new Point(50, 50))
         {
@@ -121,5 +123,20 @@ public class DiagramTests
     {
         var diagram = new TestDiagram();
         Assert.Throws<ArgumentException>(() => diagram.Options.Zoom.Minimum = zoomValue);
+    }
+
+    [Theory]
+    [InlineData(5, 2)]
+    [InlineData(0.01, 0.1)]
+    [InlineData(1.5, 1.5)]
+    public void SetZoom_ShouldStayWithinTheZoomOptions(double requested, double expected)
+    {
+        var diagram = new TestDiagram();
+        diagram.Options.Zoom.Minimum = 0.1;
+        diagram.Options.Zoom.Maximum = 2;
+
+        diagram.SetZoom(requested);
+
+        diagram.Zoom.Should().Be(expected);
     }
 }

@@ -23,15 +23,17 @@ public class OrthogonalRouterTests
         var target = new NodeModel(new Point(400, 300)) { Size = new Size(100, 100) };
         var sourcePort = source.AddPort(new PortModel(source, alignment, new Point(portX, portY), new Size(10, 10)));
         var targetPort = target.AddPort(new PortModel(target, PortAlignment.Left, new Point(400, 345), new Size(10, 10)));
+        sourcePort.Initialized = targetPort.Initialized = true;
         diagram.Nodes.Add(new[] { source, target });
         var link = diagram.Links.Add(new LinkModel(new SinglePortAnchor(sourcePort), new SinglePortAnchor(targetPort)));
 
         // Act
         var route = new OrthogonalRouter().GetRoute(diagram, link);
 
-        // Assert
+        // Assert: the first leg runs level from where the link really ends, the point the anchor puts on the port.
         route.Should().NotBeEmpty();
-        route[0].Y.Should().Be(cornerY);
+        var end = link.Source.GetPosition(link, route)!;
+        route[0].Y.Should().BeApproximately(end.Y, 1e-9);
         var exitsRight = alignment is PortAlignment.TopRight or PortAlignment.BottomRight;
         if (exitsRight)
             route[0].X.Should().BeGreaterThan(cornerX);

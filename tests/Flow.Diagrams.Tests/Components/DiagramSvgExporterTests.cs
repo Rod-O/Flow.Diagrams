@@ -77,5 +77,6 @@ public class DiagramSvgExporterTests
         var texts = XDocument.Parse(svgLabels.Svg).Descendants(Svg + "text").ToList();
         texts.Select(t => t.Value).Should().Equal("4-20 mA", "4-20 mA");
         texts[0].Attribute("fill")!.Value.Should().Be("none", "the halo comes first, stroke only, under the text");
+        texts.Should().OnlyContain(t => t.Attribute("font-family") != null, "a standalone document has no page font to inherit");
     }
 }

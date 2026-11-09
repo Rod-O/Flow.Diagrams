@@ -243,8 +243,7 @@ public abstract class Diagram
         if (newZoom <= 0)
             throw new ArgumentException($"{nameof(newZoom)} cannot be equal or lower than 0");
 
-        if (newZoom < Options.Zoom.Minimum)
-            newZoom = Options.Zoom.Minimum;
+        newZoom = Math.Clamp(newZoom, Options.Zoom.Minimum, Options.Zoom.Maximum);
 
         Zoom = newZoom;
         ZoomChanged?.Invoke();
