@@ -20,7 +20,7 @@ public partial class StatisticsLine
 
     private async Task<int> GetStars()
     {
-        var content = await HttpClient.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/Blazor-Diagrams/Flow.Diagrams");
+        var content = await HttpClient.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/Rod-O/Flow.Diagrams");
         if (content == null)
             return 0;
 
