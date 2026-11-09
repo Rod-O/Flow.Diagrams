@@ -69,7 +69,7 @@ A vertex is a waypoint the link passes through. Add them in code, or set `Segmen
 
 Two traps:
 
-- Double-clicking a vertex removes it. No event is raised, so if you store vertices you will not hear about it; compare the link's `Vertices` when you save.
+- Double-clicking a vertex removes it through `RemoveVertex`, which raises the link's `VertexRemoved`. A vertex created by pressing on a segmentable link raises only the link's `Changed`, so if you store vertices, compare the link's `Vertices` when you save.
 - Only [NormalRouter](xref:Flow.Diagrams.Core.Routers.NormalRouter) passes through vertices. `OrthogonalRouter` and `ObstacleRouter` ignore them, but the handles are still drawn and a segmentable link still creates them. Do not combine `Segmentable` with those routers.
 
 ## Colour and width

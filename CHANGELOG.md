@@ -23,6 +23,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   what is drawn as HTML.
 - Meta (Cmd) in keyboard shortcuts: `KeyboardEventArgs.MetaKey`, and `SetShortcut`/`RemoveShortcut` overloads and
   `KeysUtils.GetStringRepresentation` with a `meta` argument.
+- `BaseLinkModel.RemoveVertex` and `VertexRemoved`; double-clicking a vertex, which removed it silently, now goes
+  through them.
 
 ### Changed
 

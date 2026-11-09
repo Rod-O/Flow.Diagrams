@@ -131,4 +131,23 @@ public class LinkVertexWidgetTests
         // Assert
         cut.MarkupMatches("<g class=\"diagram-link-vertex\" cursor=\"move\"><circle cx=\"10.5\" cy=\"20\" r=\"10\" fill=\"red\" /></g>");
     }
+    [Fact]
+    public async Task ShouldRaiseVertexRemovedOnTheLink_WhenDoubleClicked()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var link = new LinkModel(new NodeModel(), new NodeModel());
+        var vertex = link.AddVertex(new Point(10.5, 20));
+        LinkVertexModel? removed = null;
+        link.VertexRemoved += (_, v) => removed = v;
+        var cut = ctx.RenderComponent<LinkVertexRenderer>(parameters => parameters
+            .Add(n => n.Vertex, vertex)
+            .Add(n => n.BlazorDiagram, new BlazorDiagram()));
+
+        // Act
+        await cut.Find("circle").DoubleClickAsync(new MouseEventArgs());
+
+        // Assert
+        removed.Should().BeSameAs(vertex);
+    }
 }
