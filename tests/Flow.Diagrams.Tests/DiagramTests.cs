@@ -94,6 +94,20 @@ public class DiagramTests
         componentType.Should().Be(typeof(CustomWidget));
     }
 
+    [Fact]
+    public void RegisterComponent_ShouldThrowLibraryException_WhenModelTypeIsAlreadyRegistered()
+    {
+        // Arrange
+        var diagram = new BlazorDiagram();
+        diagram.RegisterComponent<NodeModel, NodeWidget>();
+
+        // Act
+        var register = () => diagram.RegisterComponent<NodeModel, NodeWidget>();
+
+        // Assert
+        register.Should().Throw<BlazorDiagramsException>();
+    }
+
     private class CustomModel : Model { }
     private class DerivedCustomModel : CustomModel { }
     private class CustomWidget : ComponentBase { }

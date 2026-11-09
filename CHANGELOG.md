@@ -45,6 +45,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   throws `ArgumentNullException`, like `SetSource`.
 - `BlazorDiagram.GetComponent` returned the first registered base class instead of the nearest, so a model
   subclass without its own registration could be drawn with a more general widget.
+- `BlazorDiagram.RegisterComponent` threw a plain `Exception` on a duplicate registration; it now throws the
+  library's exception.
 
 ### Removed
 
