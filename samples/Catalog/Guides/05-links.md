@@ -14,7 +14,7 @@ The other constructors take two nodes, and the link then ends where it crosses e
 
 ## Drawing links by dragging
 
-[DragNewLinkBehavior](xref:Flow.Diagrams.Core.Behaviors.DragNewLinkBehavior) is registered by default: pressing the left button on a port starts a link whose loose end follows the pointer. A link that starts on a port attaches only to another port, on a different node, that is not locked; releasing over a node or the empty canvas counts as releasing on nothing. Locked ports start no link.
+[DragNewLinkBehavior](xref:Flow.Diagrams.Core.Behaviors.DragNewLinkBehavior) is registered by default: pressing the left button on a port starts a link whose loose end follows the pointer. A link that starts on a port attaches only to another port, on a different node, where neither the port nor its node is locked; releasing over a node or the empty canvas counts as releasing on nothing. Locked ports, and the ports of locked nodes, start no link.
 
 What happens next is set in `Diagram.Options.Links` ([DiagramLinkOptions](xref:Flow.Diagrams.Core.Options.DiagramLinkOptions)):
 

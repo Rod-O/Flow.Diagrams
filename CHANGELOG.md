@@ -39,6 +39,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   Option+G types `©`; a key that types neither a letter nor a digit is now matched on its physical key (`Code`).
 - An exception thrown by a shortcut action was unobserved (`async void`); it now goes to the new
   `KeyboardShortcutsBehavior.ActionFailed` event, and is rethrown only when nothing handles it.
+- The ports of a locked node still started links and received them; they now behave as locked
+  (`DragNewLinkBehavior`, `PortModel.CanAttachTo`).
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

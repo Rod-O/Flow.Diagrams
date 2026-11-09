@@ -92,12 +92,12 @@ Set `Locked` on a node, group, link or port:
 
 - a locked node or group is not moved by dragging;
 - a locked node, group or link is not deleted by the Delete key or the remove control;
-- a locked port can neither start a link nor receive one;
+- a locked port, or any port of a locked node, can neither start a link nor receive one;
 - locked nodes and groups get a `locked` CSS class.
 
 {{example locked}}
 
-A locked node can still be selected, and its ports are not locked with it: users can still draw links from them, so lock the ports too. Setting `Locked` does not refresh the model, and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.
+A locked node can still be selected. Setting `Locked` does not refresh the model, and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.
 
 ## Traps
 

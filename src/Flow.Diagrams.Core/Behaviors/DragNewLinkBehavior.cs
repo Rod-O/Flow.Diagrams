@@ -8,7 +8,7 @@ using Flow.Diagrams.Core.Geometry;
 namespace Flow.Diagrams.Core.Behaviors;
 
 /// <summary>
-/// Creates links by dragging: pressing the left button on a port starts a link from it, which follows the pointer and
+/// Creates links by dragging: pressing the left button on a port that is not locked, on a node that is not locked, starts a link from it, which follows the pointer and
 /// snaps to a nearby port when <see cref="Options.DiagramLinkOptions.EnableSnapping"/> is on. Releasing over a linkable model attaches the
 /// target; releasing elsewhere removes the link when <see cref="Options.DiagramLinkOptions.RequireTarget"/> is set. Registered by default;
 /// controls such as <see cref="Controls.Default.DragNewLinkControl"/> start drags through <see cref="StartFrom(ILinkable, double, double)"/>.
@@ -77,7 +77,7 @@ public class DragNewLinkBehavior : Behavior
 
         if (model is PortModel port)
         {
-            if (port.Locked)
+            if (port.Locked || port.Parent.Locked)
                 return;
 
             _targetPositionAnchor = new PositionAnchor(CalculateTargetPosition(e.ClientX, e.ClientY));

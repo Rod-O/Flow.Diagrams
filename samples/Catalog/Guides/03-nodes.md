@@ -77,4 +77,3 @@ The point becomes the node's top-left corner. To centre the node under the point
 
 - **SVG `text` in `@if` or `@switch`.** Razor fails with RZ1023 on a `<text>` element directly inside a code block, because `<text>` is its own keyword there. Wrap it in `<g>`, as the [process symbols example](examples/svg-symbols) does.
 - **Registration picks the first base type.** A model type with no registration of its own uses the first registered base type, in registration order, not the closest one. Register each concrete type.
-- **Locking a node does not lock its ports.** See [Locking](guides/the-diagram).

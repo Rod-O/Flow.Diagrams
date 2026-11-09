@@ -88,13 +88,13 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
     public virtual IShape GetShape() => Shapes.Circle(this);
 
     /// <summary>
-    /// A link starting on a port may end on another port that is not this one, is not locked and belongs to a
-    /// different node.
+    /// A link starting on a port may end on another port that is not this one, belongs to a different node, and is not
+    /// locked, nor is its node.
     /// </summary>
     public virtual bool CanAttachTo(ILinkable other)
     {
         // Todo: remove in order to support same node links
-        return other is PortModel port && port != this && !port.Locked && Parent != port.Parent;
+        return other is PortModel port && port != this && !port.Locked && !port.Parent.Locked && Parent != port.Parent;
     }
 
     void ILinkable.AddLink(BaseLinkModel link) => _links.Add(link);
