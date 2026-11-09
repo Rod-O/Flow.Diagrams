@@ -7,12 +7,12 @@ namespace Flow.Diagrams.Models;
 public class SvgGroupModel : GroupModel
 {
     /// <summary>Creates a group around <paramref name="children"/> with the same padding, in diagram units, on every side.</summary>
-    public SvgGroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool autoSize = true) : base(children, padding, autoSize)
+    public SvgGroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool allowChildDrag = true) : base(children, padding, allowChildDrag)
     {
     }
 
     /// <summary>Creates a group around <paramref name="children"/> with a padding per side.</summary>
-    public SvgGroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool autoSize = true) : base(children, padding, autoSize)
+    public SvgGroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool allowChildDrag = true) : base(children, padding, allowChildDrag)
     {
     }
 }

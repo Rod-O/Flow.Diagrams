@@ -17,22 +17,25 @@ public class GroupModel : NodeModel
 
     /// <summary>
     /// Creates a group around <paramref name="children"/> with the same <paramref name="padding"/> in diagram units
-    /// on every side.
+    /// on every side. <paramref name="allowChildDrag"/> sets <see cref="AllowChildDrag"/>.
     /// </summary>
-    public GroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool autoSize = true)
-        : this(children, new GroupPadding(padding), autoSize)
+    public GroupModel(IEnumerable<NodeModel> children, byte padding = 30, bool allowChildDrag = true)
+        : this(children, new GroupPadding(padding), allowChildDrag)
     {
     }
 
-    /// <summary>Creates a group around <paramref name="children"/> with the given padding per side.</summary>
-    public GroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool autoSize = true)
+    /// <summary>
+    /// Creates a group around <paramref name="children"/> with the given padding per side. <paramref
+    /// name="allowChildDrag"/> sets <see cref="AllowChildDrag"/>.
+    /// </summary>
+    public GroupModel(IEnumerable<NodeModel> children, GroupPadding padding, bool allowChildDrag = true)
     {
         _children = new List<NodeModel>();
 
         Size = Size.Zero;
         PaddingBySide = padding;
         Padding = (byte)Math.Clamp(Math.Round(Math.Min(Math.Min(padding.Left, padding.Top), Math.Min(padding.Right, padding.Bottom))), 0, byte.MaxValue);
-        AutoSize = autoSize;
+        AllowChildDrag = allowChildDrag;
         Initialize(children);
     }
 
@@ -48,10 +51,11 @@ public class GroupModel : NodeModel
     /// <summary>Space between the children's bounds and the group's edges, per side.</summary>
     public GroupPadding PaddingBySide { get; }
     /// <summary>
-    /// When <c>false</c>, a selected child is not moved on its own by dragging (the group still resizes to its
-    /// children); when <c>true</c> children can be dragged individually. Sizing follows the children in both cases.
+    /// When <c>true</c> (the default), children can be dragged individually; when <c>false</c>, a selected child is
+    /// not moved on its own by dragging and the group moves only by its frame. The group sizes to its children
+    /// either way.
     /// </summary>
-    public bool AutoSize { get; }
+    public bool AllowChildDrag { get; }
 
     /// <summary>
     /// Adds <paramref name="child"/>, sets its <see cref="NodeModel.Group"/>, and resizes the group when the children

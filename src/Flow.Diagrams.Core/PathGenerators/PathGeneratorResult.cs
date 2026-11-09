@@ -1,7 +1,7 @@
 ﻿using Flow.Diagrams.Core.Geometry;
 using SvgPathProperties;
 
-namespace Flow.Diagrams.Core;
+namespace Flow.Diagrams.Core.PathGenerators;
 
 /// <summary>What a <see cref="PathGenerators.PathGenerator"/> produced for one link: the path to draw and where its end markers go.</summary>
 public class PathGeneratorResult

@@ -45,6 +45,21 @@ public class BaseLinkModelTests
     }
 
     [Fact]
+    public void SetTarget_WithNull_ThrowsAndKeepsTarget()
+    {
+        // Arrange
+        var target = new PositionAnchor(Point.Zero);
+        var link = new LinkModel(new SinglePortAnchor(new PortModel(new NodeModel())), target);
+
+        // Act
+        var setTarget = () => link.SetTarget(null!);
+
+        // Assert
+        setTarget.Should().Throw<ArgumentNullException>();
+        link.Target.Should().BeSameAs(target);
+    }
+
+    [Fact]
     public void SetTarget_ShouldChangePropertiesAndTriggerEvent()
     {
         // Arrange

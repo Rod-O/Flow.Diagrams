@@ -39,8 +39,7 @@ public class DragMovablesBehavior : Behavior
             if (sm is not MovableModel movable || movable.Locked)
                 continue;
 
-            // Special case: groups without auto size on
-            if (sm is NodeModel node && node.Group != null && !node.Group.AutoSize)
+            if (sm is NodeModel node && node.Group != null && !node.Group.AllowChildDrag)
                 continue;
 
             var position = movable.Position;

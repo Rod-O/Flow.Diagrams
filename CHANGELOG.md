@@ -22,6 +22,16 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
 
+### Changed
+
+- `Diagram.GetScreenPoint(clientX, clientY)` parameters renamed to `(x, y)`: they are diagram coordinates.
+  Breaking for callers that pass them by name.
+- `GroupModel.AutoSize` (constructor argument `autoSize`) renamed to `AllowChildDrag` (`allowChildDrag`): it never
+  controlled sizing (a group always sizes to its children), only whether a child can be dragged on its own.
+- `PathGeneratorResult` moved to `Flow.Diagrams.Core.PathGenerators` and `BaseLayer<T>` to `Flow.Diagrams.Core.Layers`,
+  next to their siblings.
+- One library exception: `BlazorDiagramsException` is removed and the Blazor layer throws `Flow.Diagrams.Core.DiagramsException`, which Core now also throws for a duplicate behavior and for calls that need the canvas before it is measured (they threw a plain `Exception`).
+
 ### Fixed
 
 - `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523), and once
@@ -40,6 +50,17 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 ### Removed
 
 - `Rectangle.Overlap`, a duplicate of `Rectangle.Intersects`.
+- `Diagram.Batch` left `SuspendRefresh` on when its action threw, and the diagram never redrew again; it now
+  restores it and refreshes, then rethrows.
+- `Diagram.SelectModel(model, unselectOthers: true)` did nothing when `model` was already selected, so the other
+  selected models stayed selected.
+- `BaseLinkModel.SetTarget(null)` was accepted, leaving a null `Target` behind a non-nullable property; it now
+  throws `ArgumentNullException`, like `SetSource`.
+- `BlazorDiagram.GetComponent` returned the first registered base class instead of the nearest, so a model
+  subclass without its own registration could be drawn with a more general widget.
+- `BlazorDiagram.RegisterComponent` threw a plain `Exception` on a duplicate registration; it now throws the
+  library's exception.
+- `TouchEventArgs` and `TouchPoint`: nothing raised or consumed them.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

@@ -6,7 +6,7 @@ Draw nodes your own way: choose between HTML and SVG, pair a node model with a B
 
 A node is two things: a model that holds its data and a component, the widget, that draws it. A plain [`NodeModel`](xref:Flow.Diagrams.Core.Models.NodeModel) is drawn by the default widget, a grey box that shows `Title` (the text "Title" when it is `null`) and the node's ports. `Title` means nothing to any other widget.
 
-For a node of your own, subclass the model, write a component with a parameter named `Node`, and pair them once per diagram with `Diagram.RegisterComponent<TModel, TWidget>()`. The renderer passes the model in the `Node` parameter, so the name matters; a component without it fails to render.
+For a node of your own, subclass the model, write a component with a parameter named `Node`, and pair them once per diagram with `Diagram.RegisterComponent<TModel, TWidget>()`. A subclass without its own registration uses the registration of its nearest registered base class. The renderer passes the model in the `Node` parameter, so the name matters; a component without it fails to render.
 
 {{source html-nodes HtmlNodesNode.cs}}
 
@@ -76,5 +76,4 @@ The point becomes the node's top-left corner. To centre the node under the point
 ## Traps
 
 - **SVG `text` in `@if` or `@switch`.** Razor fails with RZ1023 on a `<text>` element directly inside a code block, because `<text>` is its own keyword there. Wrap it in `<g>`, as the [process symbols example](examples/svg-symbols) does.
-- **Registration picks the first base type.** A model type with no registration of its own uses the first registered base type, in registration order, not the closest one. Register each concrete type.
 - **Locking a node does not lock its ports.** See [Locking](guides/the-diagram).

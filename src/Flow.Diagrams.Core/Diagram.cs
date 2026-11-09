@@ -172,7 +172,8 @@ public abstract class Diagram
     /// <summary>
     /// Runs <paramref name="action"/> with refreshes suspended and calls <see cref="Refresh"/> once afterwards.
     /// Inside an outer batch (or any suspended refresh) it only runs the action and leaves the refresh to the outer
-    /// caller. If the action throws, <see cref="SuspendRefresh"/> stays <c>true</c>.
+    /// caller. If the action throws, refreshes are still restored and the diagram refreshed (whatever the action
+    /// changed before throwing is drawn), then the exception propagates.
     /// </summary>
     public void Batch(Action action)
     {
@@ -185,9 +186,15 @@ public abstract class Diagram
         }
 
         SuspendRefresh = true;
-        action();
-        SuspendRefresh = false;
-        Refresh();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            SuspendRefresh = false;
+            Refresh();
+        }
     }
 
     #region Selection
@@ -224,17 +231,23 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. Does nothing if it
-    /// is already selected, even when <paramref name="unselectOthers"/> is <c>true</c>. With <paramref
-    /// name="unselectOthers"/>, everything else is unselected first.
+    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. With <paramref
+    /// name="unselectOthers"/>, everything else is unselected first. If it is already selected, it is left as is
+    /// (no refresh, no event for it); only the others are unselected.
     /// </summary>
     public void SelectModel(SelectableModel model, bool unselectOthers)
     {
+        if (unselectOthers)
+        {
+            foreach (var other in GetSelectedModels().ToList())
+            {
+                if (other != model)
+                    UnselectModel(other);
+            }
+        }
+
         if (model.Selected)
             return;
-
-        if (unselectOthers)
-            UnselectAll();
 
         model.Selected = true;
         model.Refresh();
@@ -281,7 +294,7 @@ public abstract class Diagram
     {
         var type = behavior.GetType();
         if (_behaviors.ContainsKey(type))
-            throw new Exception($"Behavior '{type.Name}' already registered");
+            throw new DiagramsException($"Behavior '{type.Name}' already registered");
 
         _behaviors.Add(type, behavior);
     }
@@ -403,7 +416,7 @@ public abstract class Diagram
     public Point GetRelativeMousePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point((clientX - Container.Left - Pan.X) / Zoom, (clientY - Container.Top - Pan.Y) / Zoom);
@@ -416,23 +429,23 @@ public abstract class Diagram
     public Point GetRelativePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point(clientX - Container.Left, clientY - Container.Top);
     }
 
     /// <summary>
-    /// Converts a position given in diagram coordinates (despite the parameter names) into client pixels; the inverse
-    /// of <see cref="GetRelativeMousePoint"/>. Throws if <see cref="Container"/> is not set yet.
+    /// Converts a position in diagram coordinates into client pixels; the inverse of <see
+    /// cref="GetRelativeMousePoint"/>. Throws if <see cref="Container"/> is not set yet.
     /// </summary>
-    public Point GetScreenPoint(double clientX, double clientY)
+    public Point GetScreenPoint(double x, double y)
     {
         if (Container == null)
-            throw new Exception(
+            throw new DiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
-        return new Point(Zoom * clientX + Container.Left + Pan.X, Zoom * clientY + Container.Top + Pan.Y);
+        return new Point(Zoom * x + Container.Left + Pan.X, Zoom * y + Container.Top + Pan.Y);
     }
 
     #region Ordering
