@@ -132,12 +132,13 @@ public class KeyboardShortcutsDefaultsTests
     }
 
     [Fact]
-    public async Task DeleteSelection_WhenAConstraintThrows_RestoresRefreshAndRefreshes()
+    public async Task DeleteSelection_WhenAConstraintThrows_DeletesNothingAndLeavesRefreshOn()
     {
         // Arrange
         var diagram = new TestDiagram();
-        diagram.Options.Constraints.ShouldDeleteNode = _ => throw new InvalidOperationException();
-        diagram.Nodes.Add(new NodeModel { Selected = true });
+        diagram.Options.Constraints.ShouldDeleteNode = node =>
+            node == diagram.Nodes[1] ? throw new InvalidOperationException() : ValueTask.FromResult(true);
+        diagram.Nodes.Add(new NodeModel[] { new() { Selected = true }, new() { Selected = true } });
         var refreshes = 0;
         diagram.Changed += () => refreshes++;
 
@@ -146,7 +147,30 @@ public class KeyboardShortcutsDefaultsTests
 
         // Assert
         await delete.Should().ThrowAsync<InvalidOperationException>();
+        diagram.Nodes.Count.Should().Be(2);
         diagram.SuspendRefresh.Should().BeFalse();
-        refreshes.Should().Be(1);
+        refreshes.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteSelection_ShouldNotSuspendRefresh_WhileAConstraintIsAwaited()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var suspendedWhileAsked = new List<bool>();
+        diagram.Options.Constraints.ShouldDeleteNode = async _ =>
+        {
+            await Task.Yield();
+            suspendedWhileAsked.Add(diagram.SuspendRefresh);
+            return true;
+        };
+        diagram.Nodes.Add(new NodeModel[] { new() { Selected = true }, new() { Selected = true } });
+
+        // Act
+        await KeyboardShortcutsDefaults.DeleteSelection(diagram);
+
+        // Assert
+        suspendedWhileAsked.Should().Equal(false, false);
+        diagram.Nodes.Count.Should().Be(0);
     }
 }
