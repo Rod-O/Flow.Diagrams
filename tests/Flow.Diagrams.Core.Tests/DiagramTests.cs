@@ -1,4 +1,4 @@
-﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using FluentAssertions;
 using System;
@@ -173,5 +173,20 @@ public class DiagramTests
         // Assert
         first.Selected.Should().BeTrue();
         second.Selected.Should().BeFalse();
+    }
+
+    [Fact]
+    public void RegisterBehavior_ShouldThrowLibraryException_WhenTheBehaviorTypeIsAlreadyRegistered()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var behavior = diagram.GetBehavior<Flow.Diagrams.Core.Behaviors.SelectionBehavior>()!;
+
+        // Act
+        var register = () => diagram.RegisterBehavior(new Flow.Diagrams.Core.Behaviors.SelectionBehavior(diagram));
+
+        // Assert
+        behavior.Should().NotBeNull();
+        register.Should().Throw<FlowDiagramsException>();
     }
 }

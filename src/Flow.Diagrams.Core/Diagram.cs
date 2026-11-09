@@ -294,7 +294,7 @@ public abstract class Diagram
     {
         var type = behavior.GetType();
         if (_behaviors.ContainsKey(type))
-            throw new Exception($"Behavior '{type.Name}' already registered");
+            throw new FlowDiagramsException($"Behavior '{type.Name}' already registered");
 
         _behaviors.Add(type, behavior);
     }
@@ -416,7 +416,7 @@ public abstract class Diagram
     public Point GetRelativeMousePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new FlowDiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point((clientX - Container.Left - Pan.X) / Zoom, (clientY - Container.Top - Pan.Y) / Zoom);
@@ -429,7 +429,7 @@ public abstract class Diagram
     public Point GetRelativePoint(double clientX, double clientY)
     {
         if (Container == null)
-            throw new Exception(
+            throw new FlowDiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point(clientX - Container.Left, clientY - Container.Top);
@@ -442,7 +442,7 @@ public abstract class Diagram
     public Point GetScreenPoint(double x, double y)
     {
         if (Container == null)
-            throw new Exception(
+            throw new FlowDiagramsException(
                 "Container not available. Make sure you're not using this method before the diagram is fully loaded");
 
         return new Point(Zoom * x + Container.Left + Pan.X, Zoom * y + Container.Top + Pan.Y);

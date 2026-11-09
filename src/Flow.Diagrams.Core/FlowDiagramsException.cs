@@ -1,10 +1,8 @@
-using System;
-
-namespace Flow.Diagrams;
+namespace Flow.Diagrams.Core;
 
 /// <summary>
-/// A problem in the Blazor layer, such as a control with no registered component or a duplicate component
-/// registration.
+/// A misuse of the library: a duplicate behavior or component registration, a control with no registered component, or
+/// a call that needs the canvas before it is measured.
 /// </summary>
 public class FlowDiagramsException : Exception
 {
