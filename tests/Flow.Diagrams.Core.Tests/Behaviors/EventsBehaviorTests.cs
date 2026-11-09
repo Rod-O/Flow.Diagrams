@@ -124,6 +124,24 @@ public class EventsBehaviorTests
     }
 
     [Fact]
+    public void Behavior_ShouldNotTriggerDoubleClick_OnTheCanvas_AfterTheClickedNodeWasRemoved()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var node = diagram.Nodes.Add(new NodeModel());
+        var eventTriggered = false;
+        diagram.PointerDoubleClick += (m, e) => eventTriggered = true;
+
+        // Act
+        diagram.TriggerPointerClick(node, Click());
+        diagram.Nodes.Remove(node);
+        diagram.TriggerPointerClick(null, Click());
+
+        // Assert
+        eventTriggered.Should().BeFalse();
+    }
+
+    [Fact]
     public void Behavior_ShouldTriggerOneDoubleClick_WhenThreeClicksHappenWithinTime()
     {
         // Arrange
