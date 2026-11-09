@@ -27,6 +27,17 @@
             }
         }
 
+        @if (BlazorDiagram.Options.Links.LabelsOnTop)
+        {
+            @* Its own group: the links above are keyed by the same models. *@
+            <g class="diagram-link-labels-layer">
+                @foreach (var link in BlazorDiagram.OrderedSelectables.OfType<BaseLinkModel>())
+                {
+                    <LinkLabelsRenderer @key="link" Link="link" />
+                }
+            </g>
+        }
+
         <ControlsLayerRenderer Svg="@true"></ControlsLayerRenderer>
 
         @AdditionalSvg

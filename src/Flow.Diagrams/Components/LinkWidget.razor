@@ -59,7 +59,10 @@
     }
 }
 
-@foreach (var label in Link.Labels)
+@if (!BlazorDiagram.Options.Links.LabelsOnTop)
 {
-    <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+    @foreach (var label in Link.Labels)
+    {
+        <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+    }
 }

@@ -79,7 +79,8 @@
         pointer-events: none;
     }
 
-.diagram-link foreignObject.diagram-link-label {
+.diagram-link foreignObject.diagram-link-label,
+.diagram-link-labels foreignObject.diagram-link-label {
     overflow: visible;
     pointer-events: none;
     width: 1px;

@@ -18,6 +18,15 @@ public class DiagramLinkOptions
     /// <summary>The colour of link halos (<see cref="Behaviors.LinkHalosBehavior"/>): the diagram's background.</summary>
     public string HaloColor { get; set; } = "white";
 
+    /// <summary>Draw every link label after every link and node, so no line or node covers a label.</summary>
+    public bool LabelsOnTop { get; set; } = false;
+
+    /// <summary>
+    /// Draw link labels as SVG (a <c>g</c> at the label's position) instead of HTML inside a <c>foreignObject</c>, so the
+    /// diagram's SVG holds no HTML and exports as vectors.
+    /// </summary>
+    public bool SvgLabels { get; set; } = false;
+
     public double SnappingRadius
     {
         get => _snappingRadius;

@@ -1,0 +1,21 @@
+@* Centred on the label's position. The stroke, painted under the fill, is a halo in the background colour that keeps
+   the text readable across lines without measuring it for a box. *@
+<text text-anchor="middle"
+      dominant-baseline="central"
+      font-size="12"
+      fill="@BlazorDiagram.Options.Links.DefaultColor"
+      stroke="@BlazorDiagram.Options.Links.HaloColor"
+      stroke-width="4"
+      stroke-linejoin="round"
+      paint-order="stroke"
+      pointer-events="none">@Label.Content</text>
+
+@code {
+
+    [CascadingParameter]
+    public BlazorDiagram BlazorDiagram { get; set; } = null!;
+
+    [Parameter]
+    public LinkLabelModel Label { get; set; } = null!;
+
+}

@@ -109,7 +109,8 @@ g.diagram-group.default.selected > rect {
     outline: 2px solid green;
 }
 
-.diagram-link div.default-link-label {
+.diagram-link div.default-link-label,
+.diagram-link-labels div.default-link-label {
     display: inline-block;
     color: #fff;
     background-color: rgb(110, 159, 212);

@@ -36,17 +36,28 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
         if (position == null)
             return;
         
-        var componentType = BlazorDiagram.GetComponent(Label) ?? typeof(DefaultLinkLabelWidget);
+        var x = position.X + (Label.Offset?.X ?? 0);
+        var y = position.Y + (Label.Offset?.Y ?? 0);
 
-        builder.OpenElement(0, "foreignObject");
-        builder.AddAttribute(1, "class", "diagram-link-label");
-        builder.AddAttribute(2, "x", (position.X + (Label.Offset?.X ?? 0)).ToInvariantString());
-        builder.AddAttribute(3, "y", (position.Y + (Label.Offset?.Y ?? 0)).ToInvariantString());
-        
-        builder.OpenComponent(4, componentType);
-        builder.AddAttribute(5, "Label", Label);
+        if (BlazorDiagram.Options.Links.SvgLabels)
+        {
+            builder.OpenElement(0, "g");
+            builder.AddAttribute(1, "class", "diagram-link-label");
+            builder.AddAttribute(2, "transform", FormattableString.Invariant($"translate({x} {y})"));
+            builder.OpenComponent(3, BlazorDiagram.GetComponent(Label) ?? typeof(DefaultSvgLinkLabelWidget));
+            builder.AddAttribute(4, "Label", Label);
+            builder.CloseComponent();
+            builder.CloseElement();
+            return;
+        }
+
+        builder.OpenElement(5, "foreignObject");
+        builder.AddAttribute(6, "class", "diagram-link-label");
+        builder.AddAttribute(7, "x", x.ToInvariantString());
+        builder.AddAttribute(8, "y", y.ToInvariantString());
+        builder.OpenComponent(9, BlazorDiagram.GetComponent(Label) ?? typeof(DefaultLinkLabelWidget));
+        builder.AddAttribute(10, "Label", Label);
         builder.CloseComponent();
-        
         builder.CloseElement();
     }
 
