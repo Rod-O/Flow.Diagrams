@@ -1,5 +1,7 @@
 using Bunit;
 using Flow.Diagrams.Components;
+using Flow.Diagrams.Components.Controls;
+using Flow.Diagrams.Core.Controls;
 using Flow.Diagrams.Components.Renderers;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
@@ -70,6 +72,45 @@ public class RendererRenderCountTests
 
         // Assert
         cut.RenderCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void ControlsLayerRenderer_ShouldNotRenderAgain_AfterTwoChangesWhileARenderWasQueued()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var diagram = new BlazorDiagram();
+        var node = diagram.Nodes.Add(new NodeModel(new Point(0, 0)) { Size = new Size(50, 50) });
+        var controls = diagram.Controls.AddFor(node);
+        // An event handler runs inside a render batch, so the second change finds the first render still queued.
+        var cut = ctx.Render(builder =>
+        {
+            builder.OpenElement(0, "button");
+            builder.AddAttribute(1, "onclick", EventCallback.Factory.Create(new object(), () =>
+            {
+                controls.Show();
+                controls.Hide();
+            }));
+            builder.CloseElement();
+            builder.OpenComponent<CascadingValue<BlazorDiagram>>(2);
+            builder.AddAttribute(3, "Value", diagram);
+            builder.AddAttribute(4, "ChildContent", (RenderFragment)(child =>
+            {
+                child.OpenComponent<ControlsLayerRenderer>(0);
+                child.CloseComponent();
+            }));
+            builder.CloseComponent();
+        });
+        var layer = cut.FindComponent<ControlsLayerRenderer>();
+        cut.Find("button").Click();
+        var before = layer.RenderCount;
+
+        // Act
+        layer.Render();
+
+        // Assert
+        layer.RenderCount.Should().Be(before);
     }
 
     private static Dictionary<string, int> RenderCounts(IRenderedComponent<DiagramCanvas> cut) => new()

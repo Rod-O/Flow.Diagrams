@@ -1,0 +1,1 @@
+- The `.html-layer` and `.svg-layer` rules in `style.css`: no element renders those classes. The layers use `.diagram-html-layer` and `.diagram-svg-layer`. Breaking only for an app that put those classes on its own elements.
