@@ -12,6 +12,14 @@ Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and name
 ### Added
 
 - `GroupPadding`: group padding per side, in fractions; `GroupModel.GetChildrenBounds()` can be overridden.
+- `ObstacleRouter`: orthogonal routing around every node, by least length + bends + crossings, keeping links of
+  different nets apart; a straight leg before arrowheads; `RouteAll` re-routes every link against the others.
+- `SelectableModel.Layer`: drawing bands; a higher layer is drawn above a lower one, `Order` decides within a layer.
+- `LinkHalosBehavior` (opt-in): breaks a lower link where an upper link crosses it (`Options.Links.HaloColor`).
+- `Options.Links.LabelsOnTop`: labels drawn after every link and node.
+- `Options.Links.SvgLabels`: labels drawn as SVG text instead of HTML in a `foreignObject`.
+- `DiagramSvgExporter` (net8+): the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
+  what is drawn as HTML.
 
 ### Fixed
 
