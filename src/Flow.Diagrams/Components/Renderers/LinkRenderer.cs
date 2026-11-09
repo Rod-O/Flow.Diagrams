@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Flow.Diagrams.Core;
 using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
@@ -11,7 +12,8 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Flow.Diagrams.Components.Renderers;
 
 /// <summary>
-/// Draws one link: a <c>g</c> holding the link's halos and the widget registered for the link's type, or <see cref="LinkWidget"/>.
+/// Draws one link: a <c>g</c> holding the link's halos and the widget registered for the link's type, or <see cref="LinkWidget"/>
+/// for a <see cref="LinkModel"/>. A link of any other type without a registered widget throws a <see cref="DiagramsException"/>.
 /// It forwards pointer events to the diagram. Renders nothing while the link is invisible.
 /// </summary>
 public class LinkRenderer : ComponentBase, IDisposable
@@ -52,7 +54,10 @@ public class LinkRenderer : ComponentBase, IDisposable
         if (!Link.Visible)
             return;
         
-        var componentType = BlazorDiagram.GetComponent(Link) ?? typeof(LinkWidget);
+        var componentType = BlazorDiagram.GetComponent(Link) ?? (Link is LinkModel
+            ? typeof(LinkWidget)
+            : throw new DiagramsException(
+                $"No widget is registered for the link type '{Link.GetType().Name}', and the default {nameof(LinkWidget)} draws only a {nameof(LinkModel)}. Register one with {nameof(BlazorDiagram)}.{nameof(BlazorDiagram.RegisterComponent)}."));
         var classes = new StringBuilder()
             .Append("diagram-link")
             .AppendIf(" attached", Link.IsAttached)
