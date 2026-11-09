@@ -1,0 +1,33 @@
+@using Catalog.Examples.Links
+@* #region widget *@
+@{
+    var result = Link.PathGeneratorResult;
+    if (result == null)
+        return;
+
+    var d = result.FullPath.ToString();
+    var color = Link.Selected ? "#6e9a1e" : Link.Medium == CustomLinksMedium.Fiber ? "#e08a1e" : "#1f6fb2";
+}
+
+@* A wide transparent stroke makes the thin line easy to click. *@
+<path d="@d" stroke="transparent" stroke-width="12" fill="none" />
+@if (Link.Medium == CustomLinksMedium.Fiber)
+{
+    <path d="@d" stroke="@color" stroke-width="6" fill="none" />
+    <path d="@d" stroke="white" stroke-width="2" fill="none" />
+}
+else
+{
+    <path d="@d" stroke="@color" stroke-width="2" fill="none" stroke-dasharray="@(Link.Medium == CustomLinksMedium.Wireless ? "6 4" : "none")" />
+}
+@if (Link.TargetMarker != null && result.TargetMarkerPosition != null && result.TargetMarkerAngle != null)
+{
+    <g transform="@(FormattableString.Invariant($"translate({result.TargetMarkerPosition.X} {result.TargetMarkerPosition.Y}) rotate({result.TargetMarkerAngle})"))">
+        <path d="@Link.TargetMarker.Path" fill="@color" />
+    </g>
+}
+
+@code {
+    [Parameter] public CustomLinksModel Link { get; set; } = null!;
+}
+@* #endregion *@

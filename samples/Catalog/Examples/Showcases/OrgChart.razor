@@ -15,7 +15,9 @@
 
     protected override void OnInitialized()
     {
+        #region register
         Diagram.RegisterComponent<OrgChartNode, OrgChartWidget>();
+        #endregion
         Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
 

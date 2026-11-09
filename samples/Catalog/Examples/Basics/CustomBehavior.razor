@@ -1,0 +1,60 @@
+@inherits ExampleBase
+@using Catalog.Examples.Basics
+@attribute [Example("custom-behavior", "Custom behavior", ExampleCategory.Basics,
+    "A behavior is a class that subscribes to the diagram's events. This one adds a node where you double-click the empty canvas. Toggle it, and toggle the built-in PanBehavior to see that dragging the canvas stops panning. Escape clears the selection, a shortcut added in code.",
+    Order = 12)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@_addOnDoubleClick" @onchange="SetAddOnDoubleClick" /> CustomBehaviorAddNode</label>
+        <label><input type="checkbox" checked="@_pan" @onchange="SetPan" /> PanBehavior</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private bool _addOnDoubleClick = true;
+    private bool _pan = true;
+
+    protected override void OnInitialized()
+    {
+        #region register
+        Diagram.RegisterBehavior(new CustomBehaviorAddNode(Diagram));
+        #endregion
+
+        #region shortcut
+        var shortcuts = Diagram.GetBehavior<KeyboardShortcutsBehavior>()!;
+        shortcuts.SetShortcut("Escape", ctrl: false, shift: false, alt: false, diagram =>
+        {
+            diagram.UnselectAll();
+            return ValueTask.CompletedTask;
+        });
+        #endregion
+
+        var a = Diagram.Nodes.Add(new NodeModel(new Point(60, 80)) { Title = "Node 1" });
+        var b = Diagram.Nodes.Add(new NodeModel(new Point(360, 160)) { Title = "Node 2" });
+        Diagram.Links.Add(new LinkModel(a.AddPort(PortAlignment.Right), b.AddPort(PortAlignment.Left)));
+        a.AddPort(PortAlignment.Left);
+        b.AddPort(PortAlignment.Right);
+    }
+
+    #region toggle
+    private void SetAddOnDoubleClick(ChangeEventArgs e)
+    {
+        _addOnDoubleClick = (bool)e.Value!;
+        if (_addOnDoubleClick)
+            Diagram.RegisterBehavior(new CustomBehaviorAddNode(Diagram));
+        else
+            Diagram.UnregisterBehavior<CustomBehaviorAddNode>();
+    }
+
+    private void SetPan(ChangeEventArgs e)
+    {
+        _pan = (bool)e.Value!;
+        if (_pan)
+            Diagram.RegisterBehavior(new PanBehavior(Diagram));
+        else
+            Diagram.UnregisterBehavior<PanBehavior>();
+    }
+    #endregion
+}

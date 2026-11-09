@@ -50,7 +50,9 @@
 </style>
 
 @code {
+    #region css
     private const string LabelStyle = "text { font-family: Arial, Helvetica, sans-serif; letter-spacing: .03em; }";
+    #endregion
 
     private SvgExport? _export;
     private string _unit = "mm";
@@ -111,6 +113,7 @@
 
     private async Task Export()
     {
+        #region options
         _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions
         {
             Unit = _unit,
@@ -118,6 +121,7 @@
             Background = _whiteBackground ? "white" : null,
             Css = _embedCss ? LabelStyle : null,
         });
+        #endregion
         StateHasChanged();
     }
 
