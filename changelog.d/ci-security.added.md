@@ -1,1 +1,0 @@
-- CI security: CodeQL analysis for C# (PRs, master, weekly), a build/test/catalog CI workflow with a vulnerable-package gate, and Dependabot for NuGet and GitHub Actions.
