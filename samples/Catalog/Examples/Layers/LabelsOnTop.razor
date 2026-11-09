@@ -1,0 +1,57 @@
+@inherits ExampleBase
+@attribute [Example("labels-on-top", "Labels on top", ExampleCategory.Layers,
+    "A label is drawn with its own link, so a later link can cover it. LabelsOnTop draws every label after everything else; SvgLabels draws them as SVG instead of HTML, which exports as vectors.",
+    Order = 3, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@Diagram.Options.Links.LabelsOnTop" @onchange="e => Set(on: (bool)e.Value!, svg: null)" /> Labels on top</label>
+        <label><input type="checkbox" checked="@Diagram.Options.Links.SvgLabels" @onchange="e => Set(on: null, svg: (bool)e.Value!)" /> SVG labels</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        var feed = Node(40, 60, "Feed");
+        var mixer = Node(560, 60, "Mixer");
+        var drain = Node(40, 220, "Drain");
+        var sink = Node(560, 220, "Sink");
+        var top = Node(300, -60, "Dosing");
+        var bottom = Node(300, 320, "Vent");
+
+        Link(feed, PortAlignment.Right, mixer, PortAlignment.Left, "Feed line", "#2471a3", 4);
+        Link(drain, PortAlignment.Right, sink, PortAlignment.Left, "Drain line", "#27ae60", 4);
+        // Added last, so it is drawn over the labels at the middle of the two lines above.
+        Link(top, PortAlignment.Bottom, bottom, PortAlignment.Top, "Dose", "#c0392b", 10);
+    }
+
+    private void Set(bool? on, bool? svg)
+    {
+        Diagram.Options.Links.LabelsOnTop = on ?? Diagram.Options.Links.LabelsOnTop;
+        Diagram.Options.Links.SvgLabels = svg ?? Diagram.Options.Links.SvgLabels;
+        Diagram.Refresh();
+        foreach (var link in Diagram.Links)
+            link.Refresh();
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, string label, string color, double width)
+    {
+        var link = new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { Color = color, Width = width };
+        link.Labels.Add(new LinkLabelModel(link, label, 0.5));
+        Diagram.Links.Add(link);
+    }
+}

@@ -1,0 +1,49 @@
+@inherits ExampleBase
+@attribute [Example("crossing-cost", "Crossing cost", ExampleCategory.Routing,
+    "CrossCost is what crossing another link costs the router, in units of length. Raise it and the vertical link stops crossing the horizontal one and detours around its end.",
+    Order = 2, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Cross cost <input type="range" min="0" max="1500" step="50" value="@_crossCost" @oninput="SetCost" /> @_crossCost</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private ObstacleRouter _router = new();
+    private int _crossCost = 200;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = _router;
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        var left = Node(60, 200, "Left");
+        var right = Node(560, 200, "Right");
+        var top = Node(310, 40, "Top");
+        var bottom = Node(420, 360, "Bottom");
+
+        Link(left, PortAlignment.Right, right, PortAlignment.Left, "#2471a3");
+        Link(top, PortAlignment.Bottom, bottom, PortAlignment.Top, "#c0392b");
+    }
+
+    private void SetCost(ChangeEventArgs e)
+    {
+        _crossCost = int.Parse(e.Value!.ToString()!);
+        _router = new ObstacleRouter(new ObstacleRouterOptions { CrossCost = _crossCost });
+        Diagram.Options.Links.DefaultRouter = _router;
+        _router.RouteAll(Diagram);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, string color) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow, Color = color, Width = 3 });
+}

@@ -1,0 +1,37 @@
+@inherits ExampleBase
+@attribute [Example("path-generators", "Path generators", ExampleCategory.Links,
+    "A path generator turns a route into the SVG path. The same orthogonal route drawn smooth, straight, and straight with rounded corners.",
+    Order = 3)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Row(0, new SmoothPathGenerator(), "Smooth");
+        Row(170, new StraightPathGenerator(), "Straight");
+        Row(340, new StraightPathGenerator(radius: 20), "Straight, radius 20");
+    }
+
+    private void Row(double y, PathGenerator generator, string label)
+    {
+        var from = Node(40, y, "From");
+        var to = Node(420, y + 70, "To");
+        var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!)
+        {
+            Router = new OrthogonalRouter(),
+            PathGenerator = generator,
+            TargetMarker = LinkMarker.Arrow,
+        };
+        link.Labels.Add(new LinkLabelModel(link, label, 0.2, new Point(0, -16)));
+        Diagram.Links.Add(link);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

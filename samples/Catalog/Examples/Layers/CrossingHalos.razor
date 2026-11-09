@@ -1,0 +1,61 @@
+@inherits ExampleBase
+@attribute [Example("crossing-halos", "Crossing halos", ExampleCategory.Layers,
+    "Where a link crosses one drawn below it, a halo in the background colour breaks the lower link, so the crossing reads as a bridge. Toggle LinkHalosBehavior to compare; select a lower link and bring it to the front to swap who bridges.",
+    Order = 2, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@_halos" @onchange="SetHalos" /> Halos</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private bool _halos = true;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.Options.Links.HaloColor = "white";
+        Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+
+        var west = Node(40, 120, "West");
+        var east = Node(560, 120, "East");
+        var west2 = Node(40, 260, "West 2");
+        var east2 = Node(560, 260, "East 2");
+        var north = Node(260, 20, "North");
+        var south = Node(260, 360, "South");
+        var north2 = Node(400, 20, "North 2");
+        var south2 = Node(400, 360, "South 2");
+
+        Link(west, PortAlignment.Right, east, PortAlignment.Left, "#2471a3");
+        Link(west2, PortAlignment.Right, east2, PortAlignment.Left, "#27ae60");
+        Link(north, PortAlignment.Bottom, south, PortAlignment.Top, "#c0392b");
+        Link(north2, PortAlignment.Bottom, south2, PortAlignment.Top, "#d68910");
+    }
+
+    private void SetHalos(ChangeEventArgs e)
+    {
+        _halos = (bool)e.Value!;
+        if (_halos)
+            Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+        else
+        {
+            Diagram.UnregisterBehavior<LinkHalosBehavior>();
+            foreach (var link in Diagram.Links)
+                link.SetHalos(Array.Empty<LinkHalo>());
+        }
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, string color) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { Color = color, Width = 4 });
+}

@@ -1,0 +1,43 @@
+@inherits ExampleBase
+@attribute [Example("snapping", "Link snapping", ExampleCategory.Links,
+    "While you drag a new link it snaps to the closest port within the snapping radius. Drag from a port and release near, but not on, another port; widen or narrow the radius.",
+    Order = 5)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@Diagram.Options.Links.EnableSnapping" @onchange="Toggle" /> Snapping</label>
+        <label>Radius <input type="range" min="10" max="200" step="10" value="@_radius" @oninput="SetRadius" /> @_radius</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private int _radius = 60;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.EnableSnapping = true;
+        Diagram.Options.Links.SnappingRadius = _radius;
+
+        var a = Node(60, 60, "A");
+        var b = Node(460, 60, "B");
+        Node(260, 300, "C");
+        Diagram.Links.Add(new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+    }
+
+    private void Toggle(ChangeEventArgs e) => Diagram.Options.Links.EnableSnapping = (bool)e.Value!;
+
+    private void SetRadius(ChangeEventArgs e)
+    {
+        _radius = int.Parse(e.Value!.ToString()!);
+        Diagram.Options.Links.SnappingRadius = _radius;
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}

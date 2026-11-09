@@ -1,0 +1,45 @@
+@inherits ExampleBase
+@attribute [Example("shared-nets", "Shared nets", ExampleCategory.Routing,
+    "Links that share a port are one net: the router lets them share a line, like the branches of a tee. A link of a different net is kept apart. Drag the sensor next to the pump's branches.",
+    Order = 3, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="() => _router.RouteAll(Diagram)">Re-route all</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private readonly ObstacleRouter _router = new();
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = _router;
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        var pump = Node(60, 160, "Pump");
+        var tank1 = Node(560, 40, "Tank 1");
+        var tank2 = Node(560, 160, "Tank 2");
+        var tank3 = Node(560, 280, "Tank 3");
+        var sensor = Node(60, 330, "Sensor");
+        var display = Node(560, 400, "Display");
+
+        // One port, three links: one net.
+        foreach (var tank in new[] { tank1, tank2, tank3 })
+            Link(pump, PortAlignment.Right, tank, PortAlignment.Left, "#2471a3");
+
+        Link(sensor, PortAlignment.Right, display, PortAlignment.Left, "#d68910");
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Right, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, string color) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow, Color = color, Width = 3 });
+}

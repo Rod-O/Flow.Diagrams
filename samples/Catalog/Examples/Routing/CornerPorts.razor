@@ -1,0 +1,49 @@
+@inherits ExampleBase
+@using Router = Flow.Diagrams.Core.Routers.Router
+@attribute [Example("corner-ports", "Corner ports", ExampleCategory.Routing,
+    "Ports can sit on a node's corners. OrthogonalRouter (top row) and ObstacleRouter (bottom row) both leave a corner port along a side and arrive the same way.",
+    Order = 5, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="() => _obstacle.RouteAll(Diagram)">Re-route all</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private readonly ObstacleRouter _obstacle = new();
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 6);
+
+        Row(0, new OrthogonalRouter(), "Orthogonal");
+        Row(260, _obstacle, "Obstacle");
+    }
+
+    private void Row(double y, Router router, string label)
+    {
+        var a = Node(60, y + 20, label);
+        var b = Node(400, y + 120, "B");
+        var c = Node(700, y + 20, "C");
+
+        Link(a, PortAlignment.BottomRight, b, PortAlignment.TopLeft, router);
+        Link(b, PortAlignment.TopRight, c, PortAlignment.BottomLeft, router);
+        Link(a, PortAlignment.TopRight, c, PortAlignment.TopLeft, router);
+    }
+
+    private void Link(NodeModel from, PortAlignment fromCorner, NodeModel to, PortAlignment toCorner, Router router) =>
+        Diagram.Links.Add(new LinkModel(from.GetPort(fromCorner)!, to.GetPort(toCorner)!)
+        {
+            Router = router, TargetMarker = LinkMarker.Arrow, Color = "#38474d",
+        });
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var corner in new[] { PortAlignment.TopLeft, PortAlignment.TopRight, PortAlignment.BottomLeft, PortAlignment.BottomRight })
+            node.AddPort(corner);
+        return node;
+    }
+}
