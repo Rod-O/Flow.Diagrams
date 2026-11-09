@@ -44,7 +44,7 @@
     "resource": [
       {
         "files": [
-          "logo.svg",
+          "logo.png",
           "favicon.svg"
         ]
       }
@@ -52,12 +52,13 @@
     "output": "_site",
     "template": [
       "default",
-      "modern"
+      "modern",
+      "template"
     ],
     "globalMetadata": {
       "_appName": "Flow.Diagrams",
       "_appTitle": "Flow.Diagrams API",
-      "_appLogoPath": "logo.svg",
+      "_appLogoPath": "logo.png",
       "_appFaviconPath": "favicon.svg",
       "_enableSearch": true,
       "_disableContribution": true
