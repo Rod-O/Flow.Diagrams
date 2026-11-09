@@ -12,13 +12,13 @@
     <PackageId>Flow.Diagrams.Core</PackageId>
     <PackageTags>blazor diagrams diagramming svg drag</PackageTags>
     <Product>Flow.Diagrams.Core</Product>
-    <PackageIcon>ZBD.png</PackageIcon>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Rod-O/Flow.Diagrams</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\ZBD.png">
+    <None Include="..\..\icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

@@ -14,7 +14,7 @@
     <PackageId>Flow.Diagrams</PackageId>
     <PackageProjectUrl>https://github.com/Rod-O/Flow.Diagrams</PackageProjectUrl>
     <Product>Flow.Diagrams</Product>
-    <PackageIcon>ZBD.png</PackageIcon>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\ZBD.png">
+    <None Include="..\..\icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

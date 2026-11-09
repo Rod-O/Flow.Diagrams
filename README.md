@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo-title-dark.png" />
+    <img src="logo-title.png" alt="Flow.Diagrams" width="420" />
+  </picture>
+</p>
+
 # Flow.Diagrams
 
 A customizable diagrams library for Blazor: nodes, ports, links, groups, routers and path generators, rendered as HTML or SVG.
