@@ -61,7 +61,7 @@ public class BlazorDiagram : Diagram
     /// back to its default widget.
     /// </summary>
     /// <param name="modelType">The model type to look up.</param>
-    /// <param name="checkSubclasses">Whether to accept a registration for a base class of <paramref name="modelType"/> when there is no exact one.</param>
+    /// <param name="checkSubclasses">Whether to accept a registration for a base class of <paramref name="modelType"/> when there is no exact one; the nearest registered base class wins.</param>
     public Type? GetComponent(Type modelType, bool checkSubclasses = true)
     {
         if (_componentsMapping.ContainsKey(modelType))
@@ -69,11 +69,11 @@ public class BlazorDiagram : Diagram
 
         if (!checkSubclasses)
             return null;
-        
-        foreach (var rmt in _componentsMapping.Keys)
+
+        for (var baseType = modelType.BaseType; baseType != null; baseType = baseType.BaseType)
         {
-            if (modelType.IsSubclassOf(rmt))
-                return _componentsMapping[rmt];
+            if (_componentsMapping.TryGetValue(baseType, out var component))
+                return component;
         }
 
         return null;

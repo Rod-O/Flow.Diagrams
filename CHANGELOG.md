@@ -43,6 +43,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   selected models stayed selected.
 - `BaseLinkModel.SetTarget(null)` was accepted, leaving a null `Target` behind a non-nullable property; it now
   throws `ArgumentNullException`, like `SetSource`.
+- `BlazorDiagram.GetComponent` returned the first registered base class instead of the nearest, so a model
+  subclass without its own registration could be drawn with a more general widget.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

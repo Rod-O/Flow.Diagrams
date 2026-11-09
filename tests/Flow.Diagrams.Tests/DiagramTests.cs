@@ -79,6 +79,22 @@ public class DiagramTests
         componentType.Should().BeNull();
     }
 
+    [Fact]
+    public void GetComponentForModel_ShouldReturnNearestRegisteredAncestor_WhenSubclassIsNotRegistered()
+    {
+        // Arrange
+        var diagram = new BlazorDiagram();
+        diagram.RegisterComponent<Model, NodeWidget>();
+        diagram.RegisterComponent<CustomModel, CustomWidget>();
+
+        // Act
+        var componentType = diagram.GetComponent<DerivedCustomModel>();
+
+        // Assert
+        componentType.Should().Be(typeof(CustomWidget));
+    }
+
     private class CustomModel : Model { }
+    private class DerivedCustomModel : CustomModel { }
     private class CustomWidget : ComponentBase { }
 }
