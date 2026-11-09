@@ -5,7 +5,7 @@
 
 @if (_example == null)
 {
-    <p class="empty">No example “@Id”. <a href="">Back to the catalog</a>.</p>
+    <p class="empty">No example “@Id”. <a href="examples">All examples</a>.</p>
     return;
 }
 
@@ -14,7 +14,7 @@
 <div class="example-page">
     <div class="example-head">
         <div>
-            <a class="back" href="">← All examples</a>
+            <a class="back" href="examples">← All examples</a>
             <h1>@_example.Meta.Title @if (_example.Meta.New) { <span class="badge-new">new</span> }</h1>
             <p class="dim">@_example.Meta.Category.Title() · @_example.Meta.Description</p>
         </div>

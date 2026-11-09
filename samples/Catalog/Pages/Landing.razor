@@ -1,0 +1,91 @@
+@page "/"
+
+<PageTitle>Flow.Diagrams: interactive diagrams for Blazor</PageTitle>
+
+<section class="sheet" aria-labelledby="hero-title">
+    <div class="sheet-text">
+        <h1 id="hero-title">Build diagram editors in&nbsp;Blazor.</h1>
+        <p>Flow.Diagrams draws nodes, ports and links as SVG, routes lines around everything in their way, and exports
+            what you see. The drawing below is the library running in your browser.</p>
+        <div class="sheet-actions">
+            <a class="button-primary" href="guides/getting-started">Get started</a>
+            <a class="button-quiet" href="examples">Browse examples</a>
+            <a class="button-quiet" href="reference/">API reference</a>
+        </div>
+    </div>
+
+    <div class="sheet-drawing">
+        <HeroDiagram />
+        <p class="sheet-hint">Drag a symbol and drop it: every line finds a new route, and signal lines break where they cross a pipe.</p>
+    </div>
+
+    <dl class="title-block">
+        <div><dt>Drawing</dt><dd>Flow.Diagrams</dd></div>
+        <div><dt>Runs on</dt><dd>.NET 8, 9 and 10</dd></div>
+        <div><dt>License</dt><dd>MIT</dd></div>
+        <div><dt>Reference</dt><dd>Every public member documented</dd></div>
+        <div><dt>Examples</dt><dd>@ExampleRegistry.All.Count live, with source</dd></div>
+    </dl>
+</section>
+
+<section class="capabilities" aria-labelledby="capabilities-title">
+    <h2 id="capabilities-title">What you can build with it</h2>
+    <div class="capability-grid">
+        @foreach (var c in Capabilities)
+        {
+            <a class="capability" href="@c.Href">
+                <img src="previews/@(c.Preview).png" alt="" loading="lazy" />
+                <h3>@c.Title</h3>
+                <p>@c.Text</p>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="showcase" aria-labelledby="showcase-title">
+    <h2 id="showcase-title">Complete diagrams, each one editable</h2>
+    <div class="showcase-strip">
+        @foreach (var id in Showcases)
+        {
+            var example = ExampleRegistry.Find(id);
+            if (example == null)
+                continue;
+            <a class="showcase-item" href="examples/@id">
+                <img src="@example.PreviewUrl" alt="" loading="lazy" />
+                <span>@example.Meta.Title</span>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="start" aria-labelledby="start-title">
+    <h2 id="start-title">Start with one page</h2>
+    <p>The getting started guide puts a diagram in your app in a few minutes; the other @(GuideRegistry.All.Count - 1)
+        guides take one topic each, from ports to export.</p>
+    <div class="sheet-actions">
+        <a class="button-primary" href="guides/getting-started">Read the getting started guide</a>
+        <a class="button-quiet" href="guides">All guides</a>
+    </div>
+</section>
+
+<footer class="site-footer">
+    <span>Flow.Diagrams, MIT license</span>
+    <a href="https://github.com/Rod-O/Flow.Diagrams" target="_blank" rel="noopener">Source on GitHub</a>
+    <a href="https://github.com/Rod-O/Flow.Diagrams/releases" target="_blank" rel="noopener">Releases</a>
+</footer>
+
+@code {
+    private sealed record Capability(string Title, string Text, string Preview, string Href);
+
+    private static readonly Capability[] Capabilities =
+    [
+        new("Nodes of any shape", "Draw nodes as SVG symbols or as HTML cards, with ports wherever their pipes, wires or arrows attach.", "svg-symbols", "guides/nodes"),
+        new("Lines that route around obstacles", "Right-angle links keep clear of every node, choosing the route with the fewest bends and crossings.", "obstacle-routing", "guides/routing"),
+        new("Readable crossings", "Decide what draws above what. Where lines cross, the lower one breaks, and labels stay on top.", "crossing-halos", "guides/layers-and-labels"),
+        new("Groups inside groups", "Nest nodes in groups that resize with their children and carry ports of their own.", "nested-groups", "guides/groups"),
+        new("Export to SVG and PDF", "Turn the diagram into a standalone SVG file, ready to convert to PDF for print.", "export-svg", "guides/export"),
+        new("Large diagrams", "Virtualization skips what is off screen, so a diagram of a thousand nodes stays responsive.", "many-nodes", "guides/performance"),
+    ];
+
+    private static readonly string[] Showcases = ["pid", "network-topology", "flowchart", "state-machine", "org-chart"];
+}

@@ -19,7 +19,7 @@ if (!base) {
   page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 200)));
   page.on('response', r => { if (r.status() >= 400 && !r.url().includes('/previews/')) errors.push(`${r.status()} ${r.url().replace(base, '')}`); });
 
-  await page.goto(base, { waitUntil: 'networkidle' });
+  await page.goto(`${base.replace(/\/$/, '')}/examples`, { waitUntil: 'networkidle' });
   await page.waitForSelector('a.card');
   const ids = await page.$$eval('a.card', cards => cards.map(c => c.getAttribute('href').split('/').pop()));
   console.log(`${ids.length} examples`);
