@@ -39,6 +39,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - With `OrthogonalRouter` or `ObstacleRouter`, the link widget drew vertex handles and a `Segmentable` link created
   vertices that moved nothing. New `Router.FollowsVertices` (default `true`, `false` for those two routers): the
   widget offers vertices only when the router follows them.
+- Group children ignored their own `Layer` and `Order` and were drawn in `Children` order; they are now drawn in
+  their drawing order among themselves (still inside the group's element), and redrawn when it changes.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

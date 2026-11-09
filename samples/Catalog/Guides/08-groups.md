@@ -48,7 +48,7 @@ Register a widget for your group type with `Diagram.RegisterComponent<TGroup, TW
 
 {{source group-padding PaddedGroupsWidget.razor}}
 
-The default widget also draws the group's ports. If your group has ports, draw them in your widget with `PortRenderer`. Children are drawn inside the group's element in the order of `Children`, so they are always above their group, and their own `Layer` and `Order` do not apply. The default HTML group has the CSS classes `diagram-group default` (plus `selected`) for styling, as the examples on this page do.
+The default widget also draws the group's ports. If your group has ports, draw them in your widget with `PortRenderer`. Children are drawn inside the group's element, so they are always above their group and never interleave with models outside it; among themselves they follow their own `Layer` and `Order`. The default HTML group has the CSS classes `diagram-group default` (plus `selected`) for styling, as the examples on this page do.
 
 ## Group ports
 

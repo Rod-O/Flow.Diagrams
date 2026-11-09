@@ -10,7 +10,7 @@
 @if (Group is SvgGroupModel)
 {
     <g class="children" transform="translate(@((-Group.Position.X).ToInvariantString()) @((-Group.Position.Y).ToInvariantString()))">
-        @foreach (var node in Group.Children)
+        @foreach (var node in Group.Children.OrderBy(n => n.Layer).ThenBy(n => n.Order))
         {
             if (node is GroupModel g)
             {
@@ -26,7 +26,7 @@
 else
 {
     <div class="children" style="top: @((-Group.Position.Y).ToInvariantString())px; left: @((-Group.Position.X).ToInvariantString())px">
-        @foreach (var node in Group.Children)
+        @foreach (var node in Group.Children.OrderBy(n => n.Layer).ThenBy(n => n.Order))
         {
             if (node is GroupModel g)
             {

@@ -1,6 +1,7 @@
 using System;
 ﻿using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models.Base;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -63,6 +64,7 @@ public class GroupModel : NodeModel
         child.Group = this;
         child.SizeChanged += OnNodeChanged;
         child.Moving += OnNodeChanged;
+        child.OrderChanged += OnChildOrderChanged;
 
         if (UpdateDimensions())
         {
@@ -79,6 +81,7 @@ public class GroupModel : NodeModel
         child.Group = null;
         child.SizeChanged -= OnNodeChanged;
         child.Moving -= OnNodeChanged;
+        child.OrderChanged -= OnChildOrderChanged;
 
         if (UpdateDimensions())
         {
@@ -126,6 +129,7 @@ public class GroupModel : NodeModel
             child.Group = null;
             child.SizeChanged -= OnNodeChanged;
             child.Moving -= OnNodeChanged;
+            child.OrderChanged -= OnChildOrderChanged;
         }
 
         _children.Clear();
@@ -139,10 +143,14 @@ public class GroupModel : NodeModel
             child.Group = this; 
             child.SizeChanged += OnNodeChanged;
             child.Moving += OnNodeChanged;
+            child.OrderChanged += OnChildOrderChanged;
         }
 
         UpdateDimensions();
     }
+
+    // Children are drawn inside the group's element in their drawing order, so the group redraws when it changes.
+    private void OnChildOrderChanged(SelectableModel _) => Refresh();
 
     private void OnNodeChanged(NodeModel node)
     {
