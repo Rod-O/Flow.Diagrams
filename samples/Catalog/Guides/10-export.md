@@ -32,7 +32,7 @@ Two more things the document inherits from the live diagram:
 
 ## Size and units
 
-The document is cropped to the exported models plus `Margin`; pan and zoom do not matter. One diagram unit is one unit of the document: the `viewBox` is in diagram units, and `width` and `height` are the same numbers followed by `Unit`. Draw a panel in millimetres, export with `Unit = "mm"`, and a converter prints it at true size.
+The document is cropped to what the exported models draw, plus `Margin`: node and group boxes, ports that stick out of them, link strokes and arrowheads, and labels. A label's size is estimated from its text length and the built-in label's 12-unit font, not measured; give a larger custom label widget a wider `Margin`. Pan and zoom do not matter. One diagram unit is one unit of the document: the `viewBox` is in diagram units, and `width` and `height` are the same numbers followed by `Unit`. Draw a panel in millimetres, export with `Unit = "mm"`, and a converter prints it at true size.
 
 {{example export-units}}
 

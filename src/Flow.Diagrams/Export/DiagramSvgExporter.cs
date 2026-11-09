@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Flow.Diagrams.Components.Renderers;
 using Flow.Diagrams.Core.Behaviors;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using SvgPathProperties;
 
 namespace Flow.Diagrams.Export;
 
@@ -19,8 +21,11 @@ namespace Flow.Diagrams.Export;
 public static class DiagramSvgExporter
 {
     /// <summary>
-    /// Renders the diagram's SVG layer to a standalone SVG document sized to the visible SVG nodes, SVG groups and links plus
-    /// <see cref="SvgExportOptions.Margin"/>; the document is empty but for the margin when there are none.
+    /// Renders the diagram's SVG layer to a standalone SVG document framing everything the visible SVG nodes, SVG groups and
+    /// links draw (node and group boxes, their ports, link strokes and markers, and labels) plus
+    /// <see cref="SvgExportOptions.Margin"/>; the document is empty but for the margin when there are none. A label's extent
+    /// is estimated from its text length and the built-in label's 12-unit font, so a custom label widget that draws larger
+    /// may need a wider margin.
     /// </summary>
     /// <param name="diagram">The diagram to export.</param>
     /// <param name="services">
@@ -75,23 +80,72 @@ public static class DiagramSvgExporter
     // Blazor's event-handling flags, written valueless as HTML allows and XML does not; meaningless in a static document.
     private static readonly Regex InternalAttributes = new(@"\s__internal_\w+(=""[^""]*"")?", RegexOptions.Compiled);
 
-    /// <summary>Union of the visible SVG nodes, SVG groups and links; null when there is nothing to draw.</summary>
+    // The built-in SVG label's text size and halo; custom label widgets may differ, so a label's extent is an estimate.
+    private const double LabelFontSize = 12;
+    private const double LabelHalo = 2;
+
+    /// <summary>
+    /// Union of what the visible SVG nodes, SVG groups and links draw: their boxes, their ports' boxes, link paths widened by
+    /// half the stroke, marker extents and an estimate of each label's text; null when there is nothing to draw.
+    /// </summary>
     private static Rectangle? Bounds(BlazorDiagram diagram)
     {
         var boxes = diagram.OrderedSelectables
             .Where(m => m.Visible)
-            .Select(m => m switch
+            .SelectMany(m => m switch
             {
-                SvgNodeModel node => node.GetBounds(),
-                SvgGroupModel group => group.GetBounds(),
-                BaseLinkModel link => link.GetBounds(),
-                _ => null,
+                SvgNodeModel node => NodeBoxes(node),
+                SvgGroupModel group => NodeBoxes(group),
+                BaseLinkModel link => LinkBoxes(link),
+                _ => [],
             })
-            .OfType<Rectangle>()
             .ToList();
-        if (boxes.Count == 0)
+        return boxes.Count == 0 ? null : boxes.Aggregate((a, b) => a.Union(b));
+    }
+
+    private static IEnumerable<Rectangle> NodeBoxes(NodeModel node)
+    {
+        if (node.GetBounds() is { } box)
+            yield return box;
+        foreach (var port in node.Ports.Where(p => p.Visible))
+            yield return port.GetBounds();
+    }
+
+    private static IEnumerable<Rectangle> LinkBoxes(BaseLinkModel link)
+    {
+        if (link.PathGeneratorResult is not { } result || link.GetBounds() is not { } path)
+            yield break;
+
+        var halfStroke = (link as LinkModel)?.Width / 2 ?? 0;
+        yield return path.Inflate(halfStroke, halfStroke);
+
+        if (MarkerBox(link.SourceMarker, result.SourceMarkerPosition, result.SourceMarkerAngle) is { } source)
+            yield return source;
+        if (MarkerBox(link.TargetMarker, result.TargetMarkerPosition, result.TargetMarkerAngle) is { } target)
+            yield return target;
+
+        foreach (var label in link.Labels.Where(l => l.Visible))
+        {
+            var (x, y) = LinkLabelRenderer.Place(label, result.FullPath);
+            var halfWidth = label.Content.Length * 0.6 * LabelFontSize / 2 + LabelHalo;
+            var halfHeight = 1.2 * LabelFontSize / 2 + LabelHalo;
+            yield return new Rectangle(x - halfWidth, y - halfHeight, x + halfWidth, y + halfHeight);
+        }
+    }
+
+    /// <summary>The marker's path box, rotated and moved as the link widget draws it.</summary>
+    private static Rectangle? MarkerBox(LinkMarker? marker, Point? position, double? angle)
+    {
+        if (marker == null || position == null || angle == null)
             return null;
-        return new Rectangle(boxes.Min(r => r.Left), boxes.Min(r => r.Top), boxes.Max(r => r.Right), boxes.Max(r => r.Bottom));
+
+        var bbox = new SvgPath(marker.Path).GetBBox();
+        var radians = angle.Value * Math.PI / 180;
+        var (cos, sin) = (Math.Cos(radians), Math.Sin(radians));
+        var corners = new[] { (bbox.Left, bbox.Top), (bbox.Right, bbox.Top), (bbox.Right, bbox.Bottom), (bbox.Left, bbox.Bottom) }
+            .Select(c => new Point(position.X + c.Item1 * cos - c.Item2 * sin, position.Y + c.Item1 * sin + c.Item2 * cos))
+            .ToList();
+        return new Rectangle(corners.Min(c => c.X), corners.Min(c => c.Y), corners.Max(c => c.X), corners.Max(c => c.Y));
     }
 
     private static List<Model> HtmlModels(BlazorDiagram diagram)

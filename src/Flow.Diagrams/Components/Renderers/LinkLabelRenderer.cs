@@ -44,10 +44,7 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
         if (!Label.Visible)
             return;
         
-        var position = FindPosition();
-
-        var x = position.X + (Label.Offset?.X ?? 0);
-        var y = position.Y + (Label.Offset?.Y ?? 0);
+        var (x, y) = Place(Label, Path);
 
         if (BlazorDiagram.Options.Links.SvgLabels)
         {
@@ -76,18 +73,19 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
         InvokeAsync(StateHasChanged);
     }
 
-    private Point FindPosition()
+    /// <summary>Where <paramref name="label"/> is drawn along <paramref name="path"/>, its <c>Offset</c> included.</summary>
+    internal static Point Place(LinkLabelModel label, SvgPath path)
     {
-        var totalLength = Path.Length;
-        var length = Label.Distance switch
+        var totalLength = path.Length;
+        var length = label.Distance switch
         {
-            <= 1 and >= 0 => Label.Distance.Value * totalLength,
-            > 1 => Label.Distance.Value,
-            < 0 => totalLength + Label.Distance.Value,
-            _ => totalLength * (Label.Parent.Labels.IndexOf(Label) + 1) / (Label.Parent.Labels.Count + 1)
+            <= 1 and >= 0 => label.Distance.Value * totalLength,
+            > 1 => label.Distance.Value,
+            < 0 => totalLength + label.Distance.Value,
+            _ => totalLength * (label.Parent.Labels.IndexOf(label) + 1) / (label.Parent.Labels.Count + 1)
         };
 
-        var pt = Path.GetPointAtLength(length);
-        return new Point(pt.X, pt.Y);
+        var pt = path.GetPointAtLength(length);
+        return new Point(pt.X + (label.Offset?.X ?? 0), pt.Y + (label.Offset?.Y ?? 0));
     }
 }
