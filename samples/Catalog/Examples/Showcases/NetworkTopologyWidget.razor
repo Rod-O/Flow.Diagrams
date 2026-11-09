@@ -1,0 +1,79 @@
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var stroke = Node.Selected ? "#6e9a1e" : "#38474d";
+}
+
+@switch (Node.Kind)
+{
+    case NetworkKind.Internet:
+        <path d="M30,66 C8,66 4,40 24,36 C22,16 48,8 60,22 C70,4 104,10 102,34 C124,34 128,66 106,66 Z"
+              fill="#e3f0fb" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case NetworkKind.Firewall:
+        <rect x="1" y="1" width="94" height="58" rx="4" fill="#fde4e1" stroke="@stroke" stroke-width="2" />
+        <path d="M1,20 H95 M1,40 H95 M32,1 V20 M64,20 V40 M32,40 V59" fill="none" stroke="#c96a5a" stroke-width="2" />
+        break;
+    case NetworkKind.CoreSwitch:
+        <rect x="1" y="1" width="218" height="46" rx="8" fill="#e3f0fb" stroke="@stroke" stroke-width="2" />
+        @for (var i = 0; i < 12; i++)
+        {
+            <rect x="@(20 + i * 15)" y="14" width="10" height="8" rx="1.5" fill="#ffffff" stroke="#1f6fb2" stroke-width="1.2" />
+            <rect x="@(20 + i * 15)" y="28" width="10" height="8" rx="1.5" fill="#ffffff" stroke="#1f6fb2" stroke-width="1.2" />
+        }
+        break;
+    case NetworkKind.AccessSwitch:
+        <rect x="1" y="1" width="138" height="34" rx="7" fill="#eef6dc" stroke="@stroke" stroke-width="2" />
+        @for (var i = 0; i < 8; i++)
+        {
+            <rect x="@(18 + i * 15)" y="12" width="10" height="12" rx="1.5" fill="#ffffff" stroke="#6e9a1e" stroke-width="1.2" />
+        }
+        break;
+    case NetworkKind.Server:
+        <rect x="10" y="1" width="44" height="62" rx="5" fill="#f4f8fb" stroke="@stroke" stroke-width="2" />
+        <path d="M10,17 H54 M10,33 H54 M10,49 H54" fill="none" stroke="@stroke" stroke-width="1.5" />
+        <circle cx="20" cy="9" r="2.5" fill="#6e9a1e" />
+        <circle cx="20" cy="25" r="2.5" fill="#6e9a1e" />
+        <circle cx="20" cy="41" r="2.5" fill="#6e9a1e" />
+        <circle cx="20" cy="56" r="2.5" fill="#6e9a1e" />
+        break;
+    case NetworkKind.Workstation:
+        <rect x="6" y="6" width="52" height="38" rx="4" fill="#e3f0fb" stroke="@stroke" stroke-width="2" />
+        <path d="M32,44 V54 M18,58 H46" fill="none" stroke="@stroke" stroke-width="2.5" stroke-linecap="round" />
+        break;
+    case NetworkKind.AccessPoint:
+        <circle cx="32" cy="32" r="14" fill="#fff4d6" stroke="@stroke" stroke-width="2" />
+        <circle cx="32" cy="32" r="3" fill="@stroke" />
+        <path d="M18,18 A20,20 0 0 0 18,46 M46,18 A20,20 0 0 1 46,46" fill="none" stroke="#e08a1e" stroke-width="2.5" stroke-linecap="round" />
+        break;
+}
+
+@* Switches and the firewall have links running above and below them, so their name sits beside them. *@
+@if (Node.Kind == NetworkKind.Internet)
+{
+    <g><text x="@(w / 2)" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1e2326">@Node.Name</text></g>
+}
+else if (Node.Ports.Count == 2)
+{
+    <g>
+        <text x="@(w + 12)" y="@(h / 2 - 2)" font-size="12" font-weight="600" fill="#1e2326">@Node.Name</text>
+        <text x="@(w + 12)" y="@(h / 2 + 12)" font-size="11" fill="#5f676b">@Node.Address</text>
+    </g>
+}
+else
+{
+    <g>
+        <text x="@(w / 2)" y="@(h + 16)" text-anchor="middle" font-size="12" font-weight="600" fill="#1e2326">@Node.Name</text>
+        <text x="@(w / 2)" y="@(h + 30)" text-anchor="middle" font-size="11" fill="#5f676b">@Node.Address</text>
+    </g>
+}
+
+@foreach (var port in Node.Ports)
+{
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@(w / 2)" cy="@(port.Alignment == PortAlignment.Top ? 0 : h)" r="1.5" fill="transparent" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public NetworkTopologyNode Node { get; set; } = null!;
+}

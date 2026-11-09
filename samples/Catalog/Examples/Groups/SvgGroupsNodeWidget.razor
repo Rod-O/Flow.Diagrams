@@ -1,0 +1,24 @@
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+}
+
+<rect x="1" y="1" width="@(w - 2)" height="@(h - 2)" rx="10" fill="#e3f0fb" stroke="@(Node.Selected ? "#6e9a1e" : "#38474d")" stroke-width="2" />
+<text x="@(w / 2)" y="@(h / 2)" text-anchor="middle" dominant-baseline="central" font-size="14" fill="#1e2326">@Node.Label</text>
+
+@foreach (var port in Node.Ports)
+{
+    var (cx, cy) = port.Alignment switch
+    {
+        PortAlignment.Top => (w / 2, 0.0),
+        PortAlignment.Right => (w, h / 2),
+        PortAlignment.Bottom => (w / 2, h),
+        _ => (0.0, h / 2),
+    };
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@cx" cy="@cy" r="5" fill="#ffffff" stroke="#38474d" stroke-width="1.5" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public SvgGroupsNode Node { get; set; } = null!;
+}

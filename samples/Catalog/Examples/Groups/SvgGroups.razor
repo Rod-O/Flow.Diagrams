@@ -1,0 +1,37 @@
+@inherits ExampleBase
+@attribute [Example("svg-groups", "SVG groups", ExampleCategory.Groups,
+    "An SvgGroupModel is drawn in the SVG layer by its own widget: a rounded frame with a title, its children rendered inside. Drag the group or one of its nodes.", Order = 3)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<SvgGroupsNode, SvgGroupsNodeWidget>();
+        Diagram.RegisterComponent<SvgGroupsGroup, SvgGroupsWidget>();
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 6);
+
+        var input = Add(new SvgGroupsNode(new Point(60, 150), "Input"));
+        var filter = Add(new SvgGroupsNode(new Point(340, 120), "Filter"));
+        var scale = Add(new SvgGroupsNode(new Point(340, 250), "Scale"));
+        var output = Add(new SvgGroupsNode(new Point(660, 190), "Output"));
+
+        Diagram.Groups.Add(new SvgGroupsGroup([filter, scale], "Preprocessing"));
+
+        Link(input, PortAlignment.Right, filter, PortAlignment.Left);
+        Link(input, PortAlignment.Right, scale, PortAlignment.Left);
+        Link(filter, PortAlignment.Right, output, PortAlignment.Left);
+        Link(scale, PortAlignment.Right, output, PortAlignment.Left);
+    }
+
+    private SvgGroupsNode Add(SvgGroupsNode node)
+    {
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return Diagram.Nodes.Add(node);
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow, Color = "#38474d" });
+}

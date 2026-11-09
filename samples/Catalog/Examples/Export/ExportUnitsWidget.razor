@@ -1,0 +1,20 @@
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var narrow = w < 40;
+}
+
+<rect x="0.5" y="0.5" width="@(w - 1)" height="@(h - 1)" rx="2" fill="@Node.Fill" stroke="@(Node.Selected ? "#6e9a1e" : "#38474d")" stroke-width="1" />
+<g transform="translate(@(w / 2) @(h / 2)) rotate(@(narrow ? -90 : 0))">
+    <text text-anchor="middle" dominant-baseline="central" font-size="@(narrow ? 9 : 11)" fill="#1e2326">@Node.Label</text>
+</g>
+
+@foreach (var port in Node.Ports)
+{
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@(w / 2)" cy="@(port.Alignment == PortAlignment.Top ? 0 : h)" r="1.5" fill="transparent" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public ExportUnitsDevice Node { get; set; } = null!;
+}

@@ -1,0 +1,59 @@
+@inherits ExampleBase
+@attribute [Example("state-machine", "State machine", ExampleCategory.Showcases,
+    "A connection's life cycle: initial and final pseudo-states, states with entry actions, transitions labelled with their events. The retry loop is a link with two vertices on a plain router; the rest are routed around the states.",
+    Order = 4)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<StateMachineNode, StateMachineWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.LabelsOnTop = true;
+
+        const double upper = 200, lower = 380;
+        var initial = Add(StateKind.Initial, 60, upper);
+        var idle = Add(StateKind.State, 230, upper, "Idle", "entry / release socket");
+        var connecting = Add(StateKind.State, 500, upper, "Connecting", "entry / open socket");
+        var connected = Add(StateKind.State, 770, upper, "Connected", "do / keep-alive");
+        var failed = Add(StateKind.State, 500, lower, "Failed", "entry / log error");
+        var closed = Add(StateKind.State, 770, lower, "Closed", "entry / flush buffers");
+        var final = Add(StateKind.Final, 950, lower);
+
+        Transition(initial, PortAlignment.Right, idle, PortAlignment.Left);
+        Transition(idle, PortAlignment.Right, connecting, PortAlignment.Left, "connect()");
+        Transition(connecting, PortAlignment.Right, connected, PortAlignment.Left, "ack");
+        Transition(connecting, PortAlignment.Bottom, failed, PortAlignment.Top, "timeout");
+        Transition(failed, PortAlignment.Left, idle, PortAlignment.Bottom, "reset", 50);
+        Transition(connected, PortAlignment.Bottom, closed, PortAlignment.Top, "close()");
+        Transition(closed, PortAlignment.Right, final, PortAlignment.Left);
+
+        // A self-loop has no route of its own: two vertices lift it above the state, and a plain router follows them.
+        var retry = new LinkModel(connecting.GetPort(PortAlignment.TopRight)!, connecting.GetPort(PortAlignment.TopLeft)!)
+        {
+            TargetMarker = LinkMarker.Arrow,
+            Color = "#38474d",
+            Router = new NormalRouter(),
+        };
+        var (left, right, top) = (connecting.Position.X + 150 * 0.25, connecting.Position.X + 150 * 0.75, connecting.Position.Y - 52);
+        retry.AddVertex(new Point(right, top));
+        retry.AddVertex(new Point(left, top));
+        retry.Labels.Add(new LinkLabelModel(retry, "retry", 0.5, new Point(0, -12)));
+        Diagram.Links.Add(retry);
+    }
+
+    private StateMachineNode Add(StateKind kind, double x, double y, string name = "", string? action = null) =>
+        Diagram.Nodes.Add(new StateMachineNode(kind, x, y, name, action));
+
+    private void Transition(StateMachineNode from, PortAlignment fromSide, StateMachineNode to, PortAlignment toSide,
+        string? label = null, double labelAt = 0.5)
+    {
+        var link = new LinkModel(from.GetPort(fromSide)!, to.GetPort(toSide)!) { TargetMarker = LinkMarker.Arrow, Color = "#38474d" };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, labelAt));
+        Diagram.Links.Add(link);
+    }
+}
