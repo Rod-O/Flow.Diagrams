@@ -151,10 +151,13 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
     /// <summary>
     /// Re-attaches the end of the link to <paramref name="anchor"/> and raises <see cref="TargetChanged"/>; does
-    /// nothing if it is the current anchor. Does not refresh the link.
+    /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Does not
+    /// refresh the link.
     /// </summary>
     public void SetTarget(Anchor anchor)
     {
+        ArgumentNullException.ThrowIfNull(anchor, nameof(anchor));
+
         if (Target == anchor)
             return;
 

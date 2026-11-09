@@ -39,6 +39,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   restores it and refreshes, then rethrows.
 - `Diagram.SelectModel(model, unselectOthers: true)` did nothing when `model` was already selected, so the other
   selected models stayed selected.
+- `BaseLinkModel.SetTarget(null)` was accepted, leaving a null `Target` behind a non-nullable property; it now
+  throws `ArgumentNullException`, like `SetSource`.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
