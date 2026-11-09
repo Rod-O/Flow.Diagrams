@@ -58,7 +58,11 @@
     }
 
     #region export
-    private async Task Export() => _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions { Margin = 16 });
+    private async Task Export() => _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions
+    {
+        Margin = 16,
+        FontFamily = "\"IBM Plex Sans\", Helvetica, Arial, sans-serif",
+    });
     #endregion
 
     private Catalog.Examples.Nodes.SvgShapesNode Add(Catalog.Examples.Nodes.SvgShapesNode node)

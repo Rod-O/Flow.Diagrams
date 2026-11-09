@@ -101,6 +101,27 @@ public class DiagramSvgExporterTests
         var texts = XDocument.Parse(svgLabels.Svg).Descendants(Svg + "text").ToList();
         texts.Select(t => t.Value).Should().Equal("4-20 mA", "4-20 mA");
         texts[0].Attribute("fill")!.Value.Should().Be("none", "the halo comes first, stroke only, under the text");
-        texts.Should().OnlyContain(t => t.Attribute("font-family") != null, "a standalone document has no page font to inherit");
+        texts.Should().OnlyContain(t => t.Attribute("font-family") == null, "labels inherit the family, like node text");
+        XDocument.Parse(svgLabels.Svg).Root!.Attribute("font-family")!.Value.Should().EndWith("sans-serif",
+            "a standalone document has no page font, so the root gives every text one");
+    }
+
+    [Fact]
+    public async Task ExportAsync_ShouldSetTheFontFamilyOnTheRoot_UnlessItIsNull()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.Nodes.Add(new SvgNodeModel(new Point(0, 0)) { Size = new Size(100, 60) });
+
+        // Act
+        var byDefault = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services);
+        var custom = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { FontFamily = "\"IBM Plex Sans\", sans-serif" });
+        var unset = await DiagramSvgExporter.ExportAsync(diagram, ctx.Services, new SvgExportOptions { FontFamily = null });
+
+        // Assert
+        XDocument.Parse(byDefault.Svg).Root!.Attribute("font-family")!.Value.Should().Be("Helvetica, Arial, sans-serif");
+        XDocument.Parse(custom.Svg).Root!.Attribute("font-family")!.Value.Should().Be("\"IBM Plex Sans\", sans-serif");
+        XDocument.Parse(unset.Svg).Root!.Attribute("font-family").Should().BeNull();
     }
 }

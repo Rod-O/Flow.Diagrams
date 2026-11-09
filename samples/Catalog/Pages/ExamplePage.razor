@@ -68,7 +68,8 @@
         if (_live?.Instance is not ExampleBase example)
             return;
 
-        var export = await DiagramSvgExporter.ExportAsync(example.Diagram, Services);
+        var export = await DiagramSvgExporter.ExportAsync(example.Diagram, Services,
+            new SvgExportOptions { FontFamily = "\"IBM Plex Sans\", Helvetica, Arial, sans-serif" });
         await JS.InvokeVoidAsync("catalog.download", $"{_example!.Id}.svg", "image/svg+xml", export.Svg);
         _exportNote = export.HtmlModels.Count == 0
             ? null

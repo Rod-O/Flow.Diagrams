@@ -45,11 +45,12 @@ The document is cropped to the exported models plus `Margin`; pan and zoom do no
 | `Margin` | `10` | Space around the drawing, in diagram units. |
 | `Unit` | `""` | Unit appended to `width` and `height`: `"mm"`, `"cm"`, `"in"`. Empty means unitless, which SVG reads as pixels. |
 | `Background` | `"white"` | Fill of a rectangle behind the drawing; `null` for transparent. |
+| `FontFamily` | `"Helvetica, Arial, sans-serif"` | `font-family` on the document's root, inherited by every text that names no family of its own; `null` leaves it unset. |
 | `Css` | `null` | Stylesheet embedded in a `<style>` element. |
 
 ## CSS in the exported document
 
-The document carries none of your page's stylesheets: not `style.css`, not your app's CSS, not Blazor scoped CSS (`.razor.css`), not `<style>` blocks inside components. Anything a widget draws through a CSS class looks different, or invisible, in the export. Two ways out:
+The document carries none of your page's stylesheets: not `style.css`, not your app's CSS, not Blazor scoped CSS (`.razor.css`), not `<style>` blocks inside components. Anything a widget draws through a CSS class looks different, or invisible, in the export. That includes the font: text that names no `font-family` inherits the page's font on screen, and in the document inherits `FontFamily` from the root instead. Set it to the page's font so the export matches the screen (the catalog passes `"IBM Plex Sans", Helvetica, Arial, sans-serif`); the built-in SVG label names no family either, so it follows the same rule. For the rest, two ways out:
 
 - Draw with presentation attributes (`fill`, `stroke`, `font-size`) in the widget. This is what the examples do, and every SVG consumer reads them.
 - Pass the rules the document needs in `Css`:

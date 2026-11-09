@@ -15,6 +15,13 @@ public sealed record SvgExportOptions
     /// <summary>Fill of a rectangle behind the drawing; null for a transparent background.</summary>
     public string? Background { get; init; } = "white";
 
+    /// <summary>
+    /// Font family written on the document's root, which every text without its own <c>font-family</c> inherits: the
+    /// document carries no page CSS, so without it viewers draw that text in their default face, usually a serif. Name
+    /// the page's font to match the screen. Null leaves it unset.
+    /// </summary>
+    public string? FontFamily { get; init; } = "Helvetica, Arial, sans-serif";
+
     /// <summary>Stylesheet embedded in the document, for widgets that draw with CSS classes.</summary>
     public string? Css { get; init; }
 }
