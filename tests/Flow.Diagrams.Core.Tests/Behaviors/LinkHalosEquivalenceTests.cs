@@ -44,7 +44,7 @@ public class LinkHalosEquivalenceTests
         // Act + Assert: after every kind of edit the behavior reacts to.
         for (var step = 0; step < 80; step++)
         {
-            switch (random.Next(10))
+            switch (random.Next(12))
             {
                 case 0:
                 case 1:
@@ -81,6 +81,13 @@ public class LinkHalosEquivalenceTests
                         ? new SmoothPathGenerator()
                         : new StraightPathGenerator();
                     diagram.Batch(() => links.ForEach(l => l.Refresh()));
+                    break;
+                case 9:
+                    // A tie in layer and order is drawn in the diagram's list order, which re-sorting may change.
+                    links[random.Next(links.Count)].Order = links[random.Next(links.Count)].Order;
+                    break;
+                case 10:
+                    nodes[random.Next(nodes.Count)].Order = random.Next(1, 200);
                     break;
                 default:
                     var removed = links[random.Next(links.Count)];

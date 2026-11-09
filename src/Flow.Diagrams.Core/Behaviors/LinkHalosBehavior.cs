@@ -22,12 +22,15 @@ public class LinkHalosBehavior : Behavior
     private readonly Dictionary<BaseLinkModel, Tracked> _tracked = new();
     // Every tracked link in drawing order; Tracked.Rank is the index here.
     private List<Tracked> _order = new();
+    // Whether two links share a layer and an order, which leaves their place to the diagram's list.
+    private bool _hasTies;
 
     /// <summary>Computes the halos of the links already in <paramref name="diagram"/> and keeps them current from then on.</summary>
     public LinkHalosBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.Links.Added += OnLinkAdded;
         Diagram.Links.Removed += OnLinkRemoved;
+        Diagram.Changed += OnDiagramChanged;
         foreach (var link in Diagram.Links)
             Track(link);
         SetOrder(DrawingOrder());
@@ -45,6 +48,7 @@ public class LinkHalosBehavior : Behavior
     {
         Diagram.Links.Added -= OnLinkAdded;
         Diagram.Links.Removed -= OnLinkRemoved;
+        Diagram.Changed -= OnDiagramChanged;
         foreach (var link in _tracked.Keys)
         {
             link.Changed -= OnLinkChanged;
@@ -126,6 +130,23 @@ public class LinkHalosBehavior : Behavior
         RecomputeAbove(tracked, tracked.Box);
     }
 
+    /// <summary>
+    /// Links tied in layer and order are drawn in the diagram's list order, which its sort, not a stable one, may
+    /// permute without an event on any link (a node's order changing re-sorts the list). Every re-sort refreshes the
+    /// diagram, so the order is read again then, when there are ties.
+    /// </summary>
+    private void OnDiagramChanged()
+    {
+        if (!_hasTies)
+            return;
+
+        var order = DrawingOrder();
+        if (order.SequenceEqual(_order))
+            return;
+        SetOrder(order);
+        UpdateAll();
+    }
+
     private void OnLinkOrderChanged(SelectableModel model)
     {
         if (!_tracked.TryGetValue((BaseLinkModel)model, out var moved))
@@ -194,6 +215,9 @@ public class LinkHalosBehavior : Behavior
     {
         _order = order;
         Renumber(0);
+        _hasTies = false;
+        for (var rank = 1; rank < _order.Count && !_hasTies; rank++)
+            _hasTies = CompareDrawingOrder(_order[rank - 1].Link, _order[rank].Link) == 0;
     }
 
     private void Renumber(int from)
