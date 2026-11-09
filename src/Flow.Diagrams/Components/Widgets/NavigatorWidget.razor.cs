@@ -11,7 +11,8 @@ namespace Flow.Diagrams.Components.Widgets;
 
 /// <summary>
 /// A miniature of the whole diagram with a rectangle marking the part currently on screen. It is sized to fit every node and
-/// group plus the current view, and refreshes when the diagram, a node or a group changes. Set <see cref="Width"/> and
+/// group plus the current view, is drawn from its first render when the canvas is already measured, and refreshes when
+/// its parameters, the diagram, a node or a group change. Set <see cref="Width"/> and
 /// <see cref="Height"/> to size it; a non-positive value leaves the miniature empty.
 /// </summary>
 public partial class NavigatorWidget : IDisposable
@@ -81,6 +82,9 @@ public partial class NavigatorWidget : IDisposable
             group.Changed += OnNodeChanged;
     }
 
+    /// <summary>Recomputes the miniature, so it is drawn on the first render when the canvas is already measured, and follows new sizes.</summary>
+    protected override void OnParametersSet() => UpdateView();
+
     private void OnNodeAdded(NodeModel node) => node.Changed += OnNodeChanged;
 
     private void OnNodeRemoved(NodeModel node) => node.Changed -= OnNodeChanged;
@@ -89,8 +93,14 @@ public partial class NavigatorWidget : IDisposable
 
     private void Refresh()
     {
+        if (UpdateView())
+            InvokeAsync(StateHasChanged);
+    }
+
+    private bool UpdateView()
+    {
         if (BlazorDiagram.Container == null || Width <= 0 || Height <= 0)
-            return;
+            return false;
 
         _vX = -BlazorDiagram.Pan.X / BlazorDiagram.Zoom;
         _vY = -BlazorDiagram.Pan.Y / BlazorDiagram.Zoom;
@@ -126,7 +136,7 @@ public partial class NavigatorWidget : IDisposable
         _y = minY - (viewHeight - height) / 2 - _scaledMargin;
         _width = viewWidth + _scaledMargin * 2;
         _height = viewHeight + _scaledMargin * 2;
-        InvokeAsync(StateHasChanged);
+        return true;
     }
 
     private RenderFragment GetNodeRenderFragment(NodeModel node)

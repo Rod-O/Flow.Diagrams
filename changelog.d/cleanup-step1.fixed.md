@@ -2,3 +2,4 @@
 - `KeyboardShortcutsDefaults.DeleteSelection` (the Delete key) restores refreshes and refreshes the diagram when a delete constraint throws; it used to leave the diagram unable to redraw.
 - Links, groups, ports and link vertices no longer render a second time on the first unrelated canvas render after they mount, and no element renders again after its model changed twice while a render was already queued.
 - `NodeModel.CanAttachTo` refuses a locked target, as `PortModel.CanAttachTo` already did: a link dragged from a node can no longer end on a locked node or group.
+- `NavigatorWidget` draws the miniature from its first render when the canvas is already measured (for example a navigator shown after the diagram loaded), and follows changes to its `Width`, `Height` and `Margin`. It used to stay empty until the next diagram event.
