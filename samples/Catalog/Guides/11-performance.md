@@ -22,7 +22,7 @@ The consequence for your code: **after changing a property of your own model, ca
 
 Each `Add`, `Remove` and `Clear` on `Diagram.Nodes`, `Links` and `Groups` already refreshes the diagram once for its whole call, and `Add(IEnumerable<T>)` adds many items under one refresh. For a sequence of different changes, wrap them in `Diagram.Batch(...)`: refreshes are suspended while the action runs and the diagram refreshes once at the end. Batches nest; only the outermost one refreshes.
 
-Trap: `Batch` is not exception-safe. If the action throws, `SuspendRefresh` stays `true` and the diagram never redraws again. Catch inside the action, or reset `SuspendRefresh` yourself when you handle the exception.
+If the action throws, `Batch` still restores refreshes and refreshes once (whatever the action changed before throwing is drawn), then lets the exception propagate. Setting `SuspendRefresh` by hand gives none of that: clear it in a `finally`.
 
 ## Virtualization
 
