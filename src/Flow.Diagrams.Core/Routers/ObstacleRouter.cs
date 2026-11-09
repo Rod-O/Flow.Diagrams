@@ -49,6 +49,10 @@ public class ObstacleRouter : Router
     }
 
     /// <inheritdoc />
+    /// <remarks>Vertices are ignored, so <c>false</c>.</remarks>
+    public override bool FollowsVertices => false;
+
+    /// <inheritdoc />
     /// <remarks>Returns an empty route when the two ports face each other on one line with nothing in between.</remarks>
     public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
     {
@@ -59,7 +63,7 @@ public class ObstacleRouter : Router
         if (Facing(from, to) && !obstacles.Any(o => !o.Equals(from.Owner) && !o.Equals(to.Owner) && CutBy(o, from.At, to.At)))
             return Array.Empty<Point>();
 
-        var s = StubEnd(from, 1);
+        var s = StubEnd(from, link.SourceMarker != null ? Options.MinStub : 1);
         var t = StubEnd(to, link.TargetMarker != null ? Options.MinStub : 1);
         var blocks = obstacles
             .Select(b => b.Inflate(Options.Margin, Options.Margin))

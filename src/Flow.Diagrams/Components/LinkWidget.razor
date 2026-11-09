@@ -7,6 +7,7 @@
         return;
 
     var dnlb = BlazorDiagram.GetBehavior<DragNewLinkBehavior>();
+    var followsVertices = FollowsVertices;
     var d = result.FullPath.ToString();
 }
 
@@ -17,7 +18,7 @@
 
 @if (dnlb?.OngoingLink == null || dnlb.OngoingLink != Link)
 {
-    @if (Link.Vertices.Count == 0)
+    @if (Link.Vertices.Count == 0 || !followsVertices)
     {
         @GetSelectionHelperPath(color, d, 0)
     }
@@ -46,7 +47,7 @@
     </g>
 }
 
-@if (Link.Vertices.Count > 0)
+@if (followsVertices && Link.Vertices.Count > 0)
 {
     var selectedColor = Link.SelectedColor ?? BlazorDiagram.Options.Links.DefaultSelectedColor;
     var normalColor = Link.Color ?? BlazorDiagram.Options.Links.DefaultColor;

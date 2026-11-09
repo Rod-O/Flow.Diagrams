@@ -71,6 +71,17 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `default.styles.css` styled `.diagram-navigator.default`, which the navigator never emits; the rule is now `.navigator.default`
   (give the widget `Class="default"`). The default SVG group used a yellow fill and an `outline`, which SVG ignores; it now uses a neutral fill and a stroke.
 - `RemoveControlWidget` drew HTML-layer markup inside an `SvgGroupModel`; it now follows `IsSvg()` like the other controls.
+- `LinkHalosBehavior` found only horizontal-by-vertical crossings, so diagonal straight links never got halos; any
+  two crossing segments now do, the halo laid along the upper one.
+- `LinkHalosBehavior` left stale halos after `SendToFront`/`SendToBack` with links in several layers: it recomputed
+  while the diagram's drawing order was still unsorted, putting the halo on the lower-layer link.
+- `ObstacleRouterOptions.MinStub` applied only to a `TargetMarker`; a `SourceMarker` could sit on a corner. It now
+  applies at whichever end carries a marker.
+- With `OrthogonalRouter` or `ObstacleRouter`, the link widget drew vertex handles and a `Segmentable` link created
+  vertices that moved nothing. New `Router.FollowsVertices` (default `true`, `false` for those two routers): the
+  widget offers vertices only when the router follows them.
+- Group children ignored their own `Layer` and `Order` and were drawn in `Children` order; they are now drawn in
+  their drawing order among themselves (still inside the group's element), and redrawn when it changes.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

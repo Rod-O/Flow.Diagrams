@@ -94,6 +94,24 @@ public class GroupLayerTests
     }
 
     [Fact]
+    public void Remove_ShouldKeepTheLinksBetweenChildren()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var a = diagram.Nodes.Add(new NodeModel());
+        var b = diagram.Nodes.Add(new NodeModel());
+        var portLink = diagram.Links.Add(new LinkModel(a.AddPort(PortAlignment.Right), b.AddPort(PortAlignment.Left)));
+        var nodeLink = diagram.Links.Add(new LinkModel(a, b));
+        var group = diagram.Groups.Group(a, b);
+
+        // Act
+        diagram.Groups.Remove(group);
+
+        // Assert
+        diagram.Links.Should().BeEquivalentTo(new[] { portLink, nodeLink });
+    }
+
+    [Fact]
     public void Delete_ShouldDeleteChildGroup()
     {
         // Arrange

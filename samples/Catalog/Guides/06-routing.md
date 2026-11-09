@@ -39,7 +39,7 @@ Use [StraightPathGenerator](xref:Flow.Diagrams.Core.PathGenerators.StraightPathG
 | `CrossCost` | 200 | What crossing a link of another net costs ([crossing cost](examples/crossing-cost)). |
 | `OverlapCostPerUnit` | 40 | Per unit of length run on top of a link of another net. |
 | `HugCostPerUnit` | 20 | Per unit of length run alongside a link of another net, closer than the margin. |
-| `MinStub` | 20 | Straight run kept before the target end when the link has a `TargetMarker`, so the arrowhead sits on a line ([arrow stub](examples/arrow-stub)). |
+| `MinStub` | 20 | Straight run kept before each end that carries a marker (`SourceMarker` or `TargetMarker`), so the arrowhead sits on a line ([arrow stub](examples/arrow-stub)). |
 | `OuterRing` | 30 | Distance of the outer ring of grid lines from everything, so a route can always go around. |
 
 The options are fixed when the router is created. To change them, create a new router, make it the default (or the links' router), and route again:

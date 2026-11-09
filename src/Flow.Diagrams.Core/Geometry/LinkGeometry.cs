@@ -30,23 +30,43 @@ internal static class LinkGeometry
 
     public static bool Horizontal(Point a, Point b) => Math.Abs(a.Y - b.Y) < Eps;
 
-    /// <summary>The interior crossing point of two perpendicular axis-parallel segments; null when they only touch or miss.</summary>
+    /// <summary>
+    /// The interior crossing point of two segments; null when they only touch, miss or are parallel. Each segment's
+    /// first and last <paramref name="tolerance"/> units do not count, so a join at an end is not a crossing.
+    /// </summary>
     public static Point? Crossing(Point a, Point b, Point c, Point d, double tolerance = 0.05)
     {
         var abHorizontal = Horizontal(a, b);
         var abVertical = Math.Abs(a.X - b.X) < Eps;
         var cdHorizontal = Horizontal(c, d);
         var cdVertical = Math.Abs(c.X - d.X) < Eps;
-        if (!(abHorizontal && cdVertical) && !(abVertical && cdHorizontal))
+        if ((abHorizontal && cdVertical) || (abVertical && cdHorizontal))
+        {
+            // Axis-parallel crossings take the exact coordinates of the two lines, free of rounding.
+            var (h0, h1, v0, v1) = abHorizontal ? (a, b, c, d) : (c, d, a, b);
+            var x = v0.X;
+            var y = h0.Y;
+            var inHorizontal = x > Math.Min(h0.X, h1.X) + tolerance && x < Math.Max(h0.X, h1.X) - tolerance;
+            var inVertical = y > Math.Min(v0.Y, v1.Y) + tolerance && y < Math.Max(v0.Y, v1.Y) - tolerance;
+            return inHorizontal && inVertical ? new Point(x, y) : null;
+        }
+
+        var ab = b - a;
+        var cd = d - c;
+        var denominator = Cross(ab, cd);
+        if (Math.Abs(denominator) < Eps)
             return null;
 
-        var (h0, h1, v0, v1) = abHorizontal ? (a, b, c, d) : (c, d, a, b);
-        var x = v0.X;
-        var y = h0.Y;
-        var inHorizontal = x > Math.Min(h0.X, h1.X) + tolerance && x < Math.Max(h0.X, h1.X) - tolerance;
-        var inVertical = y > Math.Min(v0.Y, v1.Y) + tolerance && y < Math.Max(v0.Y, v1.Y) - tolerance;
-        return inHorizontal && inVertical ? new Point(x, y) : null;
+        var ac = c - a;
+        var t = Cross(ac, cd) / denominator;
+        var u = Cross(ac, ab) / denominator;
+        var tMargin = tolerance / ab.Length;
+        var uMargin = tolerance / cd.Length;
+        return t > tMargin && t < 1 - tMargin && u > uMargin && u < 1 - uMargin ? a + ab.Multiply(t) : null;
     }
+
+    /// <summary>The z component of the cross product of two vectors: positive when <paramref name="v"/> turns left of <paramref name="u"/>.</summary>
+    public static double Cross(Point u, Point v) => u.X * v.Y - u.Y * v.X;
 
     private static IEnumerable<PortModel> Ports(BaseLinkModel link)
     {
