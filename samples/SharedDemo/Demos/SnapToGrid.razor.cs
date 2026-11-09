@@ -1,7 +1,7 @@
-﻿using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Options;
+﻿using Flow.Diagrams;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Options;
 using Microsoft.AspNetCore.Components;
 
 namespace SharedDemo;

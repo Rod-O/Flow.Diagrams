@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Flow.Diagrams - 2026-11-08
+
+Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and namespaces `Blazor.Diagrams.*` are now `Flow.Diagrams.*`, and the JavaScript globals are `FlowDiagrams` / `flowDiagramsInternalObject` (static assets under `_content/Flow.Diagrams/`).
+
+### Added
+
+- `GroupPadding`: group padding per side, in fractions; `GroupModel.GetChildrenBounds()` can be overridden.
+
+### Fixed
+
+- `OrthogonalRouter` threw `NotImplementedException` for corner-aligned ports (upstream #144, #270, #523).
+- A group moved by auto-sizing left its ports behind (upstream #581).
+
 ## Diagrams (3.0.4.1) - 2026-03-02
 
 ### Fixed

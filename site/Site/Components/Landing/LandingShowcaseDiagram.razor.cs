@@ -1,8 +1,8 @@
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Anchors;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
+using Flow.Diagrams;
+using Flow.Diagrams.Core.Anchors;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Core.Models.Base;
 using Site.Models.Landing;
 
 namespace Site.Components.Landing;

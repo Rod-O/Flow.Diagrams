@@ -16,16 +16,16 @@ jobs:
         with:
           dotnet-version: '9'
   
-      - name: Pack Blazor.Diagrams.Core
-        working-directory: src/Blazor.Diagrams.Core
+      - name: Pack Flow.Diagrams.Core
+        working-directory: src/Flow.Diagrams.Core
         run: 'dotnet pack -p:GeneratePackageOnBuild=false --configuration Release --output ${{ env.NUGET_DIR }}'
 
-      - name: Pack Blazor.Diagrams
-        working-directory: src/Blazor.Diagrams
+      - name: Pack Flow.Diagrams
+        working-directory: src/Flow.Diagrams
         run: 'dotnet pack -p:GeneratePackageOnBuild=false --configuration Release --output ${{ env.NUGET_DIR }}'
 
-      - name: Pack Blazor.Diagrams.Algorithms
-        working-directory: src/Blazor.Diagrams.Algorithms
+      - name: Pack Flow.Diagrams.Algorithms
+        working-directory: src/Flow.Diagrams.Algorithms
         run: 'dotnet pack -p:GeneratePackageOnBuild=false --configuration Release --output ${{ env.NUGET_DIR }}'
 
       - name: Push

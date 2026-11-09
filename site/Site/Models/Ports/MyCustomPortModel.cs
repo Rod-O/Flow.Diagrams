@@ -1,6 +1,6 @@
-﻿using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
+﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Core.Models.Base;
 
 namespace Site.Models.Ports;
 

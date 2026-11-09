@@ -20,7 +20,7 @@ public partial class StatisticsLine
 
     private async Task<int> GetStars()
     {
-        var content = await HttpClient.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/Blazor-Diagrams/Blazor.Diagrams");
+        var content = await HttpClient.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/Blazor-Diagrams/Flow.Diagrams");
         if (content == null)
             return 0;
 
@@ -37,7 +37,7 @@ public partial class StatisticsLine
                 if (resource.GetProperty("@type").GetString() == "SearchQueryService")
                 {
                     var url = resource.GetProperty("@id").GetString();
-                    var packageContent = await HttpClient.GetFromJsonAsync<JsonDocument>(url + "?prerelease=true&q=packageid:Z.Blazor.Diagrams");
+                    var packageContent = await HttpClient.GetFromJsonAsync<JsonDocument>(url + "?prerelease=true&q=packageid:Flow.Diagrams");
                     if (packageContent != null)
                     {
                         foreach (var data in packageContent.RootElement.GetProperty("data").EnumerateArray())

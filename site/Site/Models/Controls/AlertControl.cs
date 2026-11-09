@@ -1,9 +1,9 @@
-﻿using Blazor.Diagrams.Core;
-using Blazor.Diagrams.Core.Controls;
-using Blazor.Diagrams.Core.Events;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
+﻿using Flow.Diagrams.Core;
+using Flow.Diagrams.Core.Controls;
+using Flow.Diagrams.Core.Events;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Core.Models.Base;
 using Microsoft.JSInterop;
 
 namespace Site.Models.Controls;

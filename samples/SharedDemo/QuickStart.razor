@@ -25,24 +25,24 @@
                 </p>
                 <div class="code-block">
                     <h4 class="block-title">Package Manager Console</h4>
-                    <p><code>Install-Package Z.Blazor.Diagrams</code></p>
+                    <p><code>Install-Package Flow.Diagrams</code></p>
                 </div>
                 <div class="code-block">
                     <h4 class="block-title">CLI</h4>
-                    <p><code>dotnet add package Z.Blazor.Diagrams</code></p>
+                    <p><code>dotnet add package Flow.Diagrams</code></p>
                 </div>
             </div>
             <div id="project-setup" class="section-block">
                 <h3 class="block-title">Project setup</h3>
                 <p>
-                    Blazor.Diagrams needs some JavaScript and CSS to work properly, let's add them:
+                    Flow.Diagrams needs some JavaScript and CSS to work properly, let's add them:
                 </p>
                 <pre><code class="language-markup line-numbers">&lt;!-- in the head element --&gt;
-&lt;link href="_content/Z.Blazor.Diagrams/style.min.css" rel="stylesheet" /&gt;
+&lt;link href="_content/Flow.Diagrams/style.min.css" rel="stylesheet" /&gt;
 &lt;!-- if you want the default styling --&gt;
-&lt;link href="_content/Z.Blazor.Diagrams/default.styles.min.css" rel="stylesheet" /&gt;
+&lt;link href="_content/Flow.Diagrams/default.styles.min.css" rel="stylesheet" /&gt;
 &lt;!-- in the body element --&gt;
-&lt;script src="_content/Z.Blazor.Diagrams/script.min.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="_content/Flow.Diagrams/script.min.js"&gt;&lt;/script&gt;</code></pre>
                 <div class="callout-block callout-info">
                     <div class="icon-holder">
                         <i class="fas fa-info-circle"></i>
@@ -63,7 +63,7 @@
             <div id="diagram" class="section-block">
                 <h3 class="block-title">Diagram</h3>
                 <p>
-                    Blazor.Diagrams is very code/oop oriented at the moment, which means all the diagram information
+                    Flow.Diagrams is very code/oop oriented at the moment, which means all the diagram information
                     needs to be given to it using code. This has some benefits, such as easy (de)serialization.
                 </p>
                 <div class="code-block">
@@ -140,7 +140,7 @@ private NodeModel NewNode(double x, double y)
             <div id="links" class="section-block">
                 <h3 class="block-title">Links</h3>
                 <p>
-                    In Blazor.Diagrams, links can be added from a source port to a target port.<br />
+                    In Flow.Diagrams, links can be added from a source port to a target port.<br />
                     Let's add one:
                 </p>
                 <pre><code class="language-csharp line-numbers">private void Setup()
@@ -165,9 +165,9 @@ private NodeModel NewNode(double x, double y)
             </p>
             <div class="code-block">
                 <h4 class="block-title">_Imports.razor</h4>
-                <pre><code class="line-numbers">@@using Blazor.Diagrams.Core;
-@@using Blazor.Diagrams.Core.Models;
-@@using Blazor.Diagrams.Components;</code></pre>
+                <pre><code class="line-numbers">@@using Flow.Diagrams.Core;
+@@using Flow.Diagrams.Core.Models;
+@@using Flow.Diagrams.Components;</code></pre>
             </div>
             <div class="code-block">
                 <h4 class="block-title">Adding the canvas</h4>
@@ -184,7 +184,7 @@ private NodeModel NewNode(double x, double y)
                     <h4 class="callout-title">Pay attention</h4>
                     <p>
                         When adding a <code>DiagramCanvas</code>, its parent needs to have an actual width/height,
-                        since all the layers in Blazor.Diagrams use <code>width: 100%; height: 100%</code> for them
+                        since all the layers in Flow.Diagrams use <code>width: 100%; height: 100%</code> for them
                         to be able to work properly.
                     </p>
                 </div>

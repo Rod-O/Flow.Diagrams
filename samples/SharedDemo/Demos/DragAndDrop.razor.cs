@@ -1,5 +1,5 @@
-﻿using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Models;
+﻿using Flow.Diagrams;
+using Flow.Diagrams.Core.Models;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace SharedDemo.Demos;

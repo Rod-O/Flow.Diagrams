@@ -1,4 +1,4 @@
-﻿using Blazor.Diagrams.Core.Models;
+﻿using Flow.Diagrams.Core.Models;
 
 namespace SharedDemo.Demos.CustomLink;
 

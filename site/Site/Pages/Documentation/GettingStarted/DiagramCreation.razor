@@ -8,7 +8,7 @@
 
 <p>
     You've installed the library, now let's create a diagram!
-    Blazor.Diagrams is very code/oop oriented at the moment, which means all the diagram information needs to be given to it using code.
+    Flow.Diagrams is very code/oop oriented at the moment, which means all the diagram information needs to be given to it using code.
 </p>
 
 <h2>Creating a Diagram</h2>
@@ -20,7 +20,7 @@
 
 <div class="filename">MyDiagram.razor.cs</div>
 <pre><code class="language-cs">
-using Blazor.Diagrams;
+using Flow.Diagrams;
 
 namespace MyNamespace;
 
@@ -39,10 +39,10 @@ public partial class MyDiagram
 
 <div class="filename">MyDiagram.razor.cs</div>
 <pre><code class="language-cs">
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.PathGenerators;
-using Blazor.Diagrams.Core.Routers;
-using Blazor.Diagrams.Options;
+using Flow.Diagrams;
+using Flow.Diagrams.Core.PathGenerators;
+using Flow.Diagrams.Core.Routers;
+using Flow.Diagrams.Options;
 
 namespace Site.Components.Documentation;
 
@@ -102,7 +102,7 @@ var rightPort = secondNode.AddPort(PortAlignment.Right);
 <h2>Adding a Link</h2>
 
 <p>
-    In Blazor.Diagrams, links are created between 2 anchors (input and output).
+    In Flow.Diagrams, links are created between 2 anchors (input and output).
     The library comes with a few out of the box anchors, we'll be using two of them to show how a link can be created from a node to a port.
 </p>
 

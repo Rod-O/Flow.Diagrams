@@ -1,8 +1,8 @@
-﻿using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Anchors;
-using Blazor.Diagrams.Core.Controls.Default;
+﻿using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams;
+using Flow.Diagrams.Core.Anchors;
+using Flow.Diagrams.Core.Controls.Default;
 
 namespace SharedDemo.Demos.Nodes;
 

@@ -1,4 +1,4 @@
-using Blazor.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Geometry;
 
 namespace Site.Models.Landing;
 

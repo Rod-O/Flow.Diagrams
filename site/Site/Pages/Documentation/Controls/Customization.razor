@@ -1,7 +1,7 @@
 ﻿@page "/documentation/controls-customization"
-@using Blazor.Diagrams.Core.Controls;
-@using Blazor.Diagrams.Core.PathGenerators;
-@using Blazor.Diagrams.Core.Routers;
+@using Flow.Diagrams.Core.Controls;
+@using Flow.Diagrams.Core.PathGenerators;
+@using Flow.Diagrams.Core.Routers;
 @using Site.Components.Documentation.Controls;
 @using Site.Models.Controls;
 @layout DocumentationLayout
@@ -46,7 +46,7 @@ public class NodeInformationControl : Control
 
 <div class="filename">NodeInformationControlWidget.razor</div>
 <pre><code class="language-cshtml">
-@@using Blazor.Diagrams.Core.Models.Base;
+@@using Flow.Diagrams.Core.Models.Base;
 @@using YourNamespace;
 
 &lt;div style=&quot;background-color: #eee; width: @@(Node.Size!.Width)px; padding: 5px;&quot;&gt;
@@ -110,7 +110,7 @@ public class AlertControl : ExecutableControl
 
 <div class="filename">AlertControl.Widget.razor</div>
 <pre><code class="language-cshtml">
-@@using Blazor.Diagrams.Core.Models.Base;
+@@using Flow.Diagrams.Core.Models.Base;
 @@using YourNamespace;
 
 &lt;div class=&quot;rounded-full p-1 text-center text-white&quot;

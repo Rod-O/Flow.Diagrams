@@ -1,8 +1,8 @@
-﻿using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Anchors;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.PathGenerators;
+﻿using Flow.Diagrams;
+using Flow.Diagrams.Core.Anchors;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Core.PathGenerators;
 using Site.Models.Landing.SvgAndHtml;
 
 namespace Site.Components.Landing.SvgAndHtml;

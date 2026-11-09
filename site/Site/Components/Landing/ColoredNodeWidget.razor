@@ -1,5 +1,5 @@
 ﻿@using System.Text;
-@using Blazor.Diagrams.Extensions;
+@using Flow.Diagrams.Extensions;
 @{
     var borderColor = Node.Selected ? $"outline-{Node.Color}-darker" : $"outline-{Node.Color}";
     var extraClasses = new StringBuilder().Append($"bg-{Node.Color}").AppendIf(" rounded-full", Node.Round);

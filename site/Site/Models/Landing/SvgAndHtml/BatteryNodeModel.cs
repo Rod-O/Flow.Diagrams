@@ -1,5 +1,5 @@
-﻿using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Models;
+﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Models;
 
 namespace Site.Models.Landing.SvgAndHtml;
 

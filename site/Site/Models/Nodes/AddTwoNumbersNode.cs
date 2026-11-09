@@ -1,5 +1,5 @@
-﻿using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
+﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
 
 namespace Site.Models.Nodes;
 

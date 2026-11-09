@@ -6,8 +6,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Blazor.Diagrams.Core\Blazor.Diagrams.Core.csproj" />
-    <ProjectReference Include="..\..\src\Blazor.Diagrams\Blazor.Diagrams.csproj" />
+    <ProjectReference Include="..\..\src\Flow.Diagrams.Core\Flow.Diagrams.Core.csproj" />
+    <ProjectReference Include="..\..\src\Flow.Diagrams\Flow.Diagrams.csproj" />
   </ItemGroup>
 
 </Project>

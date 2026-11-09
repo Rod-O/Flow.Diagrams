@@ -1,5 +1,5 @@
-﻿using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Models;
+﻿using Flow.Diagrams.Core.Models;
+using Flow.Diagrams.Models;
 
 namespace SharedDemo.Demos.CustomSvgGroup;
 

@@ -1,7 +1,7 @@
-﻿using Blazor.Diagrams;
-using Blazor.Diagrams.Algorithms;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
+﻿using Flow.Diagrams;
+using Flow.Diagrams.Algorithms;
+using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace SharedDemo.Demos.Algorithms;

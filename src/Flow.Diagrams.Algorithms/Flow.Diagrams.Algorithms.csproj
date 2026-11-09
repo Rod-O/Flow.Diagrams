@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Rodolfo Ochoa, zHaytam</Authors>
+    <Description>Algorithms for Flow.Diagrams</Description>
+    <AssemblyVersion>3.0.4.1</AssemblyVersion>
+    <FileVersion>3.0.4.1</FileVersion>
+    <RepositoryUrl>https://github.com/Rod-O/Flow.Diagrams</RepositoryUrl>
+    <Version>3.0.4.1</Version>
+    <PackageId>Flow.Diagrams.Algorithms</PackageId>
+    <PackageTags>blazor diagrams diagramming svg drag algorithms layouts</PackageTags>
+    <Product>Flow.Diagrams.Algorithms</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Flow.Diagrams.Core\Flow.Diagrams.Core.csproj" />
+  </ItemGroup>
+
+</Project>

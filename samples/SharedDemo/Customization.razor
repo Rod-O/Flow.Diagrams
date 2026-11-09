@@ -19,7 +19,7 @@
         <section id="custom-nodes" class="doc-section">
             <h2 class="section-title">Custom nodes</h2>
             <p>
-                In Z.Blazor.Diagrams, everything is a <code>Model</code>, this makes it easier to handle (de)serialization and customization by inheritance.<br />
+                In Flow.Diagrams, everything is a <code>Model</code>, this makes it easier to handle (de)serialization and customization by inheritance.<br />
                 In order to customize nodes, you'll have to create a new Model, as well as the Blazor component for it.
             </p>
             <div id="create-node-model" class="section-block">
@@ -43,7 +43,7 @@
                 <p>
                     Second, we'll create a component <code>AddTwoNumbersComponent</code> that handles our new type of nodes.
                 </p>
-                <pre><code class="language-markup line-numbers">@@using Blazor.Diagrams.Components.Renderers;
+                <pre><code class="language-markup line-numbers">@@using Flow.Diagrams.Components.Renderers;
 
 &#x3C;div class=&#x22;card&#x22; style=&#x22;width: 250px;&#x22;&#x3E;
     &#x3C;div class=&#x22;card-body&#x22;&#x3E;
@@ -215,7 +215,7 @@ private NodeModel NewNode(double x, double y)
     // Add relevant data here if you need to
 }</code></pre>
                 <p>
-                    In Z.Blazor.Diagrams, links only hold information such as the source and target ports for now.
+                    In Flow.Diagrams, links only hold information such as the source and target ports for now.
                 </p>
             </div>
             <div id="create-link-component" class="section-block">
@@ -235,7 +235,7 @@ private NodeModel NewNode(double x, double y)
       stroke=&#x22;@@(Link.Selected ? &#x22;red&#x22; : &#x22;blue&#x22;)&#x22;
       stroke-width=&#x22;6&#x22; /&#x3E;</code></pre>
                 <ul>
-                    <li>All the <code>GetX</code> methods are extension methods available in <code>Blazor.Diagrams.Core.Extensions.LinkModelExtensions</code>.</li>
+                    <li>All the <code>GetX</code> methods are extension methods available in <code>Flow.Diagrams.Core.Extensions.LinkModelExtensions</code>.</li>
                     <li>The <code>ToInvariantString</code> method is used to make sure numbers are formatted using a dot.</li>
                 </ul>
             </div>
@@ -308,7 +308,7 @@ private NodeModel NewNode(double x, double y)
                 <p>
                     Second, we'll create a component <code>CustomGroupWidget</code> that handles our new type of links.
                 </p>
-                <pre><code class="language-markup line-numbers">@@using Blazor.Diagrams.Components.Renderers;
+                <pre><code class="language-markup line-numbers">@@using Flow.Diagrams.Components.Renderers;
                     
 &lt;GroupContainer Group=&quot;Group&quot; Class=&quot;custom&quot;&gt;
     &lt;span class=&quot;title&quot;&gt;@@Group.Title&lt;/span&gt;

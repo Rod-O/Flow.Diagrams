@@ -1,11 +1,11 @@
 ﻿@page "/demos/dynamic-anchor"
 @layout DemoLayout
-@using Blazor.Diagrams
-@using Blazor.Diagrams.Core.Anchors
-@using Blazor.Diagrams.Core.Controls
-@using Blazor.Diagrams.Core.PathGenerators
-@using Blazor.Diagrams.Core.Positions
-@using Blazor.Diagrams.Core.Controls.Default
+@using Flow.Diagrams
+@using Flow.Diagrams.Core.Anchors
+@using Flow.Diagrams.Core.Controls
+@using Flow.Diagrams.Core.PathGenerators
+@using Flow.Diagrams.Core.Positions
+@using Flow.Diagrams.Core.Controls.Default
 
 <CascadingValue Value="_blazorDiagram">
     <DiagramCanvas></DiagramCanvas>
@@ -79,7 +79,7 @@
         _blazorDiagram.Links.Added += OnLinkAdded;
     }
 
-    private void OnLinkAdded(Blazor.Diagrams.Core.Models.Base.BaseLinkModel link)
+    private void OnLinkAdded(Flow.Diagrams.Core.Models.Base.BaseLinkModel link)
     {
         _blazorDiagram.Controls.AddFor(link)
             .Add(new ArrowHeadControl(true))
