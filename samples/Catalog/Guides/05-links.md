@@ -76,7 +76,7 @@ Two traps:
 
 {{source link-styles LinkStyles.razor styles}}
 
-`Color` and `SelectedColor` take any SVG colour; when `null` they fall back to `DefaultColor` (black) and `DefaultSelectedColor` (`rgb(110, 159, 212)`) in [BlazorDiagramLinkOptions](xref:Flow.Diagrams.Options.BlazorDiagramLinkOptions). Markers and vertex handles use the same colours. `Width` is in diagram units (2 by default) and scales with zoom. These three are properties of `LinkModel`; a link type that derives from `BaseLinkModel` directly needs its own widget.
+`Color` and `SelectedColor` take any SVG colour; when `null` they fall back to `DefaultColor` (black) and `DefaultSelectedColor` (`rgb(110, 159, 212)`) in [BlazorDiagramLinkOptions](xref:Flow.Diagrams.Options.BlazorDiagramLinkOptions). Markers and vertex handles use the same colours. `Width` is in diagram units (2 by default) and scales with zoom. These three are properties of `LinkModel`; a link type that derives from `BaseLinkModel` directly needs its own widget. `Flow` marches dashes along the stroke to show what flows; see [Animation](guides/animation).
 
 ## The shape of the line
 

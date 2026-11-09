@@ -87,9 +87,9 @@ Classes the renderers put on their wrapper elements, for your selectors:
 | Element | Classes |
 |---|---|
 | Canvas | `diagram-canvas`; layers `diagram-svg-layer`, `diagram-html-layer` |
-| Node | `diagram-node`, plus `selected`, `locked`, `grouped` |
-| Group | `diagram-group`, plus `selected`, `locked`, and `default` when drawn by `DefaultGroupWidget` |
-| Link | `diagram-link`, plus `attached` once both ends are attached; `diagram-link-halo` on halos |
+| Node | `diagram-node`, plus `selected`, `locked`, `grouped`, and the node's `CssClass` |
+| Group | `diagram-group`, plus `selected`, `locked`, `default` when drawn by `DefaultGroupWidget`, and the group's `CssClass` |
+| Link | `diagram-link`, plus `attached` once both ends are attached, and the link's `CssClass`; `diagram-link-halo` on halos, `diagram-link-flow` on a flowing stroke |
 | Port | `diagram-port`, its alignment in lower case (`top`, `bottomright`), `has-links`, plus the `Class` you pass |
 | Label | `diagram-link-label`; `diagram-link-labels-layer` when `LabelsOnTop` |
 | Vertex | `diagram-link-vertex` |

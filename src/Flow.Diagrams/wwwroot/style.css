@@ -96,4 +96,45 @@ div.diagram-control {
     cursor: pointer;
 }
 
+/* LinkModel.Flow: dashes march by one period per --diagram-flow-duration, both set inline per link. */
+.diagram-link-flow {
+    animation: diagram-flow var(--diagram-flow-duration) linear infinite;
+}
+
+@keyframes diagram-flow {
+    from {
+        stroke-dashoffset: var(--diagram-flow-period);
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Built-in highlight for SelectableModel.CssClass; --diagram-pulse-color sets its color. */
+.diagram-pulse {
+    animation: diagram-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes diagram-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 0 transparent);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 8px var(--diagram-pulse-color, #f59e0b));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .diagram-link-flow {
+        animation: none;
+    }
+
+    .diagram-pulse {
+        animation: none;
+        filter: drop-shadow(0 0 6px var(--diagram-pulse-color, #f59e0b));
+    }
+}
+
 /*# sourceMappingURL=wwwroot\style.css.map */

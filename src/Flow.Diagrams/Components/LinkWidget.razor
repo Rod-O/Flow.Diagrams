@@ -9,12 +9,16 @@
     var dnlb = BlazorDiagram.GetBehavior<DragNewLinkBehavior>();
     var followsVertices = FollowsVertices;
     var d = result.FullPath.ToString();
+    var flow = DrawnFlow;
 }
 
 <path d="@d"
       stroke-width="@Link.Width.ToInvariantString()"
       fill="none"
-      stroke="@color" />
+      stroke="@color"
+      class="@(flow?.Speed > 0 ? "diagram-link-flow" : null)"
+      stroke-dasharray="@(flow == null ? null : FormattableString.Invariant($"{flow.Dash} {flow.Gap}"))"
+      style="@(flow == null ? null : FlowStyle(flow))" />
 
 @if (dnlb?.OngoingLink == null || dnlb.OngoingLink != Link)
 {

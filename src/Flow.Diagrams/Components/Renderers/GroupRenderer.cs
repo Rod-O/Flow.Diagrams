@@ -109,7 +109,8 @@ public class GroupRenderer : ComponentBase, IDisposable
         var classes = new StringBuilder("diagram-group")
             .AppendIf(" locked", Group.Locked)
             .AppendIf(" selected", Group.Selected)
-            .AppendIf(" default", componentType == typeof(DefaultGroupWidget));
+            .AppendIf(" default", componentType == typeof(DefaultGroupWidget))
+            .AppendIf(" " + Group.CssClass, !string.IsNullOrWhiteSpace(Group.CssClass));
 
         builder.OpenElement(0, _isSvg ? "g" : "div");
         builder.AddAttribute(1, "class", classes.ToString());

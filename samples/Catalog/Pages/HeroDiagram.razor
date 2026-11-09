@@ -8,7 +8,8 @@
     private const double PipeY = 200;
     private const double SignalY = 60;
     private const string ProcessColor = "#1f6fb2";
-    private static readonly LinkMarker Flow = new("M 0 -7 12 0 0 7 z", 12);
+    private static readonly LinkFlow ProcessFlow = new(Speed: 24, Dash: 14, Gap: 6);
+    private static readonly LinkMarker FlowArrow = new("M 0 -7 12 0 0 7 z", 12);
 
     private readonly BlazorDiagram _diagram = new();
     private readonly ObstacleRouter _router = new();
@@ -75,7 +76,7 @@
     private void Process(PortModel from, PortModel to, string? label = null)
     {
         var vertical = from.Alignment is PortAlignment.Top or PortAlignment.Bottom;
-        var link = new LinkModel(from, to) { Color = ProcessColor, Width = 4, TargetMarker = Flow, Layer = 1 };
+        var link = new LinkModel(from, to) { Color = ProcessColor, Width = 4, TargetMarker = FlowArrow, Flow = ProcessFlow, Layer = 1 };
         if (label != null)
             link.Labels.Add(new LinkLabelModel(link, label, 0.5, vertical ? new Point(24, 0) : new Point(0, -14)));
         _diagram.Links.Add(link);
