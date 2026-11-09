@@ -15,10 +15,12 @@
 
     protected override void OnInitialized()
     {
+        #region halos
         Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
         Diagram.Options.Links.HaloColor = "white";
         Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+        #endregion
 
         var west = Node(40, 120, "West");
         var east = Node(560, 120, "East");

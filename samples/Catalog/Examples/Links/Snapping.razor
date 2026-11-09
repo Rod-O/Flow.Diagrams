@@ -16,8 +16,10 @@
 
     protected override void OnInitialized()
     {
+        #region snapping
         Diagram.Options.Links.EnableSnapping = true;
         Diagram.Options.Links.SnappingRadius = _radius;
+        #endregion
 
         var a = Node(60, 60, "A");
         var b = Node(460, 60, "B");

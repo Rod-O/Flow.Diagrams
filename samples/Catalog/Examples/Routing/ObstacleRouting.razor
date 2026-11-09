@@ -17,8 +17,10 @@
 
     protected override void OnInitialized()
     {
+        #region defaults
         Diagram.Options.Links.DefaultRouter = _router;
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        #endregion
 
         var pump = Node(60, 200, "Pump");
         var tank = Node(700, 200, "Tank");
@@ -37,9 +39,11 @@
     private void SetMargin(ChangeEventArgs e)
     {
         _margin = int.Parse(e.Value!.ToString()!);
+        #region options
         _router = new ObstacleRouter(new ObstacleRouterOptions { Margin = _margin });
         Diagram.Options.Links.DefaultRouter = _router;
         _router.RouteAll(Diagram);
+        #endregion
     }
 
     private NodeModel Node(double x, double y, string title)

@@ -19,6 +19,7 @@
         var outlet = Node(700, 160, "Outlet");
         var mixer = Node(360, 160, "Mixer");
 
+        #region ports
         var group = new GroupModel([mixer], new GroupPadding(40, 40, 40, 40)) { Title = "Mixing unit" };
         var left = group.AddPort(PortAlignment.Left);
         var right = group.AddPort(PortAlignment.Right);
@@ -26,6 +27,7 @@
 
         Diagram.Links.Add(new LinkModel(inlet.GetPort(PortAlignment.Right)!, left) { TargetMarker = LinkMarker.Arrow });
         Diagram.Links.Add(new LinkModel(right, outlet.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+        #endregion
     }
 
     private NodeModel Node(double x, double y, string title)

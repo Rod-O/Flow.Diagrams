@@ -10,20 +10,24 @@
     {
         Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
 
+        #region styles
         Row(0, "Default", _ => { });
         Row(1, "Thin", l => { l.Color = "#c0392b"; l.Width = 1; });
         Row(2, "Thick, with markers", l => { l.Color = "#2471a3"; l.Width = 6; l.SourceMarker = LinkMarker.Circle; });
         Row(3, "Selects green", l => { l.Color = "#7f8c8d"; l.Width = 3; l.SelectedColor = "#27ae60"; });
+        #endregion
     }
 
     private void Row(int row, string title, Action<LinkModel> style)
     {
         var from = Node(60, 40 + row * 100, "From");
         var to = Node(460, 40 + row * 100, "To");
+        #region create
         var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow };
         style(link);
         link.Labels.Add(new LinkLabelModel(link, title, 0.5, new Point(0, -16)));
         Diagram.Links.Add(link);
+        #endregion
     }
 
     private NodeModel Node(double x, double y, string title)

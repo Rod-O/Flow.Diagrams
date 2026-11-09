@@ -13,6 +13,7 @@
 @code {
     protected override void OnInitialized()
     {
+        #region labels
         Row(0, link => link.AddLabel("Content"));
         Row(1, link =>
         {
@@ -29,6 +30,7 @@
             link.AddLabel("above", 0.5, new Point(0, -20));
             link.AddLabel("below", 0.5, new Point(0, 20));
         });
+        #endregion
     }
 
     private void SetSvgLabels(ChangeEventArgs e)
