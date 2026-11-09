@@ -1,0 +1,39 @@
+@inherits ExampleBase
+@using Catalog.Examples.Nodes
+@attribute [Example("svg-symbols", "Process symbols", ExampleCategory.Nodes,
+    "Industrial symbols drawn in SVG, wired as a small process: a tank feeds a pump driven by a motor, through a valve and a flow transmitter, into a second tank. Each symbol places its own ports.", Order = 4)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<SvgSymbolsNode, SvgSymbolsWidget>();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        var feed = Add(Symbol.Tank, 40, 110, "T-101", PortAlignment.Right);
+        var pump = Add(Symbol.Pump, 230, 160, "P-101", PortAlignment.Left, PortAlignment.Right, PortAlignment.Top);
+        var motor = Add(Symbol.Motor, 230, 20, "M-101", PortAlignment.Bottom);
+        var valve = Add(Symbol.Valve, 400, 160, "V-101", PortAlignment.Left, PortAlignment.Right);
+        var sensor = Add(Symbol.Sensor, 560, 160, "FT-101", PortAlignment.Left, PortAlignment.Right);
+        var product = Add(Symbol.Tank, 740, 110, "T-102", PortAlignment.Left);
+
+        Pipe(feed, PortAlignment.Right, pump, PortAlignment.Left);
+        Pipe(pump, PortAlignment.Right, valve, PortAlignment.Left);
+        Pipe(valve, PortAlignment.Right, sensor, PortAlignment.Left);
+        Pipe(sensor, PortAlignment.Right, product, PortAlignment.Left);
+
+        Diagram.Links.Add(new LinkModel(motor.GetPort(PortAlignment.Bottom)!, pump.GetPort(PortAlignment.Top)!) { Color = "#c98a00" });
+    }
+
+    private SvgSymbolsNode Add(Symbol symbol, double x, double y, string tag, params PortAlignment[] ports)
+    {
+        var node = new SvgSymbolsNode(new Point(x, y), symbol, tag);
+        foreach (var alignment in ports)
+            node.AddPort(alignment);
+        return Diagram.Nodes.Add(node);
+    }
+
+    private void Pipe(NodeModel from, PortAlignment fromSide, NodeModel to, PortAlignment toSide) =>
+        Diagram.Links.Add(new LinkModel(from.GetPort(fromSide)!, to.GetPort(toSide)!) { Color = "#2b7bb9", Width = 3, TargetMarker = LinkMarker.Arrow });
+}

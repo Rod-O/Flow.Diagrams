@@ -1,0 +1,33 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Core.Controls.Default
+@using Catalog.Examples.Nodes
+@attribute [Example("portless-links", "Links without ports", ExampleCategory.Nodes,
+    "A link can join two nodes directly: it attaches where it crosses the node's shape, wherever the nodes are. Drag the nodes around, or use the handle on the right of a selected node to draw a new link.", Order = 7)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<PortlessLinksRoundNode, PortlessLinksRoundWidget>();
+
+        var box = Diagram.Nodes.Add(new NodeModel(new Point(60, 60)) { Title = "Box" });
+        var round = Diagram.Nodes.Add(new PortlessLinksRoundNode(new Point(300, 130)) { Title = "Round" });
+        var third = Diagram.Nodes.Add(new NodeModel(new Point(560, 60)) { Title = "Box" });
+        var ported = Diagram.Nodes.Add(new NodeModel(new Point(420, 330)) { Title = "Port" });
+        ported.AddPort(PortAlignment.Left);
+
+        // Node to node: both ends attach by shape.
+        Diagram.Links.Add(new LinkModel(box, round) { SourceMarker = LinkMarker.Arrow, TargetMarker = LinkMarker.Arrow });
+        Diagram.Links.Add(new LinkModel(round, third) { TargetMarker = LinkMarker.Arrow });
+
+        // A shape anchor on one end and a port on the other can be mixed.
+        Diagram.Links.Add(new LinkModel(new ShapeIntersectionAnchor(round), new SinglePortAnchor(ported.GetPort(PortAlignment.Left)!))
+        {
+            TargetMarker = LinkMarker.Arrow,
+        });
+
+        foreach (var node in Diagram.Nodes)
+            Diagram.Controls.AddFor(node).Add(new DragNewLinkControl(1, 0.5, 20)).Add(new RemoveControl(1, 0));
+    }
+}

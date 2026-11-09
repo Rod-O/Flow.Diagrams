@@ -1,0 +1,44 @@
+@inherits ExampleBase
+@attribute [Example("widgets", "Canvas widgets", ExampleCategory.Basics,
+    "Widgets are components that sit over the diagram: NavigatorWidget (a minimap you can drag), SelectionBoxWidget (Shift-drag to select) and GridWidget (a background grid). Toggle each one.", Order = 11)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" @bind="_navigator" /> NavigatorWidget</label>
+        <label><input type="checkbox" @bind="_selectionBox" /> SelectionBoxWidget</label>
+        <label><input type="checkbox" @bind="_grid" /> GridWidget</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" Navigator="_navigator" SelectionBox="_selectionBox">
+        <Widgets>
+            @if (_grid)
+            {
+                <GridWidget Size="40" Mode="GridMode.Point" />
+            }
+        </Widgets>
+    </ExampleCanvas>
+</div>
+
+@code {
+    private bool _navigator = true;
+    private bool _selectionBox = true;
+    private bool _grid = true;
+
+    protected override void OnInitialized()
+    {
+        var previous = Node(40, 40, "1");
+        for (var i = 1; i < 6; i++)
+        {
+            var node = Node(40 + i * 150, 40 + (i % 2) * 140 + i * 20, (i + 1).ToString());
+            Diagram.Links.Add(new LinkModel(previous.GetPort(PortAlignment.Right)!, node.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+            previous = node;
+        }
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

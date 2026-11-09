@@ -1,0 +1,57 @@
+@inherits ExampleBase
+@attribute [Example("labels", "Link labels", ExampleCategory.Basics,
+    "A link can carry several labels. A distance between 0 and 1 is a fraction of the link, a larger or negative one is pixels from the start or end, and an offset nudges the label sideways. Switch between HTML and SVG labels.", Order = 4)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@Diagram.Options.Links.SvgLabels" @onchange="SetSvgLabels" /> SVG labels</label>
+        <span class="dim">HTML labels sit in the node layer; SVG labels are part of the link and export as vectors.</span>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Row(0, link => link.AddLabel("Content"));
+        Row(1, link =>
+        {
+            link.AddLabel("30%", 0.3);
+            link.AddLabel("70%", 0.7);
+        });
+        Row(2, link =>
+        {
+            link.AddLabel("+60 px", 60);
+            link.AddLabel("-60 px", -60);
+        });
+        Row(3, link =>
+        {
+            link.AddLabel("above", 0.5, new Point(0, -20));
+            link.AddLabel("below", 0.5, new Point(0, 20));
+        });
+    }
+
+    private void SetSvgLabels(ChangeEventArgs e)
+    {
+        Diagram.Options.Links.SvgLabels = (bool)e.Value!;
+        Diagram.Refresh();
+    }
+
+    private void Row(int index, Action<LinkModel> addLabels)
+    {
+        var y = 20 + index * 100;
+        var from = Node(40, y, "From");
+        var to = Node(480, y, "To");
+        var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!);
+        addLabels(link);
+        Diagram.Links.Add(link);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}

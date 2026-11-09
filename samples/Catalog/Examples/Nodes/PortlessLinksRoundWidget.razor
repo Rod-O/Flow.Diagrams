@@ -1,0 +1,12 @@
+@using Catalog.Examples.Nodes
+
+<div class="round-node @(Node.Selected ? "selected" : "")">@Node.Title</div>
+
+<style>
+    .round-node { width: 100px; height: 100px; display: grid; place-items: center; border-radius: 50%; background: #eef6dc; border: 1.5px solid #38474d; font: 14px system-ui, sans-serif; color: #1e2326; }
+    .round-node.selected { border-color: #6e9a1e; box-shadow: 0 0 0 3px #eef6dc; }
+</style>
+
+@code {
+    [Parameter] public PortlessLinksRoundNode Node { get; set; } = null!;
+}

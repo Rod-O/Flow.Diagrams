@@ -1,0 +1,40 @@
+@inherits ExampleBase
+@attribute [Example("locked", "Locked models", ExampleCategory.Basics,
+    "Locked nodes and links ignore dragging and Delete. Try to move or delete each node and link: the locked ones stay, the free ones obey.", Order = 6)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        var lockedNode = Node(60, 60, "Locked", locked: true);
+        var freeNode = Node(60, 280, "Free", locked: false);
+        var target = Node(420, 170, "Target", locked: false);
+
+        var lockedLink = new LinkModel(lockedNode.GetPort(PortAlignment.Right)!, target.GetPort(PortAlignment.Top)!)
+        {
+            Locked = true,
+            Color = "#c0392b",
+            TargetMarker = LinkMarker.Arrow,
+        };
+        lockedLink.Labels.Add(new LinkLabelModel(lockedLink, "locked link"));
+
+        var freeLink = new LinkModel(freeNode.GetPort(PortAlignment.Right)!, target.GetPort(PortAlignment.Bottom)!)
+        {
+            TargetMarker = LinkMarker.Arrow,
+        };
+        freeLink.Labels.Add(new LinkLabelModel(freeLink, "free link"));
+
+        Diagram.Links.Add(lockedLink);
+        Diagram.Links.Add(freeLink);
+    }
+
+    private NodeModel Node(double x, double y, string title, bool locked)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title, Locked = locked });
+        node.AddPort(PortAlignment.Top);
+        node.AddPort(PortAlignment.Right);
+        node.AddPort(PortAlignment.Bottom);
+        return node;
+    }
+}
