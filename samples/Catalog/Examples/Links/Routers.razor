@@ -1,0 +1,48 @@
+@inherits ExampleBase
+@using Router = Flow.Diagrams.Core.Routers.Router
+@attribute [Example("routers", "Routers", ExampleCategory.Links,
+    "The same layout three times, one router each. NormalRouter draws straight through the obstacle, OrthogonalRouter turns at right angles but still ignores it, ObstacleRouter goes around.",
+    Order = 2, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="() => _obstacle.RouteAll(Diagram)">Re-route all</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private readonly ObstacleRouter _obstacle = new();
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        Row(0, new NormalRouter(), "Normal");
+        Row(190, new OrthogonalRouter(), "Orthogonal");
+        Row(380, _obstacle, "Obstacle");
+    }
+
+    private void Row(double y, Router router, string label)
+    {
+        var from = Node(40, y + 40, "From");
+        Node(260, y + 50, "Obstacle");
+        var to = Node(480, y + 90, "To");
+
+        var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!)
+        {
+            Router = router,
+            TargetMarker = LinkMarker.Arrow,
+        };
+        link.Labels.Add(new LinkLabelModel(link, label, 0.15));
+        Diagram.Links.Add(link);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}

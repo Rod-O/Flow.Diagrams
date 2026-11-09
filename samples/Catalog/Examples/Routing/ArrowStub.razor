@@ -1,0 +1,53 @@
+@inherits ExampleBase
+@attribute [Example("arrow-stub", "Arrow stub", ExampleCategory.Routing,
+    "MinStub is the straight leg kept before an end that carries an arrowhead, so the arrow sits on a line instead of on a corner. Slide it to zero and the bends crowd the arrowheads.",
+    Order = 4, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Min stub <input type="range" min="0" max="80" step="5" value="@_stub" @oninput="SetStub" /> @_stub</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private ObstacleRouter _router = new();
+    private int _stub = 20;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = _router;
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        Pair(40, 40, 170, 140);
+        Pair(380, 40, 510, 140);
+        Pair(40, 280, 170, 380);
+    }
+
+    private void SetStub(ChangeEventArgs e)
+    {
+        _stub = int.Parse(e.Value!.ToString()!);
+        _router = new ObstacleRouter(new ObstacleRouterOptions { MinStub = _stub });
+        Diagram.Options.Links.DefaultRouter = _router;
+        _router.RouteAll(Diagram);
+    }
+
+    // The target sits just right of the source and lower, so the route bends right where the arrowhead lands.
+    private void Pair(double x, double y, double targetX, double targetY)
+    {
+        var source = Node(x, y, "Source");
+        var target = Node(targetX, targetY, "Target");
+        Diagram.Links.Add(new LinkModel(source.GetPort(PortAlignment.Right)!, target.GetPort(PortAlignment.Left)!)
+        {
+            TargetMarker = LinkMarker.Arrow, Color = "#38474d", Width = 2,
+        });
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Right);
+        node.AddPort(PortAlignment.Left);
+        return node;
+    }
+}

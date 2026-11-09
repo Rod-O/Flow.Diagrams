@@ -1,0 +1,30 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Core.Positions
+@attribute [Example("dynamic-anchors", "Dynamic anchors", ExampleCategory.Links,
+    "A DynamicAnchor offers several attachment points and picks the one closest to the other end. Drag the outer nodes around the centre one and watch the links change side.",
+    Order = 7)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        var hub = Node(300, 180, "Hub");
+        foreach (var (x, y, title) in new[] { (60.0, 40.0, "One"), (560.0, 60.0, "Two"), (320.0, 380.0, "Three") })
+        {
+            var node = Node(x, y, title);
+            Diagram.Links.Add(new LinkModel(Anchor(hub), Anchor(node)) { TargetMarker = LinkMarker.Arrow });
+        }
+    }
+
+    private static DynamicAnchor Anchor(NodeModel node) => new(node, new IPositionProvider[]
+    {
+        new BoundsBasedPositionProvider(0.5, 0),
+        new BoundsBasedPositionProvider(1, 0.5),
+        new BoundsBasedPositionProvider(0.5, 1),
+        new BoundsBasedPositionProvider(0, 0.5),
+    });
+
+    private NodeModel Node(double x, double y, string title) =>
+        Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+}
