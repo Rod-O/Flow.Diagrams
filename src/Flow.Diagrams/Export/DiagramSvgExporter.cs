@@ -17,10 +17,16 @@ namespace Flow.Diagrams.Export;
 /// </summary>
 public static class DiagramSvgExporter
 {
+    /// <summary>
+    /// Renders the diagram's SVG layer to a standalone SVG document sized to the visible SVG nodes, SVG groups and links plus
+    /// <see cref="SvgExportOptions.Margin"/>; the document is empty but for the margin when there are none.
+    /// </summary>
+    /// <param name="diagram">The diagram to export.</param>
     /// <param name="services">
     /// The app's services: the renderers resolve theirs (such as <c>IJSRuntime</c>) from it, though a static render
     /// never calls them.
     /// </param>
+    /// <param name="options">Appearance of the document; <c>null</c> uses the defaults of <see cref="SvgExportOptions"/>.</param>
     public static async Task<SvgExport> ExportAsync(BlazorDiagram diagram, IServiceProvider services, SvgExportOptions? options = null)
     {
         options ??= new SvgExportOptions();

@@ -9,27 +9,38 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one vertex of a link as a draggable handle: the widget registered for <c>LinkVertexModel</c>, or a circle of radius 5. It forwards
+/// pointer events to the diagram, and double-clicking it removes the vertex from its link.
+/// </summary>
 public class LinkVertexRenderer : ComponentBase, IDisposable
 {
     private bool _shouldRender = true;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
+    /// <summary>The vertex to draw; required.</summary>
     [Parameter] public LinkVertexModel Vertex { get; set; } = null!;
+    /// <summary>CSS fill of the handle while the vertex is not selected.</summary>
     [Parameter] public string? Color { get; set; }
+    /// <summary>CSS fill of the handle while the vertex is selected.</summary>
     [Parameter] public string? SelectedColor { get; set; }
 
     private string? ColorToUse => Vertex.Selected ? SelectedColor : Color;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Vertex.Changed -= OnVertexChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         Vertex.Changed += OnVertexChanged;
     }
 
+    /// <summary>Renders only after the vertex changed; any other cause of a render pass is skipped.</summary>
     protected override bool ShouldRender()
     {
         if (!_shouldRender) return false;
@@ -38,6 +49,7 @@ public class LinkVertexRenderer : ComponentBase, IDisposable
         return true;
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var componentType = BlazorDiagram.GetComponent(Vertex);

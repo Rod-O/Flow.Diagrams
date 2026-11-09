@@ -10,20 +10,28 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Flow.Diagrams.Components.Renderers;
 
+/// <summary>
+/// Draws one link: a <c>g</c> holding the link's halos and the widget registered for the link's type, or <see cref="LinkWidget"/>.
+/// It forwards pointer events to the diagram. Renders nothing while the link is invisible.
+/// </summary>
 public class LinkRenderer : ComponentBase, IDisposable
 {
     private bool _shouldRender = true;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
 
+    /// <summary>The link to draw; required.</summary>
     [Parameter] public BaseLinkModel Link { get; set; } = null!;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Link.Changed -= OnLinkChanged;
         Link.VisibilityChanged -= OnLinkChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -32,6 +40,7 @@ public class LinkRenderer : ComponentBase, IDisposable
         Link.VisibilityChanged += OnLinkChanged;
     }
 
+    /// <summary>Renders only after the link or its visibility changed; any other cause of a render pass is skipped.</summary>
     protected override bool ShouldRender()
     {
         if (!_shouldRender)
@@ -41,6 +50,7 @@ public class LinkRenderer : ComponentBase, IDisposable
         return true;
     }
 
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         if (!Link.Visible)

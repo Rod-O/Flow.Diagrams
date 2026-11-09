@@ -4,9 +4,11 @@
 
 @code
 {
+    /// <summary>The control being drawn; supplies the marker and its angle.</summary>
     [Parameter]
     public ArrowHeadControl Control { get; set; } = null!;
 
+    /// <summary>The link the control belongs to.</summary>
     [Parameter]
     public BaseLinkModel Model { get; set; } = null!;
 }

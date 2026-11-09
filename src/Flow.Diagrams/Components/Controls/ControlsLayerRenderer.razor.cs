@@ -10,24 +10,33 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Flow.Diagrams.Components.Controls;
 
+/// <summary>
+/// Draws the controls (remove button, link handle, boundary, arrowheads) of every model that has them, in one layer: SVG or
+/// HTML. <see cref="Components.DiagramCanvas"/> includes one of each. It re-renders when the controls of a model of its layer change.
+/// </summary>
 public partial class ControlsLayerRenderer : IDisposable
 {
     private bool _shouldRender;
 
+    /// <summary>The diagram whose controls are drawn.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
 
+    /// <summary>Whether this instance draws the controls of SVG models (<c>true</c>) or of HTML models (<c>false</c>); see <see cref="Extensions.ModelExtensions.IsSvg"/>.</summary>
     [Parameter] public bool Svg { get; set; }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         BlazorDiagram.Controls.ChangeCaused -= OnControlsChangeCaused;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         BlazorDiagram.Controls.ChangeCaused += OnControlsChangeCaused;
     }
 
+    /// <summary>Renders only after the diagram's controls changed for a model of this instance's layer.</summary>
     protected override bool ShouldRender()
     {
         if (!_shouldRender)

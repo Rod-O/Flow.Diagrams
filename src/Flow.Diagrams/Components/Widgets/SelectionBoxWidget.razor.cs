@@ -6,16 +6,23 @@ using Microsoft.AspNetCore.Components;
 
 namespace Flow.Diagrams.Components.Widgets;
 
+/// <summary>
+/// Rubber-band selection: holding Shift and dragging on empty canvas draws a rectangle and selects every node it overlaps,
+/// deselecting those it no longer overlaps. Groups and links are not selected. Put it in <see cref="DiagramCanvas.Widgets"/>.
+/// </summary>
 public partial class SelectionBoxWidget : IDisposable
 {
     private Point? _initialClientPoint;
     private Size? _selectionBoxSize; // Todo: remove unneeded instantiations
     private Point? _selectionBoxTopLeft; // Todo: remove unneeded instantiations
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
 
+    /// <summary>CSS background of the rectangle.</summary>
     [Parameter] public string Background { get; set; } = "rgb(110 159 212 / 25%)";
 
+    /// <inheritdoc />
     public void Dispose()
     {
         BlazorDiagram.PointerDown -= OnPointerDown;
@@ -23,6 +30,7 @@ public partial class SelectionBoxWidget : IDisposable
         BlazorDiagram.PointerUp -= OnPointerUp;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         BlazorDiagram.PointerDown += OnPointerDown;

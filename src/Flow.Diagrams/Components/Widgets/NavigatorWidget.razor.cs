@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Flow.Diagrams.Components.Widgets;
 
+/// <summary>
+/// A miniature of the whole diagram with a rectangle marking the part currently on screen. It is sized to fit every node and
+/// group plus the current view, and refreshes when the diagram, a node or a group changes. Set <see cref="Width"/> and
+/// <see cref="Height"/>; both default to 0, which makes the miniature unusable.
+/// </summary>
 public partial class NavigatorWidget : IDisposable
 {
     private double _x;
@@ -21,18 +26,30 @@ public partial class NavigatorWidget : IDisposable
     private double _vWidth;
     private double _vHeight;
 
+    /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
+    /// <summary>Whether nodes whose shape is an ellipse are drawn as ellipses; otherwise, and for every other shape, as their bounding rectangle.</summary>
     [Parameter] public bool UseNodeShape { get; set; } = true;
+    /// <summary>Width of the widget, in screen pixels. Must be set to a positive value.</summary>
     [Parameter] public double Width { get; set; }
+    /// <summary>Height of the widget, in screen pixels. Must be set to a positive value.</summary>
     [Parameter] public double Height { get; set; }
+    /// <summary>Space kept around the drawing inside the widget, in screen pixels.</summary>
     [Parameter] public double Margin { get; set; } = 5;
+    /// <summary>CSS fill of nodes in the miniature.</summary>
     [Parameter] public string NodeColor { get; set; } = "#40babd";
+    /// <summary>CSS fill of groups in the miniature.</summary>
     [Parameter] public string GroupColor { get; set; } = "#9fd0d1";
+    /// <summary>CSS stroke color of the rectangle marking the visible area.</summary>
     [Parameter] public string ViewStrokeColor { get; set; } = "#40babd";
+    /// <summary>Stroke width of the visible-area rectangle, in diagram units, not screen pixels.</summary>
     [Parameter] public int ViewStrokeWidth { get; set; } = 4;
+    /// <summary>Extra CSS classes for the root <c>svg</c> element, added after <c>navigator</c>.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS for the root <c>svg</c> element, for positioning the widget over the canvas.</summary>
     [Parameter] public string? Style { get; set; }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         BlazorDiagram.Changed -= Refresh;
@@ -48,6 +65,7 @@ public partial class NavigatorWidget : IDisposable
             group.Changed -= OnNodeChanged;
     }
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         BlazorDiagram.Changed += Refresh;
