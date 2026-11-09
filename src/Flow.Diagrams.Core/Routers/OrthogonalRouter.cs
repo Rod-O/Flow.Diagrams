@@ -8,12 +8,25 @@ using System.Linq;
 
 namespace Flow.Diagrams.Core.Routers;
 
+/// <summary>
+/// Routes a link with horizontal and vertical segments only, leaving each port along its alignment and finding the
+/// shortest path on a grid built around the two end nodes. Other nodes are not avoided; use
+/// <see cref="ObstacleRouter"/> for that.
+/// </summary>
+/// <remarks>
+/// Falls back to the fallback router when the link is not attached, an end is not a <c>SinglePortAnchor</c>, or an end
+/// node has no size yet.
+/// </remarks>
 public class OrthogonalRouter : Router
 {
     private readonly Router _fallbackRouter;
     private double _shapeMargin;
     private double _globalMargin;
 
+    /// <summary>Creates the router.</summary>
+    /// <param name="shapeMargin">Clearance, in diagram units, kept around the two end nodes; dropped to 0 when those inflated nodes overlap.</param>
+    /// <param name="globalMargin">Padding, in diagram units, around the union of the two end nodes that limits where the route may go.</param>
+    /// <param name="fallbackRouter">Used when this router cannot route the link; <see cref="NormalRouter"/> when null.</param>
     public OrthogonalRouter(double shapeMargin = 10d, double globalMargin = 50d, Router? fallbackRouter = null)
     {
         _shapeMargin = shapeMargin;
@@ -21,6 +34,7 @@ public class OrthogonalRouter : Router
         _fallbackRouter = fallbackRouter ?? new NormalRouter();
     }
 
+    /// <inheritdoc />
     public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
     {
         if (!link.IsAttached)

@@ -5,15 +5,20 @@ using System;
 
 namespace Flow.Diagrams.Core.PathGenerators;
 
+/// <summary>Draws links as straight segments between the ends and every route point, optionally rounding the corners.</summary>
 public class StraightPathGenerator : PathGenerator
 {
     private readonly double _radius;
 
+    /// <summary>Creates the generator.</summary>
+    /// <param name="radius">Corner radius in diagram units, limited to half of each adjacent segment; 0 keeps sharp corners.</param>
     public StraightPathGenerator(double radius = 0)
     {
         _radius = radius;
     }
 
+    /// <inheritdoc />
+    /// <remarks><see cref="PathGeneratorResult.Paths"/> is filled only when the link has vertices.</remarks>
     public override PathGeneratorResult GetResult(Diagram diagram, BaseLinkModel link, Point[] route, Point source, Point target)
     {
         route = ConcatRouteAndSourceAndTarget(route, source, target);

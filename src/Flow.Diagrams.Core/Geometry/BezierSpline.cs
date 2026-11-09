@@ -6,7 +6,7 @@ namespace Flow.Diagrams.Core.Geometry;
 /// Bezier Spline methods
 /// </summary>
 /// <remarks>
-/// Modified: Peter Lee (peterlee.com.cn < at > gmail.com)
+/// Modified: Peter Lee (peterlee.com.cn &lt; at &gt; gmail.com)
 ///   Update: 2009-03-16
 /// 
 /// see also:
