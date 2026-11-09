@@ -1,0 +1,57 @@
+@page "/"
+
+<PageTitle>Flow.Diagrams catalog</PageTitle>
+
+<section class="intro">
+    <h1>Examples</h1>
+    <p>@ExampleRegistry.All.Count examples of Flow.Diagrams, each live and with its source. Those marked
+        <span class="badge-new">new</span> show what Flow.Diagrams added since forking Z.Blazor.Diagrams.</p>
+</section>
+
+<div class="filters">
+    <input type="search" placeholder="Search examples" aria-label="Search examples" @bind="_search" @bind:event="oninput" />
+    <div class="chips" role="group" aria-label="Category">
+        <button class="chip @(_category == null ? "on" : "")" @onclick="() => _category = null">All</button>
+        @foreach (var category in ExampleRegistry.All.Select(e => e.Meta.Category).Distinct())
+        {
+            <button class="chip @(_category == category ? "on" : "")" @onclick="() => _category = category">@category.Title()</button>
+        }
+    </div>
+</div>
+
+@foreach (var group in Visible.GroupBy(e => e.Meta.Category))
+{
+    <section class="category">
+        <h2>@group.Key.Title()</h2>
+        <div class="grid">
+            @foreach (var example in group)
+            {
+                <a class="card" href="@($"examples/{example.Id}")">
+                    <div class="preview">
+                        <img src="@example.PreviewUrl" alt="" loading="lazy" onerror="this.parentElement.classList.add('missing')" />
+                    </div>
+                    <div class="card-text">
+                        <h3>@example.Meta.Title @if (example.Meta.New) { <span class="badge-new">new</span> }</h3>
+                        <p>@example.Meta.Description</p>
+                    </div>
+                </a>
+            }
+        </div>
+    </section>
+}
+
+@if (!Visible.Any())
+{
+    <p class="empty">No example matches “@_search”.</p>
+}
+
+@code {
+    private string _search = "";
+    private ExampleCategory? _category;
+
+    private IEnumerable<ExampleInfo> Visible => ExampleRegistry.All
+        .Where(e => _category == null || e.Meta.Category == _category)
+        .Where(e => _search.Length == 0
+                    || e.Meta.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                    || e.Meta.Description.Contains(_search, StringComparison.OrdinalIgnoreCase));
+}

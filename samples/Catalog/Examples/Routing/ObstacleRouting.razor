@@ -1,0 +1,55 @@
+@inherits ExampleBase
+@attribute [Example("obstacle-routing", "Routing around nodes", ExampleCategory.Routing,
+    "ObstacleRouter keeps every link clear of every node, not only its own two. Drag a node into a link's way and the link goes around it.",
+    Order = 1, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Margin <input type="range" min="0" max="40" step="2" value="@_margin" @oninput="SetMargin" /> @_margin</label>
+        <button @onclick="() => _router.RouteAll(Diagram)">Re-route all</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private ObstacleRouter _router = new();
+    private int _margin = 10;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = _router;
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+
+        var pump = Node(60, 200, "Pump");
+        var tank = Node(700, 200, "Tank");
+        var filter = Node(380, 60, "Filter");
+        var valve = Node(380, 200, "Valve");
+        var heater = Node(380, 340, "Heater");
+
+        Link(pump, PortAlignment.Right, tank, PortAlignment.Left);
+        Link(pump, PortAlignment.Top, filter, PortAlignment.Left);
+        Link(filter, PortAlignment.Right, tank, PortAlignment.Top);
+        Link(heater, PortAlignment.Right, tank, PortAlignment.Bottom);
+        Link(pump, PortAlignment.Bottom, heater, PortAlignment.Left);
+        _ = valve;
+    }
+
+    private void SetMargin(ChangeEventArgs e)
+    {
+        _margin = int.Parse(e.Value!.ToString()!);
+        _router = new ObstacleRouter(new ObstacleRouterOptions { Margin = _margin });
+        Diagram.Options.Links.DefaultRouter = _router;
+        _router.RouteAll(Diagram);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow });
+}

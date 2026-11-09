@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow.Diagrams catalog</title>
+    <base href="/" />
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    <link href="_content/Flow.Diagrams/style.min.css" rel="stylesheet" />
+    <link href="_content/Flow.Diagrams/default.styles.min.css" rel="stylesheet" />
+    <link href="css/catalog.css" rel="stylesheet" />
+    <link href="Catalog.styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app"><p class="loading">Loading the catalog…</p></div>
+    <div id="blazor-error-ui">An unhandled error has occurred. <a href="" class="reload">Reload</a> <a class="dismiss">🗙</a></div>
+    <script src="_content/Flow.Diagrams/script.min.js"></script>
+    <script>
+        window.catalog = {
+            download: (name, type, text) => {
+                const url = URL.createObjectURL(new Blob([text], { type }));
+                const a = Object.assign(document.createElement("a"), { href: url, download: name });
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        };
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

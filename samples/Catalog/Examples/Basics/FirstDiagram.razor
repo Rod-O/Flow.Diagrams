@@ -1,0 +1,31 @@
+@inherits ExampleBase
+@attribute [Example("first-diagram", "Your first diagram", ExampleCategory.Basics,
+    "Three nodes with ports, joined by links. Drag nodes, drag from a port to draw a link, select and press Delete.", Order = 1)]
+
+<ExampleCanvas Diagram="Diagram" Navigator="true" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        var source = Node(80, 80, "Source");
+        var middle = Node(380, 220, "Process");
+        var sink = Node(680, 80, "Sink");
+
+        Diagram.Links.Add(new LinkModel(source.GetPort(PortAlignment.Right)!, middle.GetPort(PortAlignment.Left)!)
+        {
+            TargetMarker = LinkMarker.Arrow,
+        });
+        Diagram.Links.Add(new LinkModel(middle.GetPort(PortAlignment.Right)!, sink.GetPort(PortAlignment.Left)!)
+        {
+            TargetMarker = LinkMarker.Arrow,
+        });
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}

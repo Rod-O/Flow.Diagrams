@@ -1,0 +1,73 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Export
+@inject IServiceProvider Services
+@attribute [Example("export-svg", "Export to SVG", ExampleCategory.Export,
+    "DiagramSvgExporter renders the diagram's SVG layer as a standalone document, ready to convert to PDF. Export, then compare the document with the live diagram.",
+    Order = 1, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="Export">Export</button>
+        @if (_export != null)
+        {
+            <span class="dim">@(_export.Svg.Length / 1024.0).ToString("0.0") KB, @_export.HtmlModels.Count HTML part(s) left out</span>
+        }
+    </ExampleToolbar>
+    <div class="export-split">
+        <ExampleCanvas Diagram="Diagram" />
+        <div class="export-result">
+            @if (_export == null)
+            {
+                <p class="dim">The exported document appears here.</p>
+            }
+            else
+            {
+                <img alt="Exported SVG" src="@($"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_export.Svg))}")" />
+                <pre>@_export.Svg</pre>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .export-split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
+    .export-result { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); }
+    .export-result img { max-width: 100%; background: #fff; border: 1px solid var(--line); }
+    .export-result pre { font: 11px/1.4 var(--mono); white-space: pre-wrap; word-break: break-all; margin: 0; }
+</style>
+
+@code {
+    private SvgExport? _export;
+
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<Catalog.Examples.Nodes.SvgShapesNode, Catalog.Examples.Nodes.SvgShapesWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.LabelsOnTop = true;
+
+        var a = Add(new Catalog.Examples.Nodes.SvgShapesNode(new Point(40, 60), Catalog.Examples.Nodes.SvgShape.Box, "Sensor"));
+        var b = Add(new Catalog.Examples.Nodes.SvgShapesNode(new Point(320, 60), Catalog.Examples.Nodes.SvgShape.Box, "Controller"));
+        var c = Add(new Catalog.Examples.Nodes.SvgShapesNode(new Point(340, 240), Catalog.Examples.Nodes.SvgShape.Circle, "Valve"));
+
+        Link(a, PortAlignment.Right, b, PortAlignment.Left, "4-20 mA");
+        Link(b, PortAlignment.Bottom, c, PortAlignment.Top, "24 V DC");
+    }
+
+    private async Task Export() => _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions { Margin = 16 });
+
+    private Catalog.Examples.Nodes.SvgShapesNode Add(Catalog.Examples.Nodes.SvgShapesNode node)
+    {
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return Diagram.Nodes.Add(node);
+    }
+
+    private void Link(NodeModel from, PortAlignment fromSide, NodeModel to, PortAlignment toSide, string label)
+    {
+        var link = new LinkModel(from.GetPort(fromSide)!, to.GetPort(toSide)!) { TargetMarker = LinkMarker.Arrow, Color = "#38474d" };
+        link.Labels.Add(new LinkLabelModel(link, label));
+        Diagram.Links.Add(link);
+    }
+}

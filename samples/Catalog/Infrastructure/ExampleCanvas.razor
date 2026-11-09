@@ -1,0 +1,62 @@
+@implements IDisposable
+@* The diagram of an example, filling the space the example page gives it, framed once it is drawn. *@
+<div class="example-canvas @Class">
+    <CascadingValue Value="Diagram" IsFixed="true">
+        <DiagramCanvas>
+            <Widgets>
+                @if (Navigator)
+                {
+                    <NavigatorWidget Width="180" Height="120" Class="example-navigator" />
+                }
+                @if (SelectionBox)
+                {
+                    <SelectionBoxWidget />
+                }
+                @Widgets
+            </Widgets>
+        </DiagramCanvas>
+    </CascadingValue>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BlazorDiagram Diagram { get; set; } = null!;
+    [Parameter] public bool Navigator { get; set; }
+    [Parameter] public bool SelectionBox { get; set; } = true;
+    [Parameter] public RenderFragment? Widgets { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Centre the drawing in the canvas once, shrinking it to fit if needed but never enlarging it.</summary>
+    [Parameter] public bool Fit { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        if (Fit)
+            Diagram.ContainerChanged += OnContainerChanged;
+    }
+
+    public void Dispose() => Diagram.ContainerChanged -= OnContainerChanged;
+
+    private async void OnContainerChanged()
+    {
+        Diagram.ContainerChanged -= OnContainerChanged;
+        // HTML nodes are measured after they are drawn; give them a moment so the frame includes their real size.
+        await Task.Delay(250);
+        if (Diagram.Container is not { } container || Bounds() is not { } b)
+            return;
+
+        const double margin = 40;
+        var zoom = Math.Min(1, Math.Min(container.Width / (b.Width + 2 * margin), container.Height / (b.Height + 2 * margin)));
+        Diagram.SetZoom(zoom);
+        Diagram.SetPan(container.Width / 2 - (b.Left + b.Width / 2) * zoom, container.Height / 2 - (b.Top + b.Height / 2) * zoom);
+    }
+
+    private Rectangle? Bounds()
+    {
+        var boxes = Diagram.Nodes.Cast<NodeModel>().Concat(Diagram.Groups)
+            .Where(n => n.Visible && n.Group == null)
+            .Select(n => n.GetBounds()).OfType<Rectangle>().ToList();
+        return boxes.Count == 0
+            ? null
+            : new Rectangle(boxes.Min(r => r.Left), boxes.Min(r => r.Top), boxes.Max(r => r.Right), boxes.Max(r => r.Bottom));
+    }
+}

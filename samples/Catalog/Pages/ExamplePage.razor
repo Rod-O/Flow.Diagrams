@@ -1,0 +1,77 @@
+@page "/examples/{Id}"
+@using Flow.Diagrams.Export
+@inject IServiceProvider Services
+@inject IJSRuntime JS
+
+@if (_example == null)
+{
+    <p class="empty">No example “@Id”. <a href="">Back to the catalog</a>.</p>
+    return;
+}
+
+<PageTitle>@_example.Meta.Title · Flow.Diagrams</PageTitle>
+
+<div class="example-page">
+    <div class="example-head">
+        <div>
+            <a class="back" href="">← All examples</a>
+            <h1>@_example.Meta.Title @if (_example.Meta.New) { <span class="badge-new">new</span> }</h1>
+            <p class="dim">@_example.Meta.Category.Title() · @_example.Meta.Description</p>
+        </div>
+        <div class="actions">
+            <div class="tabs" role="tablist">
+                <button role="tab" aria-selected="@(!_showSource)" class="@(!_showSource ? "on" : "")" @onclick="() => _showSource = false">Live</button>
+                <button role="tab" aria-selected="@_showSource" class="@(_showSource ? "on" : "")" @onclick="() => _showSource = true">Source</button>
+            </div>
+            <button class="button" @onclick="ExportSvg">Export SVG</button>
+        </div>
+    </div>
+
+    @if (_exportNote != null)
+    {
+        <p class="note">@_exportNote</p>
+    }
+
+    <div class="example-body" hidden="@_showSource">
+        <DynamicComponent @key="_example.Id" @ref="_live" Type="_example.Component" />
+    </div>
+
+    @if (_showSource)
+    {
+        <div class="source">
+            @foreach (var (name, text) in ExampleRegistry.Source(_example))
+            {
+                <h3>@name</h3>
+                <pre><code>@text</code></pre>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private ExampleInfo? _example;
+    private DynamicComponent? _live;
+    private bool _showSource;
+    private string? _exportNote;
+
+    protected override void OnParametersSet()
+    {
+        _example = ExampleRegistry.Find(Id);
+        _showSource = false;
+        _exportNote = null;
+    }
+
+    private async Task ExportSvg()
+    {
+        if (_live?.Instance is not ExampleBase example)
+            return;
+
+        var export = await DiagramSvgExporter.ExportAsync(example.Diagram, Services);
+        await JS.InvokeVoidAsync("catalog.download", $"{_example!.Id}.svg", "image/svg+xml", export.Svg);
+        _exportNote = export.HtmlModels.Count == 0
+            ? null
+            : $"{export.HtmlModels.Count} part(s) of this diagram are drawn as HTML and are not in the SVG: only SVG nodes, groups and labels export.";
+    }
+}

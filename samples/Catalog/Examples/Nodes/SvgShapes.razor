@@ -1,0 +1,33 @@
+@inherits ExampleBase
+@attribute [Example("svg-shapes", "SVG nodes", ExampleCategory.Nodes,
+    "Nodes drawn in the SVG layer by a custom widget: a circle, a diamond, a hexagon and a rounded box. SVG nodes export as vectors.", Order = 2)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<SvgShapesNode, SvgShapesWidget>();
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 6);
+
+        var start = Add(new SvgShapesNode(new Point(60, 160), SvgShape.Circle, "Start"));
+        var check = Add(new SvgShapesNode(new Point(260, 160), SvgShape.Diamond, "Valid?"));
+        var work = Add(new SvgShapesNode(new Point(500, 40), SvgShape.Box, "Process"));
+        var fail = Add(new SvgShapesNode(new Point(500, 300), SvgShape.Hexagon, "Reject"));
+
+        Link(start, PortAlignment.Right, check, PortAlignment.Left);
+        Link(check, PortAlignment.Top, work, PortAlignment.Left);
+        Link(check, PortAlignment.Bottom, fail, PortAlignment.Left);
+    }
+
+    private SvgShapesNode Add(SvgShapesNode node)
+    {
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return Diagram.Nodes.Add(node);
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow, Color = "#38474d" });
+}

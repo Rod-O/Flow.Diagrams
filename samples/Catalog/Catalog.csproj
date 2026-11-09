@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Catalog</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Flow.Diagrams\Flow.Diagrams.csproj" />
+    <ProjectReference Include="..\..\src\Flow.Diagrams.Algorithms\Flow.Diagrams.Algorithms.csproj" />
+  </ItemGroup>
+
+  <!-- Every example's source ships inside the assembly, so its page can show it. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Examples\**\*.razor;Examples\**\*.cs" LogicalName="source/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

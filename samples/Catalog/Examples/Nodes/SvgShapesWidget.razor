@@ -1,0 +1,41 @@
+@using Catalog.Examples.Nodes
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var stroke = Node.Selected ? "#6e9a1e" : "#38474d";
+}
+
+@switch (Node.Shape)
+{
+    case SvgShape.Circle:
+        <circle cx="@(w / 2)" cy="@(h / 2)" r="@(w / 2 - 2)" fill="#eef6dc" stroke="@stroke" stroke-width="2" />
+        break;
+    case SvgShape.Diamond:
+        <polygon points="@($"{w / 2},2 {w - 2},{h / 2} {w / 2},{h - 2} 2,{h / 2}")" fill="#fff4d6" stroke="@stroke" stroke-width="2" />
+        break;
+    case SvgShape.Hexagon:
+        <polygon points="@($"{w * .25},2 {w * .75},2 {w - 2},{h / 2} {w * .75},{h - 2} {w * .25},{h - 2} 2,{h / 2}")" fill="#fde4e1" stroke="@stroke" stroke-width="2" />
+        break;
+    default:
+        <rect x="1" y="1" width="@(w - 2)" height="@(h - 2)" rx="10" fill="#e3f0fb" stroke="@stroke" stroke-width="2" />
+        break;
+}
+<text x="@(w / 2)" y="@(h / 2)" text-anchor="middle" dominant-baseline="central" font-size="14" fill="#1e2326">@Node.Label</text>
+
+@* Ports: small circles on the shape's edge, measured once by the library. *@
+@foreach (var port in Node.Ports)
+{
+    var (cx, cy) = port.Alignment switch
+    {
+        PortAlignment.Top => (w / 2, 0.0),
+        PortAlignment.Right => (w, h / 2),
+        PortAlignment.Bottom => (w / 2, h),
+        _ => (0.0, h / 2),
+    };
+    <PortRenderer @key="port" Port="port" Class="svg-shape-port">
+        <circle cx="@cx" cy="@cy" r="5" fill="#ffffff" stroke="#38474d" stroke-width="1.5" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public SvgShapesNode Node { get; set; } = null!;
+}

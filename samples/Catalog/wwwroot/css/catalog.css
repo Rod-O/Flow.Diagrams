@@ -1,0 +1,188 @@
+:root {
+    --bg: #f6f7f5;
+    --surface: #ffffff;
+    --text: #1e2326;
+    --dim: #5f676b;
+    --line: #dfe3e1;
+    --accent: #6e9a1e;
+    --accent-soft: #eef6dc;
+    --paper: #ffffff;
+    --radius: 10px;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #15191b;
+        --surface: #1e2326;
+        --text: #eceee9;
+        --dim: #a3aaa7;
+        --line: #333a3d;
+        --accent: #b8e04a;
+        --accent-soft: #2b3320;
+        color-scheme: dark;
+    }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 var(--sans);
+}
+
+a { color: inherit; }
+
+.dim { color: var(--dim); }
+
+.loading, .empty { padding: 48px 24px; color: var(--dim); }
+
+/* Top bar */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 17px; }
+.topbar nav a { color: var(--dim); text-decoration: none; }
+.topbar nav a:hover { color: var(--text); }
+
+main { padding: 0 24px 48px; max-width: 1400px; margin: 0 auto; }
+
+/* Gallery */
+.intro h1 { margin: 28px 0 4px; font-size: 28px; }
+.intro p { margin: 0 0 18px; color: var(--dim); max-width: 70ch; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
+.filters input {
+    flex: 0 1 280px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip, .tabs button, .button {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.chip.on, .tabs button.on { background: var(--accent-soft); border-color: var(--accent); }
+.button { border-radius: 8px; }
+.button:hover, .chip:hover { border-color: var(--accent); }
+
+.category h2 { font-size: 18px; margin: 28px 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+.card {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    text-decoration: none;
+    transition: border-color .15s, transform .15s;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.preview { aspect-ratio: 3 / 2; background: var(--paper); border-bottom: 1px solid var(--line); }
+.preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.preview.missing img { display: none; }
+.preview.missing { background: repeating-linear-gradient(45deg, var(--paper), var(--paper) 10px, var(--bg) 10px, var(--bg) 20px); }
+.card-text { padding: 10px 14px 14px; }
+.card h3 { margin: 0 0 4px; font-size: 15px; }
+.card p { margin: 0; font-size: 13px; color: var(--dim); }
+
+.badge-new {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    vertical-align: middle;
+}
+
+/* Example page */
+.example-page { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+.example-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 0 12px; }
+.example-head h1 { margin: 4px 0; font-size: 24px; }
+.example-head p { margin: 0; max-width: 80ch; }
+.back { color: var(--dim); text-decoration: none; font-size: 13px; }
+.actions { display: flex; gap: 10px; align-items: center; }
+.tabs { display: flex; gap: 4px; }
+.note { margin: 0 0 8px; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); font-size: 13px; }
+
+.example-body { flex: 1; min-height: 420px; display: flex; flex-direction: column; }
+.example-body > * { flex: 1; }
+
+.example-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: 13px;
+}
+.example-toolbar label { display: inline-flex; align-items: center; gap: 6px; }
+.example-toolbar button { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 6px; padding: 3px 10px; font: inherit; cursor: pointer; }
+
+/* The diagram is always on paper, whatever the theme, so diagrams look the same on screen and exported. */
+.example-canvas {
+    position: relative;
+    flex: 1;
+    min-height: 420px;
+    height: 100%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: #1e2326;
+}
+.example-canvas .diagram-canvas { width: 100%; height: 100%; }
+.example-navigator { position: absolute; right: 12px; bottom: 12px; border: 1px solid #dfe3e1; background: #fff; }
+
+.example-column { display: flex; flex-direction: column; height: 100%; }
+
+.source h3 { font: 600 13px var(--mono); margin: 18px 0 6px; color: var(--dim); }
+.source pre {
+    margin: 0;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: auto;
+    font: 13px/1.55 var(--mono);
+}
+
+#blazor-error-ui { display: none; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 24px; background: #ffe9a8; color: #1e2326; z-index: 100; }
+#blazor-error-ui .dismiss { float: right; cursor: pointer; }
+
+@media (max-width: 640px) {
+    main, .topbar { padding-left: 16px; padding-right: 16px; }
+    .example-head { align-items: flex-start; }
+}
