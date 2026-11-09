@@ -16,11 +16,20 @@ internal static class LinkGeometry
             return null;
         var a = link.Source.GetPosition(link, route);
         var b = link.Target.GetPosition(link, route);
-        return a == null || b == null ? null : new[] { a }.Concat(route).Append(b).ToList();
+        if (a == null || b == null)
+            return null;
+        var polyline = new List<Point>(route.Length + 2) { a };
+        polyline.AddRange(route);
+        polyline.Add(b);
+        return polyline;
     }
 
     /// <summary>Links that share a port are one net: the branches of a tee.</summary>
-    public static bool SharePort(BaseLinkModel a, BaseLinkModel b) => Ports(a).Any(p => Ports(b).Contains(p));
+    public static bool SharePort(BaseLinkModel a, BaseLinkModel b)
+    {
+        var (b1, b2) = (Port(b.Source), Port(b.Target));
+        return Port(a.Source) is { } a1 && (a1 == b1 || a1 == b2) || Port(a.Target) is { } a2 && (a2 == b1 || a2 == b2);
+    }
 
     public static IEnumerable<(Point A, Point B)> Segments(IReadOnlyList<Point> polyline)
     {
@@ -68,9 +77,5 @@ internal static class LinkGeometry
     /// <summary>The z component of the cross product of two vectors: positive when <paramref name="v"/> turns left of <paramref name="u"/>.</summary>
     public static double Cross(Point u, Point v) => u.X * v.Y - u.Y * v.X;
 
-    private static IEnumerable<PortModel> Ports(BaseLinkModel link)
-    {
-        if (link.Source is SinglePortAnchor s) yield return s.Port;
-        if (link.Target is SinglePortAnchor t) yield return t.Port;
-    }
+    private static PortModel? Port(Anchor anchor) => (anchor as SinglePortAnchor)?.Port;
 }

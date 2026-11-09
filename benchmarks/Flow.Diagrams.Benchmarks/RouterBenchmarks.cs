@@ -5,8 +5,7 @@ using Flow.Diagrams.Core.Routers;
 namespace Flow.Diagrams.Benchmarks;
 
 /// <summary>
-/// <see cref="ObstacleRouter.RouteAll"/> over the grid, with the default two re-route passes. Not run at 1000 nodes:
-/// one call takes minutes there (see the README).
+/// <see cref="ObstacleRouter.RouteAll"/> over the grid, with the default two re-route passes.
 /// </summary>
 [MemoryDiagnoser]
 public class ObstacleRouterBenchmarks
@@ -14,7 +13,7 @@ public class ObstacleRouterBenchmarks
     private BlazorDiagram _diagram = null!;
     private readonly ObstacleRouter _router = new();
 
-    [Params(50, 200)] public int Nodes { get; set; }
+    [Params(50, 200, 1000)] public int Nodes { get; set; }
 
     [GlobalSetup]
     public void Setup()
