@@ -1,0 +1,1 @@
+- `KeyboardShortcutsDefaults.DeleteSelection`: when a delete constraint throws, nothing is removed. It used to remove the models approved before the throwing one. The exception still propagates.

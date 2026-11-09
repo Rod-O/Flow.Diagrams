@@ -1,0 +1,2 @@
+- The controls layer no longer renders a second time on the first unrelated render after a model's controls changed twice while a render was already queued.
+- `KeyboardShortcutsDefaults.DeleteSelection` (the Delete key) no longer suspends refreshes while it awaits the delete constraints, so an asynchronous constraint (a confirmation dialog) no longer freezes the diagram. The constraints are asked first and the removals happen in one `Batch`.
