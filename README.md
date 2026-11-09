@@ -31,7 +31,7 @@ Reference `Flow.Diagrams` and add its assets to the host page:
 
 ## Catalog
 
-`samples/Catalog` is a gallery of 44 live examples, from a first diagram to a P&ID, each with its source and SVG export.
+`samples/Catalog` is a gallery of 44 live examples, from a first diagram to a P&ID, each with its source and SVG export. It runs at https://rod-o.github.io/Flow.Diagrams/.
 
 ```
 dotnet run --project samples/Catalog

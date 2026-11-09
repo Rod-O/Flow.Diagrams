@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Flow.Diagrams.Core\Flow.Diagrams.Core.csproj" />
-    <ProjectReference Include="..\..\src\Flow.Diagrams\Flow.Diagrams.csproj" />
-  </ItemGroup>
-
-</Project>
