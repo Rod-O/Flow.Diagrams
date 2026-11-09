@@ -50,7 +50,7 @@ A link widget works the same way. Read the routed path from `Link.PathGeneratorR
 
 {{source custom-links CustomLinks.razor register}}
 
-What the default `LinkWidget` does that yours must do itself, if you need it: a wide transparent stroke to make the link easy to click, markers, vertices (draw a `LinkVertexRenderer` per vertex), and labels when `LabelsOnTop` is off. `LinkWidget` takes a `LinkModel`; a link type derived from `BaseLinkModel` directly needs its own widget.
+What the default `LinkWidget` does that yours must do itself, if you need it: a wide transparent stroke to make the link easy to click, markers, vertices (draw a `LinkVertexRenderer` per vertex), and labels when `LabelsOnTop` is off. `LinkWidget` takes a `LinkModel`; a link type derived from `BaseLinkModel` directly needs its own widget, and without one its rendering throws a `DiagramsException` that names the type.
 
 Links the user draws by dragging from a port are created by `Options.Links.Factory`, which makes a plain `LinkModel`. To have them be your type, set the factory to create it.
 

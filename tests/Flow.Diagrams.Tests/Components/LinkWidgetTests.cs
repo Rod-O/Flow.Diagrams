@@ -4,6 +4,7 @@ using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Routers;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components.Web;
 using Xunit;
 
 namespace Flow.Diagrams.Tests.Components;
@@ -62,6 +63,30 @@ public class LinkWidgetTests
 
         // Assert
         link.Vertices.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void SegmentableLinkWithARouterThatFollowsVertices_ShouldRaiseVertexAddedOnPointerDown()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.SetContainer(new Rectangle(0, 0, 1000, 1000));
+        var link = LinkWithAVertex(diagram, new NormalRouter());
+        link.Segmentable = true;
+        LinkVertexModel? added = null;
+        link.VertexAdded += (_, vertex) => added = vertex;
+        var cut = ctx.RenderComponent<LinkWidget>(parameters => parameters
+            .Add(n => n.Link, link)
+            .AddCascadingValue(diagram));
+
+        // Act
+        cut.Find("path.selection-helper").PointerDown(new PointerEventArgs { ClientX = 50, ClientY = 20 });
+
+        // Assert
+        link.Vertices.Should().HaveCount(2);
+        added.Should().BeSameAs(link.Vertices[0]);
+        added!.Position.Should().Be(new Point(50, 20));
     }
 
     private static LinkModel LinkWithAVertex(BlazorDiagram diagram, Router router)

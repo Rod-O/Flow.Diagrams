@@ -1,0 +1,1 @@
+- `Diagram.UnregisterBehavior<T>()` removes the behavior `GetBehavior<T>()` returns: the exact type `T` first, else a registered subclass of `T`. Before, it did nothing when only a subclass was registered. Code that unregisters a base type while a replacement subclass is registered now removes the replacement. Breaking in that case.

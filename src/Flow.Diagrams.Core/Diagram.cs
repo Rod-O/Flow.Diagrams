@@ -312,16 +312,18 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Disposes and removes the behavior whose exact type is <typeparamref name="T"/>; does nothing if there is none.
+    /// Disposes and removes the behavior that <see cref="GetBehavior{T}"/> returns: the one whose exact type is
+    /// <typeparamref name="T"/>, else a registered behavior that derives from <typeparamref name="T"/>. Does nothing
+    /// if there is none.
     /// </summary>
     public void UnregisterBehavior<T>() where T : Behavior
     {
-        var type = typeof(T);
-        if (!_behaviors.ContainsKey(type))
+        var behavior = GetBehavior<T>();
+        if (behavior == null)
             return;
 
-        _behaviors[type].Dispose();
-        _behaviors.Remove(type);
+        behavior.Dispose();
+        _behaviors.Remove(behavior.GetType());
     }
 
     #endregion
@@ -329,11 +331,13 @@ public abstract class Diagram
     /// <summary>
     /// Sets zoom and pan so the selected nodes fit in <see cref="Container"/>, or all nodes when none is selected,
     /// with <paramref name="margin"/> diagram units around them. Only nodes count (not links) and the zoom is clamped
-    /// to <see cref="DiagramZoomOptions"/>. Does nothing without a container or nodes.
+    /// to <see cref="DiagramZoomOptions"/>. Does nothing without nodes, or without a container or while it has no width
+    /// or height (a canvas in a hidden tab). Zoom and pan are applied in one <see cref="Batch"/>, so refreshes are
+    /// restored even if a handler throws.
     /// </summary>
     public void ZoomToFit(double margin = 10)
     {
-        if (Container == null || Nodes.Count == 0)
+        if (Container == null || Container.Width <= 0 || Container.Height <= 0 || Nodes.Count == 0)
             return;
 
         var selectedNodes = Nodes.Where(s => s.Selected);
@@ -344,18 +348,15 @@ public abstract class Diagram
         var minX = bounds.Left - margin;
         var minY = bounds.Top - margin;
 
-        SuspendRefresh = true;
+        var container = Container;
+        Batch(() =>
+        {
+            SetZoom(Math.Min(container.Width / width, container.Height / height));
 
-        var xf = Container.Width / width;
-        var yf = Container.Height / height;
-        SetZoom(Math.Min(xf, yf));
-
-        var nx = Container.Left + Pan.X + minX * Zoom;
-        var ny = Container.Top + Pan.Y + minY * Zoom;
-        UpdatePan(Container.Left - nx, Container.Top - ny);
-
-        SuspendRefresh = false;
-        Refresh();
+            var nx = container.Left + Pan.X + minX * Zoom;
+            var ny = container.Top + Pan.Y + minY * Zoom;
+            UpdatePan(container.Left - nx, container.Top - ny);
+        });
     }
 
     /// <summary>

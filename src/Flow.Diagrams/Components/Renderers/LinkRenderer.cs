@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Flow.Diagrams.Core;
 using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
@@ -11,12 +12,13 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Flow.Diagrams.Components.Renderers;
 
 /// <summary>
-/// Draws one link: a <c>g</c> holding the link's halos and the widget registered for the link's type, or <see cref="LinkWidget"/>.
+/// Draws one link: a <c>g</c> holding the link's halos and the widget registered for the link's type, or <see cref="LinkWidget"/>
+/// for a <see cref="LinkModel"/>. A link of any other type without a registered widget throws a <see cref="DiagramsException"/>.
 /// It forwards pointer events to the diagram. Renders nothing while the link is invisible.
 /// </summary>
 public class LinkRenderer : ComponentBase, IDisposable
 {
-    private bool _shouldRender = true;
+    private bool _shouldRender;
 
     /// <summary>The diagram this component belongs to; supplied as a cascading value.</summary>
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
@@ -41,22 +43,21 @@ public class LinkRenderer : ComponentBase, IDisposable
     }
 
     /// <summary>Renders only after the link or its visibility changed; any other cause of a render pass is skipped.</summary>
-    protected override bool ShouldRender()
-    {
-        if (!_shouldRender)
-            return false;
-
-        _shouldRender = false;
-        return true;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Cleared here, not in ShouldRender: Blazor skips ShouldRender while a render is already queued.
+        _shouldRender = false;
+
         if (!Link.Visible)
             return;
         
-        var componentType = BlazorDiagram.GetComponent(Link) ?? typeof(LinkWidget);
+        var componentType = BlazorDiagram.GetComponent(Link) ?? (Link is LinkModel
+            ? typeof(LinkWidget)
+            : throw new DiagramsException(
+                $"No widget is registered for the link type '{Link.GetType().Name}', and the default {nameof(LinkWidget)} draws only a {nameof(LinkModel)}. Register one with {nameof(BlazorDiagram)}.{nameof(BlazorDiagram.RegisterComponent)}."));
         var classes = new StringBuilder()
             .Append("diagram-link")
             .AppendIf(" attached", Link.IsAttached)

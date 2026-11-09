@@ -83,8 +83,7 @@ public partial class LinkWidget
     private LinkVertexModel CreateVertex(double clientX, double clientY, int index)
     {
         var rPt = BlazorDiagram.GetRelativeMousePoint(clientX, clientY);
-        var vertex = new LinkVertexModel(Link, rPt);
-        Link.Vertices.Insert(index, vertex);
+        var vertex = Link.InsertVertex(index, rPt);
         Link.Refresh();
         return vertex;
     }

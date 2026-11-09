@@ -63,4 +63,21 @@ public class NavigatorWidgetTests
         rect.GetAttribute("width").Should().Be("50");
         rect.GetAttribute("height").Should().Be("40");
     }
+
+    [Fact]
+    public void WhenTheCanvasIsAlreadyMeasured_ShouldDrawTheMiniatureOnItsFirstRender()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var diagram = new BlazorDiagram();
+        diagram.SetContainer(new Rectangle(0, 0, 800, 600));
+        diagram.Nodes.Add(new NodeModel(new Point(10, 20)) { Size = new Size(50, 40) });
+
+        // Act
+        var cut = ctx.RenderComponent<NavigatorWidget>(parameters => parameters.AddCascadingValue(diagram));
+
+        // Assert
+        cut.Find("svg").GetAttribute("viewBox").Should().NotBe("0 0 0 0");
+        cut.Find("rect.navigator-current-view").GetAttribute("width").Should().Be("800");
+    }
 }
