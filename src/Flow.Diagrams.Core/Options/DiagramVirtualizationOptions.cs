@@ -2,7 +2,7 @@ namespace Flow.Diagrams.Core.Options;
 
 /// <summary>
 /// Hides models whose bounds are outside the viewport (sets <see cref="Models.Base.Model.Visible"/> to <c>false</c>) so they are
-/// not rendered. Re-evaluated when the pan or container changes.
+/// not rendered. Re-evaluated on zoom, pan and container resize only: a model added or moved while the view is still keeps its visibility until then.
 /// </summary>
 public class DiagramVirtualizationOptions
 {

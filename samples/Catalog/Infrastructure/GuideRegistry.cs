@@ -95,19 +95,23 @@ public static partial class GuideRegistry
     private static string ToHtml(string markdown)
     {
         var document = Markdown.Parse(markdown, Pipeline);
-        foreach (var link in document.Descendants<LinkInline>())
+        foreach (var link in document.Descendants<LinkInline>().ToList())
             if (link.Url?.StartsWith("xref:", StringComparison.Ordinal) == true)
+                link.Url = ReferenceUrl(link.Url);
+
+        // <xref:Uid> parses as an autolink: replace it with a link that shows the short name.
+        foreach (var autolink in document.Descendants<AutolinkInline>().ToList())
+            if (autolink.Url.StartsWith("xref:", StringComparison.Ordinal))
             {
-                var uid = link.Url["xref:".Length..];
-                link.Url = $"reference/api/{uid}.html";
-                if (link.IsAutoLink)
-                {
-                    link.Clear();
-                    link.AppendChild(new CodeInline(uid[(uid.LastIndexOf('.') + 1)..]));
-                }
+                var uid = autolink.Url["xref:".Length..];
+                var link = new LinkInline(ReferenceUrl(autolink.Url), "");
+                link.AppendChild(new CodeInline(uid[(uid.LastIndexOf('.') + 1)..]));
+                autolink.ReplaceBy(link);
             }
         return document.ToHtml(Pipeline);
     }
+
+    private static string ReferenceUrl(string xref) => $"reference/api/{xref["xref:".Length..]}.html";
 
     private static IEnumerable<string> BodyLines(string markdown) =>
         markdown.Split('\n').Select(l => l.TrimEnd('\r')).SkipWhile(l => !l.StartsWith("# ", StringComparison.Ordinal)).Skip(1);

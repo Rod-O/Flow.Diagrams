@@ -24,6 +24,11 @@ jobs:
           dotnet-version: 10.0.x
       - name: Publish the catalog
         run: dotnet publish samples/Catalog -c Release -o out
+      - name: Build the API reference into /reference
+        run: |
+          dotnet tool install -g docfx --version 2.78.4
+          apidocs/build.sh
+          cp -R apidocs/_site out/wwwroot/reference
       - name: Serve under /Flow.Diagrams/
         working-directory: out/wwwroot
         run: |

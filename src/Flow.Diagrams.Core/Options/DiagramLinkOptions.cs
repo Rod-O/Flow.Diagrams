@@ -35,7 +35,7 @@ public class DiagramLinkOptions
     /// <summary>The colour of link halos (<see cref="Behaviors.LinkHalosBehavior"/>): the diagram's background.</summary>
     public string HaloColor { get; set; } = "white";
 
-    /// <summary>Draw every link label after every link and node, so no line or node covers a label.</summary>
+    /// <summary>Draw every link label after every link and SVG node, so none of them covers a label. HTML nodes are drawn in a layer above the SVG one and still cover labels.</summary>
     public bool LabelsOnTop { get; set; } = false;
 
     /// <summary>
