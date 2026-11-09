@@ -12,8 +12,10 @@ namespace Flow.Diagrams.Core.Behaviors;
 /// default: <c>diagram.RegisterBehavior(new LinkHalosBehavior(diagram))</c>.
 /// </summary>
 /// <remarks>
-/// When a link's route changes, only the links whose bounding boxes overlap its old or its new one are recomputed, so
-/// the cost of a change follows the links around it rather than the size of the diagram.
+/// Setting a link's <see cref="BaseLinkModel.PathGenerator"/>, or the diagram's default one, raises no event: the
+/// halos follow the switch at the link's next <see cref="BaseLinkModel.Refresh"/>, as its drawing does.
+/// <para>When a link's route changes, only the links whose bounding boxes overlap its old or its new one are recomputed, so
+/// the cost of a change follows the links around it rather than the size of the diagram.</para>
 /// </remarks>
 public class LinkHalosBehavior : Behavior
 {
@@ -55,7 +57,7 @@ public class LinkHalosBehavior : Behavior
 
     private Tracked Track(BaseLinkModel link)
     {
-        var tracked = new Tracked(link);
+        var tracked = new Tracked(link) { Straight = Straight(link) };
         tracked.SetPolyline(LinkGeometry.Polyline(link));
         _tracked[link] = tracked;
         link.Changed += OnLinkChanged;
@@ -101,13 +103,15 @@ public class LinkHalosBehavior : Behavior
         if (!_tracked.TryGetValue((BaseLinkModel)model, out var tracked))
             return;
 
-        // The same polyline means only the halos or the looks changed, which moves no crossing.
+        // The same polyline drawn the same way means only the halos or the looks changed, which moves no crossing.
         var polyline = LinkGeometry.Polyline(tracked.Link);
-        if (SamePolyline(tracked.Polyline, polyline))
+        var straight = Straight(tracked.Link);
+        if (SamePolyline(tracked.Polyline, polyline) && straight == tracked.Straight)
             return;
 
         var oldBox = tracked.Box;
         tracked.SetPolyline(polyline);
+        tracked.Straight = straight;
         UpdateAround(tracked, oldBox);
     }
 
@@ -287,7 +291,10 @@ public class LinkHalosBehavior : Behavior
         return new LinkHalo(at - offset, at + offset, width);
     }
 
-    /// <summary>A link with the polyline its halos were last computed from, that polyline's box, and its place in the drawing order.</summary>
+    /// <summary>
+    /// A link with the polyline its halos were last computed from, that polyline's box, whether it was drawn straight,
+    /// and its place in the drawing order.
+    /// </summary>
     private sealed class Tracked
     {
         public Tracked(BaseLinkModel link) => Link = link;
@@ -296,6 +303,7 @@ public class LinkHalosBehavior : Behavior
         public List<Point>? Polyline { get; private set; }
         public Box Box { get; private set; } = Box.Empty;
         public int Rank { get; set; }
+        public bool Straight { get; set; }
 
         public void SetPolyline(List<Point>? polyline)
         {

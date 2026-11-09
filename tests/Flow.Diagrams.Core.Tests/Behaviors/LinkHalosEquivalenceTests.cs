@@ -44,7 +44,7 @@ public class LinkHalosEquivalenceTests
         // Act + Assert: after every kind of edit the behavior reacts to.
         for (var step = 0; step < 80; step++)
         {
-            switch (random.Next(8))
+            switch (random.Next(10))
             {
                 case 0:
                 case 1:
@@ -64,6 +64,23 @@ public class LinkHalosEquivalenceTests
                 case 6:
                     var toggled = links[random.Next(links.Count)];
                     toggled.Visible = !toggled.Visible;
+                    break;
+                case 7:
+                    // A path generator takes effect at the link's next refresh.
+                    var switched = links[random.Next(links.Count)];
+                    switched.PathGenerator = random.Next(3) switch
+                    {
+                        0 => null,
+                        1 => new SmoothPathGenerator(),
+                        _ => new StraightPathGenerator(),
+                    };
+                    switched.Refresh();
+                    break;
+                case 8:
+                    diagram.Options.Links.DefaultPathGenerator = diagram.Options.Links.DefaultPathGenerator is StraightPathGenerator
+                        ? new SmoothPathGenerator()
+                        : new StraightPathGenerator();
+                    diagram.Batch(() => links.ForEach(l => l.Refresh()));
                     break;
                 default:
                     var removed = links[random.Next(links.Count)];
