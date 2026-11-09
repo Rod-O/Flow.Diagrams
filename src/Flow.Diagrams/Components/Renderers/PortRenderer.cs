@@ -32,6 +32,7 @@ public class PortRenderer : ComponentBase, IDisposable
     {
         Port.Changed -= OnPortChanged;
         Port.VisibilityChanged -= OnPortChanged;
+        BlazorDiagram.ContainerChanged -= OnContainerChanged;
     }
 
     protected override void OnInitialized()
@@ -105,6 +106,13 @@ public class PortRenderer : ComponentBase, IDisposable
         BlazorDiagram.TriggerPointerUp(model, e.ToCore());
     }
 
+    private void OnContainerChanged()
+    {
+        BlazorDiagram.ContainerChanged -= OnContainerChanged;
+        _shouldRender = true;
+        InvokeAsync(StateHasChanged);
+    }
+
     private PortModel? FindPortOn(double clientX, double clientY)
     {
         var relativePt = BlazorDiagram.GetRelativeMousePoint(clientX, clientY);
@@ -126,7 +134,13 @@ public class PortRenderer : ComponentBase, IDisposable
     private async Task UpdateDimensions()
     {
         if (BlazorDiagram.Container == null)
+        {
+            // Positions are relative to the canvas, which is not measured yet: measure once it is. Waiting for nothing
+            // left the port unmeasured for good whenever nothing else asked again (a node whose size the model controls).
+            BlazorDiagram.ContainerChanged -= OnContainerChanged;
+            BlazorDiagram.ContainerChanged += OnContainerChanged;
             return;
+        }
 
         _updatingDimensions = true;
         var zoom = BlazorDiagram.Zoom;
