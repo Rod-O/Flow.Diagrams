@@ -63,7 +63,7 @@ Events are plain .NET events, raised outside your component's render cycle: when
 | `PointerMove` | On every move; from the canvas the model is always `null`. |
 | `PointerEnter`, `PointerLeave` | When the pointer enters or leaves a node, group or link. |
 | `PointerClick` | Down and up on the same model without moving. |
-| `PointerDoubleClick` | A click within 500 ms of the previous click, on any model. |
+| `PointerDoubleClick` | A click within 500 ms of the previous click on the same model (or on the background twice). |
 | `SelectionChanged` | Once per model that becomes selected or unselected. |
 | `KeyDown`, `Wheel` | Keyboard (while the canvas has focus) and wheel input. |
 | `PanChanged`, `ZoomChanged`, `ContainerChanged` | After the viewport or the canvas size changes. |
@@ -92,14 +92,9 @@ Set `Locked` on a node, group, link or port:
 
 - a locked node or group is not moved by dragging;
 - a locked node, group or link is not deleted by the Delete key or the remove control;
-- a locked port can neither start a link nor receive one;
+- a locked port, or any port of a locked node, can neither start a link nor receive one;
 - locked nodes and groups get a `locked` CSS class.
 
 {{example locked}}
 
-A locked node can still be selected, and its ports are not locked with it: users can still draw links from them, so lock the ports too. Setting `Locked` does not refresh the model, and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.
-
-## Traps
-
-- A double click is any two clicks within 500 ms, even on two different models. Check the model you receive.
-- Keyboard shortcut keys are compared case-sensitively: `"g"` with Shift held arrives as `"G"`.
+A locked node can still be selected. Setting `Locked` does not refresh the model, and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.

@@ -23,43 +23,37 @@ public class ArrowHeadControl : ExecutableControl
     public bool Source { get; }
     /// <summary>The arrowhead drawn for the control; its width also positions the control along the path.</summary>
     public LinkMarker Marker { get; }
-    /// <summary>Direction the arrowhead points, in degrees; recomputed on every <see cref="GetPosition"/> call and 0 until then.</summary>
-    public double Angle { get; private set; }
-
-    /// <summary>A point just inside the link's end, set back by the difference between this control's marker and the link's own; also updates <see cref="Angle"/>. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
+    /// <summary>A point just inside the link's end, set back by the difference between this control's marker and the link's own. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
     public override Point? GetPosition(Model model)
     {
-        if (model is not BaseLinkModel link)
-            throw new DiagramsException("ArrowHeadControl only works for models of type BaseLinkModel");
-
+        var link = AsLink(model);
         var dist = Source ? Marker.Width - (link.SourceMarker?.Width ?? 0) : (link.TargetMarker?.Width ?? 0) - Marker.Width;
-        var pp = new LinkPathPositionProvider(dist);
-        var p1 = pp.GetPosition(link);
-        if (p1 is not null)
-        {
-            var p2 = Source ? link.Source.GetPosition(link) : link.Target.GetPosition(link);
-            if (p2 is not null)
-            {
-                Angle = Math.Atan2(p2.Y - p1.Y, p2.X - p1.X) * 180 / Math.PI;
-            }
-        }
-
-        return p1;
+        return new LinkPathPositionProvider(dist).GetPosition(link);
     }
 
-    /// <summary>Starts dragging the end. For the source control the link is first reversed (its source becomes the old target), so the dragged end is always the target. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
+    /// <summary>Direction the arrowhead points on <paramref name="model"/>'s end, in degrees; 0 when the link has no path yet. Throws <see cref="DiagramsException"/> for a model that is not a link.</summary>
+    public double GetAngle(Model model)
+    {
+        var link = AsLink(model);
+        var p1 = GetPosition(link);
+        var p2 = Source ? link.Source.GetPosition(link) : link.Target.GetPosition(link);
+        if (p1 is null || p2 is null)
+            return 0;
+
+        return Math.Atan2(p2.Y - p1.Y, p2.X - p1.X) * 180 / Math.PI;
+    }
+
+    /// <summary>Starts dragging this control's end of the link; the other end stays attached. Throws <see cref="DiagramsException"/> for a model that is not a link, or when the diagram has no <see cref="DragNewLinkBehavior"/>.</summary>
     public override ValueTask OnPointerDown(Diagram diagram, Model model, PointerEventArgs e)
     {
-        if (model is not BaseLinkModel link)
-            throw new DiagramsException("ArrowHeadControl only works for models of type BaseLinkModel");
+        var link = AsLink(model);
+        var dnlb = diagram.GetBehavior<DragNewLinkBehavior>()
+                   ?? throw new DiagramsException("DragNewLinkBehavior was not found");
 
-        var dnlb = diagram.GetBehavior<DragNewLinkBehavior>()!;
-        if (Source)
-        {
-            link.SetSource(link.Target);
-        }
-
-        dnlb.StartFrom(link, e.ClientX, e.ClientY);
+        dnlb.StartFrom(link, e.ClientX, e.ClientY, Source);
         return ValueTask.CompletedTask;
     }
+
+    private static BaseLinkModel AsLink(Model model) => model as BaseLinkModel
+        ?? throw new DiagramsException("ArrowHeadControl only works for models of type BaseLinkModel");
 }

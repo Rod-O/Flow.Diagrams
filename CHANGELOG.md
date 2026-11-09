@@ -21,9 +21,15 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `samples/Catalog`: a gallery of live examples with previews, source and export; `tools/catalog-previews`.
 - `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
+- Meta (Cmd) in keyboard shortcuts: `KeyboardEventArgs.MetaKey`, and `SetShortcut`/`RemoveShortcut` overloads and
+  `KeysUtils.GetStringRepresentation` with a `meta` argument.
+- `BaseLinkModel.RemoveVertex` and `VertexRemoved`; double-clicking a vertex, which removed it silently, now goes
+  through them.
 
 ### Changed
 
+- `ArrowHeadControl.Angle`, set as a side effect of `GetPosition` and shared by every link the control was on, is
+  replaced by `GetAngle(model)`.
 - `Diagram.GetScreenPoint(clientX, clientY)` parameters renamed to `(x, y)`: they are diagram coordinates.
   Breaking for callers that pass them by name.
 - `GroupModel.AutoSize` (constructor argument `autoSize`) renamed to `AllowChildDrag` (`allowChildDrag`): it never
@@ -82,6 +88,24 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   widget offers vertices only when the router follows them.
 - Group children ignored their own `Layer` and `Order` and were drawn in `Children` order; they are now drawn in
   their drawing order among themselves (still inside the group's element), and redrawn when it changes.
+- `EventsBehavior` raised a double click for two quick clicks on different models, and a third quick click raised a
+  second one; a double click now needs both clicks on the same model and ends the sequence.
+- `KeyboardShortcutsBehavior` compared keys case-sensitively, so Shift+letter shortcuts (the browser reports `"A"`)
+  and Caps Lock never fired; keys are now compared ignoring case. The default `Ctrl+Alt+g` never fired on macOS, where
+  Option+G types `©`; a key that types neither a letter nor a digit is now matched on its physical key (`Code`).
+- An exception thrown by a shortcut action was unobserved (`async void`); it now goes to the new
+  `KeyboardShortcutsBehavior.ActionFailed` event, and is rethrown only when nothing handles it.
+- The ports of a locked node still started links and received them; they now behave as locked
+  (`DragNewLinkBehavior`, `PortModel.CanAttachTo`).
+- `ReconnectLinksToClosestPorts` ignored `CanAttachTo` and `Locked`, so it could move a link onto a locked port or one
+  your rules refuse, and measured between port corners, so a large port won over a closer small one; it now honours
+  both and measures between centres.
+- `Diagram.GetBehavior<T>()` matched the exact type only, so a registered subclass of `DragNewLinkBehavior` was not
+  found and `DragNewLinkControl` threw, `ArrowHeadControl` threw `NullReferenceException`; it now falls back to a
+  registered subclass, and `ArrowHeadControl` throws `DiagramsException` when the behavior is missing.
+- Dragging the source arrowhead of an `ArrowHeadControl` reversed the link (the old target became the source, and the
+  markers swapped ends); it now moves the source end only, through `DragNewLinkBehavior.StartFrom(link, x, y, source)`,
+  and raises the new `BaseLinkModel.SourceAttached` on drop.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

@@ -1,5 +1,6 @@
 ﻿using Flow.Diagrams.Core.Behaviors;
 using Flow.Diagrams.Core.Events;
+using Flow.Diagrams.Core.Models;
 using FluentAssertions;
 using System.Threading.Tasks;
 using Xunit;
@@ -105,4 +106,41 @@ public class EventsBehaviorTests
         // Assert
         eventTriggered.Should().BeFalse();
     }
+    [Fact]
+    public void Behavior_ShouldNotTriggerDoubleClick_WhenTheTwoClicksAreOnDifferentModels()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var node = new NodeModel();
+        var eventTriggered = false;
+        diagram.PointerDoubleClick += (m, e) => eventTriggered = true;
+
+        // Act
+        diagram.TriggerPointerClick(node, Click());
+        diagram.TriggerPointerClick(null, Click());
+
+        // Assert
+        eventTriggered.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Behavior_ShouldTriggerOneDoubleClick_WhenThreeClicksHappenWithinTime()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var node = new NodeModel();
+        var doubleClicks = 0;
+        diagram.PointerDoubleClick += (m, e) => doubleClicks++;
+
+        // Act
+        diagram.TriggerPointerClick(node, Click());
+        diagram.TriggerPointerClick(node, Click());
+        diagram.TriggerPointerClick(node, Click());
+
+        // Assert
+        doubleClicks.Should().Be(1);
+    }
+
+    private static PointerEventArgs Click() =>
+        new(0, 0, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true);
 }

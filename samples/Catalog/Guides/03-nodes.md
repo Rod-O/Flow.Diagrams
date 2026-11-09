@@ -76,4 +76,3 @@ The point becomes the node's top-left corner. To centre the node under the point
 ## Traps
 
 - **SVG `text` in `@if` or `@switch`.** Razor fails with RZ1023 on a `<text>` element directly inside a code block, because `<text>` is its own keyword there. Wrap it in `<g>`, as the [process symbols example](examples/svg-symbols) does.
-- **Locking a node does not lock its ports.** See [Locking](guides/the-diagram).

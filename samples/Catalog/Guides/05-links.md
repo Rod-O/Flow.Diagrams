@@ -14,7 +14,7 @@ The other constructors take two nodes, and the link then ends where it crosses e
 
 ## Drawing links by dragging
 
-[DragNewLinkBehavior](xref:Flow.Diagrams.Core.Behaviors.DragNewLinkBehavior) is registered by default: pressing the left button on a port starts a link whose loose end follows the pointer. A link that starts on a port attaches only to another port, on a different node, that is not locked; releasing over a node or the empty canvas counts as releasing on nothing. Locked ports start no link.
+[DragNewLinkBehavior](xref:Flow.Diagrams.Core.Behaviors.DragNewLinkBehavior) is registered by default: pressing the left button on a port starts a link whose loose end follows the pointer. A link that starts on a port attaches only to another port, on a different node, where neither the port nor its node is locked; releasing over a node or the empty canvas counts as releasing on nothing. Locked ports, and the ports of locked nodes, start no link.
 
 What happens next is set in `Diagram.Options.Links` ([DiagramLinkOptions](xref:Flow.Diagrams.Core.Options.DiagramLinkOptions)):
 
@@ -28,7 +28,7 @@ What happens next is set in `Diagram.Options.Links` ([DiagramLinkOptions](xref:F
 
 {{source snapping Snapping.razor snapping}}
 
-When a dragged link attaches, the link raises `TargetAttached`. That is the event to listen to if you store user-drawn links somewhere; `Diagram.Links.Added` fires earlier, when the drag starts and the link has no target yet.
+When a dragged link attaches, the link raises `TargetAttached` (`SourceAttached` when an `ArrowHeadControl` moved its source end). That is the event to listen to if you store user-drawn links somewhere; `Diagram.Links.Added` fires earlier, when the drag starts and the link has no target yet.
 
 ## Markers
 
@@ -69,7 +69,7 @@ A vertex is a waypoint the link passes through. Add them in code, or set `Segmen
 
 Two traps:
 
-- Double-clicking a vertex removes it. No event is raised, so if you store vertices you will not hear about it; compare the link's `Vertices` when you save.
+- Double-clicking a vertex removes it through `RemoveVertex`, which raises the link's `VertexRemoved`. A vertex created by pressing on a segmentable link raises only the link's `Changed`, so if you store vertices, compare the link's `Vertices` when you save.
 - Only [NormalRouter](xref:Flow.Diagrams.Core.Routers.NormalRouter) passes through vertices. `OrthogonalRouter` and `ObstacleRouter` ignore them, so with those routers the default link widget draws no vertex handles and a segmentable link creates none. A custom router says which it does with `Router.FollowsVertices`.
 
 ## Colour and width

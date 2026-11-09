@@ -22,6 +22,10 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public event Action<BaseLinkModel, Anchor, Anchor>? TargetChanged;
     /// <summary>Raised when a link the user dragged is dropped on a target and attached to it.</summary>
     public event Action<BaseLinkModel>? TargetAttached;
+    /// <summary>Raised when the user dragged the source end of the link, dropped it on a model and it attached there.</summary>
+    public event Action<BaseLinkModel>? SourceAttached;
+    /// <summary>Raised by <see cref="RemoveVertex"/> with the link and the vertex removed, as when the user double-clicks a vertex.</summary>
+    public event Action<BaseLinkModel, LinkVertexModel>? VertexRemoved;
 
     /// <summary>Creates a link between the two anchors with a generated <see cref="Model.Id"/>.</summary>
     protected BaseLinkModel(Anchor source, Anchor target)
@@ -134,6 +138,19 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     }
 
     /// <summary>
+    /// Removes <paramref name="vertex"/> from <see cref="Vertices"/> and raises <see cref="VertexRemoved"/>; false, and no
+    /// event, when it is not a vertex of this link. Does not refresh the link.
+    /// </summary>
+    public bool RemoveVertex(LinkVertexModel vertex)
+    {
+        if (!Vertices.Remove(vertex))
+            return false;
+
+        VertexRemoved?.Invoke(this, vertex);
+        return true;
+    }
+
+    /// <summary>
     /// Re-attaches the start of the link to <paramref name="anchor"/> and raises <see cref="SourceChanged"/>; does
     /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Does not
     /// refresh the link.
@@ -207,6 +224,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// Triggers the TargetAttached event
     /// </summary>
     public void TriggerTargetAttached() => TargetAttached?.Invoke(this);
+
+    /// <summary>Raises <see cref="SourceAttached"/>.</summary>
+    public void TriggerSourceAttached() => SourceAttached?.Invoke(this);
 
     private void GeneratePath()
     {

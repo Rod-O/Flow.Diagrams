@@ -441,4 +441,57 @@ public class DragNewLinkBehaviorTests
         // Assert
         targetAttachedTriggers.Should().Be(1);
     }
+    [Fact]
+    public void Behavior_ShouldNotCreateLink_WhenMouseDownOnPortOfLockedNode()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.SetContainer(new Rectangle(0, 0, 1000, 400));
+        var node = diagram.Nodes.Add(new NodeModel(position: new Point(100, 50)) { Locked = true });
+        var port = node.AddPort(new PortModel(node)
+        {
+            Initialized = true,
+            Position = new Point(110, 60),
+            Size = new Size(10, 20)
+        });
+
+        // Act
+        diagram.TriggerPointerDown(port,
+            new PointerEventArgs(100, 100, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true));
+
+        // Assert
+        diagram.Links.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Behavior_ShouldRemoveLink_WhenMouseUpOnPortOfLockedNode()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.SetContainer(new Rectangle(0, 0, 1000, 400));
+        var node1 = new NodeModel(position: new Point(100, 50));
+        var node2 = new NodeModel(position: new Point(160, 50)) { Locked = true };
+        diagram.Nodes.Add(new[] { node1, node2 });
+        var port1 = node1.AddPort(new PortModel(node1)
+        {
+            Initialized = true,
+            Position = new Point(110, 60),
+            Size = new Size(10, 20)
+        });
+        var port2 = node2.AddPort(new PortModel(node2)
+        {
+            Initialized = true,
+            Position = new Point(170, 60),
+            Size = new Size(10, 20)
+        });
+
+        // Act
+        diagram.TriggerPointerDown(port1,
+            new PointerEventArgs(100, 100, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true));
+        diagram.TriggerPointerUp(port2,
+            new PointerEventArgs(105, 105, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true));
+
+        // Assert
+        diagram.Links.Should().BeEmpty();
+    }
 }

@@ -63,7 +63,7 @@ A `DynamicAnchor` takes candidate positions from [`IPositionProvider`](xref:Flow
 
 When the user drags from a port, `Options.Links.Factory` creates the link; when the link is dropped on a port or node, the source's `CanAttachTo(target)` decides whether it attaches, and `Options.Links.TargetAnchorFactory` makes the target anchor. A link dropped where it may not attach is removed (with `Links.RequireTarget`, the default). While snapping is on, ports the source may not attach to are not snap candidates.
 
-The defaults: a port links to another port that is not itself, is not locked, and is on a different node; a node links to another node, never to a port.
+The defaults: a port links to another port that is not itself, is on a different node, and is not locked, nor is its node; a node links to another node, never to a port.
 
 To set your own rules, override `CanAttachTo` in a port subclass, and return `null` from the factory where no drag should start at all:
 
@@ -77,10 +77,9 @@ These rules guard only what the user draws. Links you add in code are not checke
 
 ## Reconnecting to the closest ports
 
-`ReconnectLinksToClosestPorts`, an extension method in `Flow.Diagrams.Algorithms`, moves both ends of every port-to-port link to the closest pair of ports on the same two nodes ([example](examples/reconnect-to-closest-ports)). Distances are measured between the ports' `Position`s, so call it after the diagram has rendered: unmeasured ports all sit where they were created.
+`ReconnectLinksToClosestPorts`, an extension method in `Flow.Diagrams.Algorithms`, moves both ends of every port-to-port link to the closest pair of ports on the same two nodes ([example](examples/reconnect-to-closest-ports)). Distances are measured between the ports' centres, so call it after the diagram has rendered: unmeasured ports all sit where they were created. It only picks pairs the source port's `CanAttachTo` accepts, never moves a link onto a locked port, and leaves locked links, and links with an end on a locked port or node, where they are.
 
 ## Traps
 
 - `Links.Added` fires when the user starts dragging a link, while its target is still a `PositionAnchor`. If it is dropped on nothing it is removed again. To act on finished links, handle the link's `TargetAttached` event or check `IsAttached`.
-- `ReconnectLinksToClosestPorts` does not ask `CanAttachTo` and ignores `Locked`: it can move a link onto a locked port or break your rules.
 - `LinkAnchor` distances: from 0 to 1 is a fraction of the path, above 1 a length in diagram units, negative a length from the end; exactly 1 is the end of the path.

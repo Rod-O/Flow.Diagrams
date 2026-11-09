@@ -9,21 +9,14 @@ namespace Catalog.Examples.Basics;
 /// <summary>Double-clicking the empty canvas adds a node where the pointer is.</summary>
 public class CustomBehaviorAddNode : Behavior
 {
-    private bool _previousClickOnCanvas;
-
     public CustomBehaviorAddNode(Diagram diagram) : base(diagram)
     {
-        Diagram.PointerClick += OnPointerClick;
         Diagram.PointerDoubleClick += OnPointerDoubleClick;
     }
 
-    // Any two clicks within 500 ms make a double click, even on different models, so both clicks are checked.
-    // EventsBehavior raises the double click before this handler records the second click.
-    private void OnPointerClick(Model? model, PointerEventArgs e) => _previousClickOnCanvas = model == null;
-
     private void OnPointerDoubleClick(Model? model, PointerEventArgs e)
     {
-        if (model != null || !_previousClickOnCanvas)
+        if (model != null)
             return;
 
         var position = Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY);
@@ -34,7 +27,6 @@ public class CustomBehaviorAddNode : Behavior
 
     public override void Dispose()
     {
-        Diagram.PointerClick -= OnPointerClick;
         Diagram.PointerDoubleClick -= OnPointerDoubleClick;
     }
 }

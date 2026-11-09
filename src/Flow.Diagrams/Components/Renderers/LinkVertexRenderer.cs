@@ -11,7 +11,7 @@ namespace Flow.Diagrams.Components.Renderers;
 
 /// <summary>
 /// Draws one vertex of a link as a draggable handle: the widget registered for <c>LinkVertexModel</c>, or a circle of radius 5. It forwards
-/// pointer events to the diagram, and double-clicking it removes the vertex from its link.
+/// pointer events to the diagram, and double-clicking it removes the vertex with <see cref="BaseLinkModel.RemoveVertex"/>, which raises <see cref="BaseLinkModel.VertexRemoved"/>.
 /// </summary>
 public class LinkVertexRenderer : ComponentBase, IDisposable
 {
@@ -101,7 +101,7 @@ public class LinkVertexRenderer : ComponentBase, IDisposable
 
     private void OnDoubleClick(MouseEventArgs e)
     {
-        Vertex.Parent.Vertices.Remove(Vertex);
+        Vertex.Parent.RemoveVertex(Vertex);
         Vertex.Parent.Refresh();
     }
 }

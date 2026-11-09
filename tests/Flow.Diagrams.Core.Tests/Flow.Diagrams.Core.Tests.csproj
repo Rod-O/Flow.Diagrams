@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Flow.Diagrams.Algorithms\Flow.Diagrams.Algorithms.csproj" />
     <ProjectReference Include="..\..\src\Flow.Diagrams.Core\Flow.Diagrams.Core.csproj" />
   </ItemGroup>
 

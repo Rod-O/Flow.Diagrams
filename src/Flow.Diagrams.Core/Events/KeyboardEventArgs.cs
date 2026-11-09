@@ -6,5 +6,6 @@
 /// <param name="Location">The DOM <c>location</c>: 0 standard, 1 left, 2 right, 3 numpad.</param>
 /// <param name="CtrlKey">Whether Ctrl was held.</param>
 /// <param name="ShiftKey">Whether Shift was held.</param>
-/// <param name="AltKey">Whether Alt was held.</param>
-public record KeyboardEventArgs(string Key, string Code, float Location, bool CtrlKey, bool ShiftKey, bool AltKey);
+/// <param name="AltKey">Whether Alt (Option on macOS) was held.</param>
+/// <param name="MetaKey">Whether Meta (Cmd on macOS, the Windows key on Windows) was held.</param>
+public record KeyboardEventArgs(string Key, string Code, float Location, bool CtrlKey, bool ShiftKey, bool AltKey, bool MetaKey = false);
