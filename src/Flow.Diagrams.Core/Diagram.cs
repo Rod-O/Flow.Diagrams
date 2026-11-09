@@ -231,17 +231,23 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. Does nothing if it
-    /// is already selected, even when <paramref name="unselectOthers"/> is <c>true</c>. With <paramref
-    /// name="unselectOthers"/>, everything else is unselected first.
+    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. With <paramref
+    /// name="unselectOthers"/>, everything else is unselected first. If it is already selected, it is left as is
+    /// (no refresh, no event for it); only the others are unselected.
     /// </summary>
     public void SelectModel(SelectableModel model, bool unselectOthers)
     {
+        if (unselectOthers)
+        {
+            foreach (var other in GetSelectedModels().ToList())
+            {
+                if (other != model)
+                    UnselectModel(other);
+            }
+        }
+
         if (model.Selected)
             return;
-
-        if (unselectOthers)
-            UnselectAll();
 
         model.Selected = true;
         model.Refresh();

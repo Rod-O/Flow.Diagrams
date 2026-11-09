@@ -156,4 +156,22 @@ public class DiagramTests
         diagram.SuspendRefresh.Should().BeFalse();
         refreshes.Should().Be(1);
     }
+
+    [Fact]
+    public void SelectModel_WithUnselectOthers_UnselectsOthersEvenWhenModelIsAlreadySelected()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var first = diagram.Nodes.Add(new NodeModel());
+        var second = diagram.Nodes.Add(new NodeModel());
+        diagram.SelectModel(first, false);
+        diagram.SelectModel(second, false);
+
+        // Act
+        diagram.SelectModel(first, true);
+
+        // Assert
+        first.Selected.Should().BeTrue();
+        second.Selected.Should().BeFalse();
+    }
 }

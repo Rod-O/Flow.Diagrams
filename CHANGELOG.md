@@ -32,6 +32,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - A group moved by auto-sizing left its ports behind (upstream #581).
 - `Diagram.Batch` left `SuspendRefresh` on when its action threw, and the diagram never redrew again; it now
   restores it and refreshes, then rethrows.
+- `Diagram.SelectModel(model, unselectOthers: true)` did nothing when `model` was already selected, so the other
+  selected models stayed selected.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
