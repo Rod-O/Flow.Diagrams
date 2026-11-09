@@ -44,7 +44,7 @@ To turn something off, prefer its option when there is one (`AllowPanning`, `Opt
 
 `PointerClick` fires on pointer up when the pointer did not move since pointer down on the same model. `PointerDoubleClick` fires right after a click that comes within 500 ms of the previous click on the same model (two clicks on the background count as the same). The click that completes a double click starts no new one, so three quick clicks are one double click and one click. Both events need `EventsBehavior`; without it they never fire.
 
-Double-clicking a link vertex removes the vertex and raises the link's `VertexRemoved`, not a diagram event.
+Double-clicking a link vertex removes the vertex and raises the link's `VertexRemoved`, and pressing on a segmentable link adds one and raises the link's `VertexAdded`; neither is a diagram event.
 
 ## Keyboard shortcuts
 

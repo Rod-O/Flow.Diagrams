@@ -24,6 +24,8 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public event Action<BaseLinkModel>? TargetAttached;
     /// <summary>Raised when the user dragged the source end of the link, dropped it on a model and it attached there.</summary>
     public event Action<BaseLinkModel>? SourceAttached;
+    /// <summary>Raised by <see cref="AddVertex"/> and <see cref="InsertVertex"/> with the link and the vertex added, as when the user presses on a segmentable link.</summary>
+    public event Action<BaseLinkModel, LinkVertexModel>? VertexAdded;
     /// <summary>Raised by <see cref="RemoveVertex"/> with the link and the vertex removed, as when the user double-clicks a vertex.</summary>
     public event Action<BaseLinkModel, LinkVertexModel>? VertexRemoved;
 
@@ -85,8 +87,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// </summary>
     public bool Segmentable { get; set; } = false;
     /// <summary>
-    /// The waypoints the route passes through, in order from source to target. Prefer <see cref="AddVertex"/>;
-    /// editing the list does not refresh the link.
+    /// The waypoints the route passes through, in order from source to target. Prefer <see cref="AddVertex"/>, <see
+    /// cref="InsertVertex"/> and <see cref="RemoveVertex"/>: editing the list directly raises neither <see
+    /// cref="VertexAdded"/> nor <see cref="VertexRemoved"/>. Neither way refreshes the link.
     /// </summary>
     public List<LinkVertexModel> Vertices { get; } = new();
 
@@ -128,12 +131,20 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
     /// <summary>
     /// Creates a vertex at <paramref name="position"/> (the origin when <c>null</c>), appends it to <see
-    /// cref="Vertices"/> and returns it. Does not refresh the link.
+    /// cref="Vertices"/>, raises <see cref="VertexAdded"/> and returns it. Does not refresh the link.
     /// </summary>
-    public LinkVertexModel AddVertex(Point? position = null)
+    public LinkVertexModel AddVertex(Point? position = null) => InsertVertex(Vertices.Count, position);
+
+    /// <summary>
+    /// Creates a vertex at <paramref name="position"/> (the origin when <c>null</c>), inserts it in <see
+    /// cref="Vertices"/> at <paramref name="index"/>, raises <see cref="VertexAdded"/> and returns it. Does not refresh
+    /// the link.
+    /// </summary>
+    public LinkVertexModel InsertVertex(int index, Point? position = null)
     {
         var vertex = new LinkVertexModel(this, position);
-        Vertices.Add(vertex);
+        Vertices.Insert(index, vertex);
+        VertexAdded?.Invoke(this, vertex);
         return vertex;
     }
 

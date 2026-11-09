@@ -1,0 +1,1 @@
+- `BaseLinkModel.VertexAdded`, raised by `AddVertex` and by the new `BaseLinkModel.InsertVertex(index, position)`. A vertex the user creates by pressing on a segmentable link now raises it, so vertex edits can be tracked through `VertexAdded` and `VertexRemoved` instead of comparing `Vertices`.

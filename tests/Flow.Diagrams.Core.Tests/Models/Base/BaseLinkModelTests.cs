@@ -111,4 +111,41 @@ public class BaseLinkModelTests
         bounds.Width.Should().Be(90);
         bounds.Height.Should().Be(75);
     }
+
+    [Fact]
+    public void AddVertex_ShouldAppendTheVertexAndRaiseVertexAdded()
+    {
+        // Arrange
+        var link = new LinkModel(new NodeModel(), new NodeModel());
+        link.AddVertex(new Point(10, 10));
+        BaseLinkModel? raisedLink = null;
+        LinkVertexModel? raisedVertex = null;
+        link.VertexAdded += (l, v) => (raisedLink, raisedVertex) = (l, v);
+
+        // Act
+        var vertex = link.AddVertex(new Point(20, 20));
+
+        // Assert
+        link.Vertices[1].Should().BeSameAs(vertex);
+        raisedLink.Should().BeSameAs(link);
+        raisedVertex.Should().BeSameAs(vertex);
+    }
+
+    [Fact]
+    public void InsertVertex_ShouldInsertAtTheIndexAndRaiseVertexAdded()
+    {
+        // Arrange
+        var link = new LinkModel(new NodeModel(), new NodeModel());
+        link.AddVertex(new Point(10, 10));
+        LinkVertexModel? raised = null;
+        link.VertexAdded += (_, v) => raised = v;
+
+        // Act
+        var vertex = link.InsertVertex(0, new Point(5, 5));
+
+        // Assert
+        link.Vertices[0].Should().BeSameAs(vertex);
+        vertex.Position.Should().Be(new Point(5, 5));
+        raised.Should().BeSameAs(vertex);
+    }
 }

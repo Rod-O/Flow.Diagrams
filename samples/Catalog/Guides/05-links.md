@@ -10,7 +10,7 @@ A [LinkModel](xref:Flow.Diagrams.Core.Models.LinkModel) joins two anchors. The c
 
 The other constructors take two nodes, and the link then ends where it crosses each node's outline ([links without ports](examples/portless-links)), or any two anchors ([dynamic anchors](examples/dynamic-anchors)).
 
-`AddLabel`, `AddVertex`, `SetSource` and `SetTarget` do not redraw the link. When you change a link that is already in the diagram, call `link.Refresh()` afterwards.
+`AddLabel`, `AddVertex`, `InsertVertex`, `SetSource` and `SetTarget` do not redraw the link. When you change a link that is already in the diagram, call `link.Refresh()` afterwards.
 
 ## Drawing links by dragging
 
@@ -69,7 +69,7 @@ A vertex is a waypoint the link passes through. Add them in code, or set `Segmen
 
 Two traps:
 
-- Double-clicking a vertex removes it through `RemoveVertex`, which raises the link's `VertexRemoved`. A vertex created by pressing on a segmentable link raises only the link's `Changed`, so if you store vertices, compare the link's `Vertices` when you save.
+- Double-clicking a vertex removes it through `RemoveVertex`, which raises the link's `VertexRemoved`. Pressing on a segmentable link creates a vertex through `InsertVertex`, which raises the link's `VertexAdded`. `AddVertex` raises it too; editing `Vertices` directly raises neither event.
 - Only [NormalRouter](xref:Flow.Diagrams.Core.Routers.NormalRouter) passes through vertices. `OrthogonalRouter` and `ObstacleRouter` ignore them, so with those routers the default link widget draws no vertex handles and a segmentable link creates none. A custom router says which it does with `Router.FollowsVertices`.
 
 ## Colour and width
