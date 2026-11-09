@@ -1,0 +1,117 @@
+@inherits ExampleBase
+@attribute [Example("link-flow", "Link flow", ExampleCategory.Links,
+    "Marching dashes show what flows through a link and which way: water through the pipes, readings up the signal line. Pure CSS, still when the system asks for reduced motion, and solid in the SVG export. The pulse button highlights the pump through a CSS class on the model.",
+    Order = 5, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label><input type="checkbox" checked="@_flowing" @onchange="SetFlowing" /> Flow</label>
+        <label>
+            Speed
+            <select @onchange="SetSpeed">
+                <option value="15">Slow</option>
+                <option value="40" selected>Normal</option>
+                <option value="100">Fast</option>
+            </select>
+        </label>
+        <label><input type="checkbox" checked="@_reverse" @onchange="SetReverse" /> Reverse</label>
+        <button @onclick="TogglePulse">@(_pump.CssClass == null ? "Pulse the pump" : "Stop the pulse")</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private readonly List<LinkModel> _water = new();
+    private LinkModel _signal = null!;
+    private NodeModel _pump = null!;
+    private bool _flowing = true;
+    private bool _reverse;
+    private double _speed = 40;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.HaloColor = "white";
+        Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+
+        var intake = Node(20, 160, "Intake");
+        _pump = Node(220, 160, "Pump");
+        var filter = Node(480, 160, "Filter");
+        var tank = Node(680, 160, "Tank");
+        var sensor = Node(350, 320, "Flow meter");
+        var controller = Node(350, 0, "Controller");
+
+        Water(intake, _pump, null);
+        Water(_pump, filter, "12 m³/h");
+        Water(filter, tank, null);
+
+        _signal = new LinkModel(sensor.GetPort(PortAlignment.Top)!, controller.GetPort(PortAlignment.Bottom)!)
+        {
+            Color = "#7f8c8d",
+            Width = 2,
+            TargetMarker = LinkMarker.Arrow,
+            Layer = 1,
+        };
+        _signal.Labels.Add(new LinkLabelModel(_signal, "Modbus", 0.75, new Point(32, 0)));
+        Diagram.Links.Add(_signal);
+
+        ApplyFlow();
+    }
+
+    private void ApplyFlow()
+    {
+        #region flow
+        foreach (var link in _water)
+            link.Flow = _flowing ? new LinkFlow(Speed: _speed, Dash: 10, Gap: 6, Reverse: _reverse) : null;
+        _signal.Flow = _flowing ? new LinkFlow(Speed: _speed / 2, Dash: 4, Gap: 4, Reverse: _reverse) : null;
+        #endregion
+    }
+
+    private void TogglePulse()
+    {
+        #region pulse
+        _pump.CssClass = _pump.CssClass == null ? "diagram-pulse" : null;
+        #endregion
+    }
+
+    private void SetFlowing(ChangeEventArgs e)
+    {
+        _flowing = (bool)e.Value!;
+        ApplyFlow();
+    }
+
+    private void SetReverse(ChangeEventArgs e)
+    {
+        _reverse = (bool)e.Value!;
+        ApplyFlow();
+    }
+
+    private void SetSpeed(ChangeEventArgs e)
+    {
+        _speed = double.Parse((string)e.Value!, System.Globalization.CultureInfo.InvariantCulture);
+        ApplyFlow();
+    }
+
+    private void Water(NodeModel from, NodeModel to, string? label)
+    {
+        var link = new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!)
+        {
+            Color = "#2471a3",
+            Width = 4,
+            TargetMarker = LinkMarker.Arrow,
+        };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, 0.3, new Point(0, -16)));
+        _water.Add(Diagram.Links.Add(link));
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}
