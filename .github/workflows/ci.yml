@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+      - name: Build
+        run: dotnet build Flow.Diagrams.sln -c Release -warnaserror
+      - name: Test Flow.Diagrams.Core.Tests
+        run: dotnet test tests/Flow.Diagrams.Core.Tests -c Release --no-build
+      - name: Test Flow.Diagrams.Tests
+        run: dotnet test tests/Flow.Diagrams.Tests -c Release --no-build
+      - name: Build the catalog
+        run: dotnet build samples/Catalog -c Release -warnaserror
+
+  vulnerable-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Fail on vulnerable or unscannable packages
+        run: |
+          dotnet list Flow.Diagrams.sln package --vulnerable --include-transitive --format json > vulnerable.json
+          cat vulnerable.json
+          # The JSON only carries "vulnerabilities" for affected packages and "problems" when the scan itself failed.
+          if grep -Eq '"(vulnerabilities|problems)"' vulnerable.json; then
+            echo "::error::Vulnerable packages found or the scan failed; see output above."
+            exit 1
+          fi
