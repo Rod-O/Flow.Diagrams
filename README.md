@@ -48,4 +48,4 @@ dotnet test tests/Flow.Diagrams.Tests
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The original copyright of Z.Blazor.Diagrams is kept there.
+MIT, see [LICENSE](LICENSE).
