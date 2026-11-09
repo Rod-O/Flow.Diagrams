@@ -10,12 +10,12 @@ namespace Flow.Diagrams.Core.Tests.Routers;
 public class OrthogonalRouterTests
 {
     [Theory]
-    [InlineData(PortAlignment.TopRight, 90, 0, 100, 0)]
-    [InlineData(PortAlignment.BottomRight, 90, 90, 100, 100)]
-    [InlineData(PortAlignment.BottomLeft, 0, 90, 0, 100)]
-    [InlineData(PortAlignment.TopLeft, 0, 0, 0, 0)]
+    [InlineData(PortAlignment.TopRight, 90, 0, 100)]
+    [InlineData(PortAlignment.BottomRight, 90, 90, 100)]
+    [InlineData(PortAlignment.BottomLeft, 0, 90, 0)]
+    [InlineData(PortAlignment.TopLeft, 0, 0, 0)]
     public void GetRoute_CornerPort_ShouldLeaveTheCornerHorizontally(PortAlignment alignment, double portX, double portY,
-        double cornerX, double cornerY)
+        double cornerX)
     {
         // Arrange
         var diagram = new TestDiagram();
