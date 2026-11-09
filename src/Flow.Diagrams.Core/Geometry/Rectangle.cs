@@ -9,18 +9,15 @@ namespace Flow.Diagrams.Core.Geometry;
 /// An axis-aligned rectangle in diagram units, stored as its four edges. Y grows downward, so <see cref="Top"/> is
 /// normally less than <see cref="Bottom"/>.
 /// </summary>
-/// <remarks>
-/// Equality is by edges through <see cref="Equals(Rectangle?)"/> only; <c>object.Equals</c> and <c>GetHashCode</c> are
-/// reference-based, so do not use rectangles as dictionary keys expecting value equality.
-/// </remarks>
-public class Rectangle : IShape
+/// <remarks>Equality is by edges: <c>==</c>, <see cref="Equals(Rectangle?)"/> and <see cref="GetHashCode"/> agree, so rectangles work as dictionary keys.</remarks>
+public class Rectangle : IShape, IEquatable<Rectangle>
 {
     /// <summary>The empty rectangle at the origin.</summary>
     public static Rectangle Zero { get; } = new(0, 0, 0, 0);
 
-    /// <summary>Horizontal extent; never negative, even if the edges were given reversed.</summary>
+    /// <summary>Horizontal extent.</summary>
     public double Width { get; }
-    /// <summary>Vertical extent; never negative, even if the edges were given reversed.</summary>
+    /// <summary>Vertical extent.</summary>
     public double Height { get; }
     /// <summary>Y of the top edge.</summary>
     public double Top { get; }
@@ -31,16 +28,16 @@ public class Rectangle : IShape
     /// <summary>X of the left edge.</summary>
     public double Left { get; }
 
-    /// <summary>Creates a rectangle from its edges. They are not reordered: swapped edges give a positive <see cref="Width"/> but <see cref="Left"/> greater than <see cref="Right"/>.</summary>
+    /// <summary>Creates a rectangle from its edges; swapped edges (<paramref name="left"/> greater than <paramref name="right"/>, or <paramref name="top"/> greater than <paramref name="bottom"/>) are put in order.</summary>
     [JsonConstructor]
     public Rectangle(double left, double top, double right, double bottom)
     {
-        Left = left;
-        Top = top;
-        Right = right;
-        Bottom = bottom;
-        Width = Math.Abs(Left - Right);
-        Height = Math.Abs(Top - Bottom);
+        Left = Math.Min(left, right);
+        Top = Math.Min(top, bottom);
+        Right = Math.Max(left, right);
+        Bottom = Math.Max(top, bottom);
+        Width = Right - Left;
+        Height = Bottom - Top;
     }
 
     /// <summary>Creates a rectangle with its top-left corner at <paramref name="position"/>; throws when either argument is null.</summary>
@@ -58,22 +55,8 @@ public class Rectangle : IShape
     }
 
     /// <summary>Whether the interiors of the two rectangles overlap; rectangles that only share an edge do not.</summary>
-    public bool Overlap(Rectangle r)
-        => Left < r.Right && Right > r.Left && Top < r.Bottom && Bottom > r.Top;
-
-    /// <summary>Whether the interiors of the two rectangles overlap; same result as <see cref="Overlap"/>, which reads the edges directly.</summary>
     public bool Intersects(Rectangle r)
-    {
-        var thisX = Left;
-        var thisY = Top;
-        var thisW = Width;
-        var thisH = Height;
-        var rectX = r.Left;
-        var rectY = r.Top;
-        var rectW = r.Width;
-        var rectH = r.Height;
-        return rectX < thisX + thisW && thisX < rectX + rectW && rectY < thisY + thisH && thisY < rectY + rectH;
-    }
+        => Left < r.Right && Right > r.Left && Top < r.Bottom && Bottom > r.Top;
 
     /// <summary>A rectangle grown by <paramref name="horizontal"/> on the left and the right and by <paramref name="vertical"/> on the top and the bottom; negative values shrink it.</summary>
     public Rectangle Inflate(double horizontal, double vertical)
@@ -96,7 +79,7 @@ public class Rectangle : IShape
     public bool ContainsPoint(double x, double y)
         => x >= Left && x <= Right && y >= Top && y <= Bottom;
 
-    /// <summary>The points where the segment <paramref name="line"/> crosses the border; a crossing exactly at a corner can be yielded twice.</summary>
+    /// <summary>The points where the segment <paramref name="line"/> crosses the border; a crossing at a corner is yielded once.</summary>
     public IEnumerable<Point> GetIntersectionsWithLine(Line line)
     {
         var borders = new[] {
@@ -106,11 +89,15 @@ public class Rectangle : IShape
             new Line(NorthWest, SouthWest)
         };
 
+        var yielded = new List<Point>(4);
         for (var i = 0; i < borders.Length; i++)
         {
             var intersectionPt = borders[i].GetIntersection(line);
-            if (intersectionPt != null)
+            if (intersectionPt != null && !yielded.Contains(intersectionPt))
+            {
+                yielded.Add(intersectionPt);
                 yield return intersectionPt;
+            }
         }
     }
 
@@ -154,10 +141,19 @@ public class Rectangle : IShape
 
     /// <summary>Whether <paramref name="other"/> has the same edges.</summary>
     public bool Equals(Rectangle? other)
-    {
-        return other != null && Left == other.Left && Right == other.Right && Top == other.Top &&
-            Bottom == other.Bottom && Width == other.Width && Height == other.Height;
-    }
+        => other is not null && Left == other.Left && Right == other.Right && Top == other.Top && Bottom == other.Bottom;
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => Equals(obj as Rectangle);
+
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine(Left, Top, Right, Bottom);
+
+    /// <summary>Whether both rectangles have the same edges, or both are null.</summary>
+    public static bool operator ==(Rectangle? left, Rectangle? right) => left is null ? right is null : left.Equals(right);
+
+    /// <summary>Whether the rectangles differ in any edge.</summary>
+    public static bool operator !=(Rectangle? left, Rectangle? right) => !(left == right);
 
     /// <inheritdoc />
     public override string ToString()

@@ -30,6 +30,16 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   `ControlledSize` were never drawn.
 - `Diagram.SetZoom` ignored `Options.Zoom.Maximum`, so `ZoomToFit` could zoom past it.
 - A group moved by auto-sizing left its ports behind (upstream #581).
+- `Rectangle` equality: `object.Equals` and `GetHashCode` were reference-based, so equal rectangles missed as dictionary keys. Now `IEquatable<Rectangle>` with `==` and `!=`.
+- `new Rectangle(left, top, right, bottom)` with swapped edges kept them swapped (`Left > Right`); the edges are now put in order.
+- `Rectangle.GetIntersectionsWithLine` yielded a corner hit twice.
+- `Ellipse.GetIntersectionsWithLine` yielded a point for a segment that missed the ellipse.
+- `Shapes.Circle` used the width as the diameter; it is now inscribed in the shorter side. The `Shapes` factories threw `NullReferenceException` for a node not measured yet; they now give a zero-size shape at its position.
+- `Point.Normalize()` of the zero vector returned NaN coordinates; it returns zero.
+
+### Removed
+
+- `Rectangle.Overlap`, a duplicate of `Rectangle.Intersects`.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

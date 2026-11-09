@@ -17,4 +17,16 @@ public class PointTests
         var pt2 = new Point(x2, y2);
         pt1.DistanceTo(pt2).Should().BeApproximately(expected, 0.0001);
     }
+
+    [Fact]
+    public void Normalize_of_the_zero_vector_is_zero()
+    {
+        Point.Zero.Normalize().Should().Be(Point.Zero);
+    }
+
+    [Fact]
+    public void Normalize_scales_to_length_one()
+    {
+        new Point(3, 4).Normalize().Should().Be(new Point(0.6, 0.8));
+    }
 }

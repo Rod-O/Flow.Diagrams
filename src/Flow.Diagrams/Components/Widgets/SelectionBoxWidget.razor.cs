@@ -71,7 +71,7 @@ public partial class SelectionBoxWidget : IDisposable
             if (nodeBounds == null)
                 continue;
 
-            if (bounds.Overlap(nodeBounds))
+            if (bounds.Intersects(nodeBounds))
                 BlazorDiagram.SelectModel(node, false);
             else if (node.Selected) BlazorDiagram.UnselectModel(node);
         }

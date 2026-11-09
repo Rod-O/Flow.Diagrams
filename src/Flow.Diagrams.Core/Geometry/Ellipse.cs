@@ -30,10 +30,6 @@ public class Ellipse : IShape
     /// <summary>
     /// The points where the segment <paramref name="line"/> meets the ellipse outline, in order along the segment.
     /// </summary>
-    /// <remarks>
-    /// When the segment's supporting line misses the ellipse entirely, the point of closest approach is still yielded if it
-    /// lies within the segment, so a miss is not reliably an empty result.
-    /// </remarks>
     public IEnumerable<Point> GetIntersectionsWithLine(Line line)
     {
         var a1 = line.Start;
@@ -63,7 +59,7 @@ public class Ellipse : IShape
                     yield return a1.Lerp(a2, tb);
             }
         }
-        else
+        else if (d == 0)
         {
             var t = -b / a;
             if (0 <= t && t <= 1)

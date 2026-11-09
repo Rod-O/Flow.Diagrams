@@ -47,10 +47,13 @@ public record Point
     /// <summary>Both coordinates scaled by <paramref name="value"/>.</summary>
     public Point Multiply(double value) => new(X * value, Y * value);
 
-    /// <summary>The vector scaled to length 1; NaN coordinates for the zero point.</summary>
+    /// <summary>The vector scaled to length 1; the zero point stays zero.</summary>
     public Point Normalize()
     {
         var length = Length;
+        if (length == 0)
+            return Zero;
+
         return new Point(X / length, Y / length);
     }
 
