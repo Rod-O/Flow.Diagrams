@@ -150,9 +150,12 @@ public class VirtualizationBehavior : Behavior
         }
     }
 
-    /// <summary>Stops listening to diagram changes.</summary>
+    /// <summary>Stops listening to diagram and model changes.</summary>
     public override void Dispose()
     {
+        foreach (var movable in Diagram.Nodes.Concat<MovableModel>(Diagram.Groups))
+            movable.Moved -= OnMoved;
+
         Diagram.ZoomChanged -= CheckVisibility;
         Diagram.PanChanged -= CheckVisibility;
         Diagram.ContainerChanged -= CheckVisibility;

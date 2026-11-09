@@ -18,7 +18,7 @@ public class EventsBehavior : Behavior
     private bool _captureMouseMove;
     private int _mouseMovedCount;
 
-    /// <summary>Starts listening to pointer events of <paramref name="diagram"/>.</summary>
+    /// <summary>Starts listening to pointer events and model removals of <paramref name="diagram"/>.</summary>
     public EventsBehavior(Diagram diagram) : base(diagram)
     {
         _mouseClickSw = new Stopwatch();
@@ -27,6 +27,22 @@ public class EventsBehavior : Behavior
         Diagram.PointerMove += OnPointerMove;
         Diagram.PointerUp += OnPointerUp;
         Diagram.PointerClick += OnPointerClick;
+        Diagram.Nodes.Removed += OnModelRemoved;
+        Diagram.Links.Removed += OnModelRemoved;
+        Diagram.Groups.Removed += OnModelRemoved;
+    }
+
+    // Forgets a removed model, which would otherwise stay reachable until the next press or click.
+    private void OnModelRemoved(Model model)
+    {
+        if (_model == model)
+            _model = null;
+
+        if (_lastClickedModel == model)
+        {
+            _lastClickedModel = null;
+            _mouseClickSw.Reset();
+        }
     }
 
     private void OnPointerClick(Model? model, PointerEventArgs e)
@@ -71,13 +87,16 @@ public class EventsBehavior : Behavior
         }
     }
 
-    /// <summary>Stops listening to pointer events.</summary>
+    /// <summary>Stops listening to pointer events and model removals.</summary>
     public override void Dispose()
     {
         Diagram.PointerDown -= OnPointerDown;
         Diagram.PointerMove -= OnPointerMove;
         Diagram.PointerUp -= OnPointerUp;
         Diagram.PointerClick -= OnPointerClick;
+        Diagram.Nodes.Removed -= OnModelRemoved;
+        Diagram.Links.Removed -= OnModelRemoved;
+        Diagram.Groups.Removed -= OnModelRemoved;
         _model = null;
         _lastClickedModel = null;
     }

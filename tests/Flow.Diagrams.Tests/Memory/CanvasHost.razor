@@ -1,0 +1,14 @@
+@* A page holding a diagram's canvas with every built-in widget. *@
+<CascadingValue Value="Diagram" IsFixed="true">
+    <DiagramCanvas>
+        <Widgets>
+            <NavigatorWidget />
+            <GridWidget />
+            <SelectionBoxWidget />
+        </Widgets>
+    </DiagramCanvas>
+</CascadingValue>
+
+@code {
+    [Parameter] public BlazorDiagram Diagram { get; set; } = null!;
+}
