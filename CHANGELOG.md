@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Flow.Diagrams - 2026-11-08
+## [4.0.0] - 2026-11-09
 
-Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and namespaces `Blazor.Diagrams.*` are now `Flow.Diagrams.*`, and the JavaScript globals are `FlowDiagrams` / `flowDiagramsInternalObject` (static assets under `_content/Flow.Diagrams/`).
+First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and namespaces `Blazor.Diagrams.*` are now `Flow.Diagrams.*`, and the JavaScript globals are `FlowDiagrams` / `flowDiagramsInternalObject` (static assets under `_content/Flow.Diagrams/`). Targets net8.0, net9.0 and net10.0; net6.0 and net7.0 are dropped.
 
 ### Added
 
@@ -19,7 +19,7 @@ Forked from Z.Blazor.Diagrams 3.0.4.1 and renamed: packages, assemblies and name
 - `Options.Links.LabelsOnTop`: labels drawn after every link and node.
 - `Options.Links.SvgLabels`: labels drawn as SVG text instead of HTML in a `foreignObject`.
 - `samples/Catalog`: a gallery of live examples with previews, source and export; `tools/catalog-previews`.
-- `DiagramSvgExporter` (net8+): the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
+- `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
 
 ### Fixed

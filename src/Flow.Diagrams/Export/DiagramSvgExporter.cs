@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using System.Text.RegularExpressions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
@@ -78,4 +77,3 @@ public static class DiagramSvgExporter
         return html;
     }
 }
-#endif
