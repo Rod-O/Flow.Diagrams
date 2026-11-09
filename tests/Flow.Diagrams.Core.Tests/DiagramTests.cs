@@ -96,6 +96,45 @@ public class DiagramTests
     }
 
     [Theory]
+    [InlineData(0, 768)]
+    [InlineData(1080, 0)]
+    public void ZoomToFit_WhenTheContainerHasNoSize_DoesNothing(double width, double height)
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.SetContainer(new Rectangle(new Point(0, 0), new Size(width, height)));
+        diagram.Nodes.Add(new NodeModel(new Point(50, 50)) { Size = new Size(100, 80) });
+        var refreshes = 0;
+        diagram.Changed += () => refreshes++;
+
+        // Act
+        diagram.ZoomToFit(10);
+
+        // Assert
+        diagram.Zoom.Should().Be(1);
+        diagram.Pan.Should().Be(Point.Zero);
+        diagram.SuspendRefresh.Should().BeFalse();
+        refreshes.Should().Be(0);
+    }
+
+    [Fact]
+    public void ZoomToFit_WhenAHandlerThrows_RestoresRefresh()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.SetContainer(new Rectangle(new Point(0, 0), new Size(1080, 768)));
+        diagram.Nodes.Add(new NodeModel(new Point(50, 50)) { Size = new Size(100, 80) });
+        diagram.ZoomChanged += () => throw new InvalidOperationException();
+
+        // Act
+        var zoomToFit = () => diagram.ZoomToFit(10);
+
+        // Assert
+        zoomToFit.Should().Throw<InvalidOperationException>();
+        diagram.SuspendRefresh.Should().BeFalse();
+    }
+
+    [Theory]
     [InlineData(0.001)]
     [InlineData(0.1)]
     public void Zoom_ShoulClampToMinimumValue(double zoomValue)

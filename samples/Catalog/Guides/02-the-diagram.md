@@ -49,7 +49,7 @@ The user zooms with the wheel, around the pointer, and pans by dragging the back
 
 - `SetZoom(z)` clamps to the zoom limits and keeps `Pan`, so the view scales about the canvas's top-left corner, not its centre.
 - `SetPan(x, y)` and `UpdatePan(dx, dy)` set or shift the pan in screen pixels.
-- `ZoomToFit(margin)` fits the selected nodes, or all nodes when none is selected, with `margin` diagram units around them. Links and groups are not counted, and the result is clamped to the zoom limits.
+- `ZoomToFit(margin)` fits the selected nodes, or all nodes when none is selected, with `margin` diagram units around them. Links and groups are not counted, and the result is clamped to the zoom limits. It does nothing while the canvas has no width or height (for example in a hidden tab).
 
 {{example zoom-and-pan}}
 
