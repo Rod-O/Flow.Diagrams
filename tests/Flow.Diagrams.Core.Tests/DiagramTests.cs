@@ -187,6 +187,6 @@ public class DiagramTests
 
         // Assert
         behavior.Should().NotBeNull();
-        register.Should().Throw<FlowDiagramsException>();
+        register.Should().Throw<DiagramsException>();
     }
 }

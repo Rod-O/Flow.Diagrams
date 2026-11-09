@@ -30,7 +30,7 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   controlled sizing (a group always sizes to its children), only whether a child can be dragged on its own.
 - `PathGeneratorResult` moved to `Flow.Diagrams.Core.PathGenerators` and `BaseLayer<T>` to `Flow.Diagrams.Core.Layers`,
   next to their siblings.
-- `BlazorDiagramsException` renamed to `FlowDiagramsException` and moved to `Flow.Diagrams.Core`; Core throws it too (duplicate behavior, canvas not measured yet) instead of a plain `Exception`.
+- One library exception: `BlazorDiagramsException` is removed and the Blazor layer throws `Flow.Diagrams.Core.DiagramsException`, which Core now also throws for a duplicate behavior and for calls that need the canvas before it is measured (they threw a plain `Exception`).
 
 ### Fixed
 

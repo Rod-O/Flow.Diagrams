@@ -106,7 +106,7 @@ public class DiagramTests
         var register = () => diagram.RegisterComponent<NodeModel, NodeWidget>();
 
         // Assert
-        register.Should().Throw<FlowDiagramsException>();
+        register.Should().Throw<DiagramsException>();
     }
 
     private class CustomModel : Model { }
