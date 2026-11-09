@@ -46,6 +46,10 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `BlazorDiagram.GetComponent` returned the first registered base class instead of the nearest, so a model
   subclass without its own registration could be drawn with a more general widget.
 
+### Removed
+
+- `TouchEventArgs` and `TouchPoint`: nothing raised or consumed them.
+
 ## Diagrams (3.0.4.1) - 2026-03-02
 
 ### Fixed
