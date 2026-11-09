@@ -172,7 +172,8 @@ public abstract class Diagram
     /// <summary>
     /// Runs <paramref name="action"/> with refreshes suspended and calls <see cref="Refresh"/> once afterwards.
     /// Inside an outer batch (or any suspended refresh) it only runs the action and leaves the refresh to the outer
-    /// caller. If the action throws, <see cref="SuspendRefresh"/> stays <c>true</c>.
+    /// caller. If the action throws, refreshes are still restored and the diagram refreshed (whatever the action
+    /// changed before throwing is drawn), then the exception propagates.
     /// </summary>
     public void Batch(Action action)
     {
@@ -185,9 +186,15 @@ public abstract class Diagram
         }
 
         SuspendRefresh = true;
-        action();
-        SuspendRefresh = false;
-        Refresh();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            SuspendRefresh = false;
+            Refresh();
+        }
     }
 
     #region Selection

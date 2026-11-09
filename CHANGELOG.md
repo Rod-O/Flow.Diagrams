@@ -30,6 +30,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   `ControlledSize` were never drawn.
 - `Diagram.SetZoom` ignored `Options.Zoom.Maximum`, so `ZoomToFit` could zoom past it.
 - A group moved by auto-sizing left its ports behind (upstream #581).
+- `Diagram.Batch` left `SuspendRefresh` on when its action threw, and the diagram never redrew again; it now
+  restores it and refreshes, then rethrows.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

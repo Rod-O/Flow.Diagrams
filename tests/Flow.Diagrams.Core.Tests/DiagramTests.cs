@@ -139,4 +139,21 @@ public class DiagramTests
 
         diagram.Zoom.Should().Be(expected);
     }
+
+    [Fact]
+    public void Batch_WhenActionThrows_RestoresRefreshAndRefreshesOnce()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var refreshes = 0;
+        diagram.Changed += () => refreshes++;
+
+        // Act
+        var batch = () => diagram.Batch(() => throw new InvalidOperationException());
+
+        // Assert
+        batch.Should().Throw<InvalidOperationException>();
+        diagram.SuspendRefresh.Should().BeFalse();
+        refreshes.Should().Be(1);
+    }
 }

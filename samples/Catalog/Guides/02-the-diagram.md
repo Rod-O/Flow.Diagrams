@@ -80,7 +80,7 @@ Two node events are easy to confuse: `Moved` fires once when a drag that moved t
 
 ## Refresh and Batch
 
-Every change calls `Refresh`, which raises `Changed`, and the canvas redraws. `Batch` runs an action with refreshes suspended and refreshes once at the end; an inner batch leaves the refresh to the outer one.
+Every change calls `Refresh`, which raises `Changed`, and the canvas redraws. `Batch` runs an action with refreshes suspended and refreshes once at the end, also when the action throws; an inner batch leaves the refresh to the outer one.
 
 {{source diagram-options DiagramOptions.razor batch}}
 
@@ -101,7 +101,6 @@ A locked node can still be selected, and its ports are not locked with it: users
 
 ## Traps
 
-- `Batch` does not restore `SuspendRefresh` if the action throws; the diagram then stops redrawing.
 - A double click is any two clicks within 500 ms, even on two different models. Check the model you receive.
 - Keyboard shortcut keys are compared case-sensitively: `"g"` with Shift held arrives as `"G"`.
 - Virtualization rechecks what is visible only on zoom, pan and canvas resize, not when nodes are added or moved.
