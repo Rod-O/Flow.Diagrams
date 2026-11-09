@@ -180,7 +180,7 @@ public class GroupModel : NodeModel
 
     /// <summary>
     /// The area the group wraps, before padding, or null while it cannot be measured yet. By default the union
-    /// of the children's <see cref="NodeModel.Position"/> and <see cref="NodeModel.Size"/>, available once every
+    /// of the children's <see cref="MovableModel.Position"/> and <see cref="NodeModel.Size"/>, available once every
     /// child has a size. Override it when a child's visual extent differs from that rectangle (for example an SVG
     /// symbol drawn around its origin).
     /// </summary>
