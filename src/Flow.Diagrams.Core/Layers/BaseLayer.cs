@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Flow.Diagrams.Core;
+namespace Flow.Diagrams.Core.Layers;
 
 /// <summary>
 /// The collection of one kind of model in a <see cref="Diagram"/> (nodes, links or groups). It is a read-only list;

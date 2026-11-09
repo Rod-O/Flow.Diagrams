@@ -28,6 +28,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   Breaking for callers that pass them by name.
 - `GroupModel.AutoSize` (constructor argument `autoSize`) renamed to `AllowChildDrag` (`allowChildDrag`): it never
   controlled sizing (a group always sizes to its children), only whether a child can be dragged on its own.
+- `PathGeneratorResult` moved to `Flow.Diagrams.Core.PathGenerators` and `BaseLayer<T>` to `Flow.Diagrams.Core.Layers`,
+  next to their siblings.
 
 ### Fixed
 
