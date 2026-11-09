@@ -5,6 +5,7 @@ namespace Flow.Diagrams.Core.Models.Base;
 public abstract class SelectableModel : Model
 {
     private int _order;
+    private int _layer;
 
     public event Action<SelectableModel>? OrderChanged;
 
@@ -22,6 +23,23 @@ public abstract class SelectableModel : Model
                 return;
 
             _order = value;
+            OrderChanged?.Invoke(this);
+        }
+    }
+
+    /// <summary>
+    /// The drawing band: a model in a higher layer is drawn above every model of a lower one, and <see cref="Order"/>
+    /// decides within a layer. Changing it raises <see cref="OrderChanged"/>, since the drawing order changes.
+    /// </summary>
+    public int Layer
+    {
+        get => _layer;
+        set
+        {
+            if (value == _layer)
+                return;
+
+            _layer = value;
             OrderChanged?.Invoke(this);
         }
     }

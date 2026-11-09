@@ -309,6 +309,7 @@ public abstract class Diagram
             {
                 _orderedSelectables[i].Order = i + 1;
             }
+            _orderedSelectables.Sort(CompareDrawingOrder);
             SuspendSorting = false;
         });
     }
@@ -326,31 +327,39 @@ public abstract class Diagram
 
         SuspendSorting = true;
         model.Order = maxOrder + 1;
+        _orderedSelectables.Sort(CompareDrawingOrder);
         SuspendSorting = false;
         Refresh();
     }
 
+    // The list is sorted by layer first, so its ends hold the extreme orders only when every model is in one layer.
     public int GetMinOrder()
     {
-        return _orderedSelectables.Count > 0 ? _orderedSelectables[0].Order : 0;
+        return _orderedSelectables.Count > 0 ? _orderedSelectables.Min(m => m.Order) : 0;
     }
 
     public int GetMaxOrder()
     {
-        return _orderedSelectables.Count > 0 ? _orderedSelectables[^1].Order : 0;
+        return _orderedSelectables.Count > 0 ? _orderedSelectables.Max(m => m.Order) : 0;
     }
 
     /// <summary>
-    /// Sorts the list of selectables based on their order
+    /// Sorts the list of selectables in drawing order: by layer, then by order
     /// </summary>
     public void RefreshOrders(bool refresh = true)
     {
-        _orderedSelectables.Sort((a, b) => a.Order.CompareTo(b.Order));
+        _orderedSelectables.Sort(CompareDrawingOrder);
         
         if (refresh)
         {
             Refresh();
         }
+    }
+
+    private static int CompareDrawingOrder(SelectableModel a, SelectableModel b)
+    {
+        var byLayer = a.Layer.CompareTo(b.Layer);
+        return byLayer != 0 ? byLayer : a.Order.CompareTo(b.Order);
     }
 
     private void OnSelectableAdded(SelectableModel model)
@@ -361,6 +370,12 @@ public abstract class Diagram
         if (model.Order == 0)
         {
             model.Order = maxOrder + 1;
+        }
+
+        // Appending is right unless the model belongs below the current last one (a lower layer, or a preset order).
+        if (_orderedSelectables.Count > 1 && CompareDrawingOrder(_orderedSelectables[^2], model) > 0)
+        {
+            _orderedSelectables.Sort(CompareDrawingOrder);
         }
 
         model.OrderChanged += OnModelOrderChanged;
