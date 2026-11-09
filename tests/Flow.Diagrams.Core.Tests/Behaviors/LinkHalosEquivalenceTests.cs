@@ -22,6 +22,10 @@ public class LinkHalosEquivalenceTests
     [InlineData(2, false)]
     [InlineData(3, true)]
     [InlineData(4, true)]
+    [InlineData(5, false)]
+    [InlineData(6, true)]
+    [InlineData(7, false)]
+    [InlineData(8, true)]
     public void EveryEdit_ShouldLeaveTheHalosOfAFullRecompute(int seed, bool registerAfterTheLinks)
     {
         // Arrange
@@ -34,12 +38,13 @@ public class LinkHalosEquivalenceTests
         var links = Enumerable.Range(0, 60).Select(_ => AddLink(diagram, nodes, random)).ToList();
         if (registerAfterTheLinks)
             diagram.RegisterBehavior(new LinkHalosBehavior(diagram));
+        ExpectedHalos(diagram).Values.Sum(h => h.Count).Should().BeGreaterThan(0, "the diagram should have crossings to compare");
         AssertMatchesFullRecompute(diagram);
 
         // Act + Assert: after every kind of edit the behavior reacts to.
-        for (var step = 0; step < 40; step++)
+        for (var step = 0; step < 80; step++)
         {
-            switch (random.Next(7))
+            switch (random.Next(8))
             {
                 case 0:
                 case 1:
@@ -56,6 +61,10 @@ public class LinkHalosEquivalenceTests
                 case 5:
                     links[random.Next(links.Count)].Layer = random.Next(-1, 2);
                     break;
+                case 6:
+                    var toggled = links[random.Next(links.Count)];
+                    toggled.Visible = !toggled.Visible;
+                    break;
                 default:
                     var removed = links[random.Next(links.Count)];
                     diagram.Links.Remove(removed);
@@ -71,7 +80,6 @@ public class LinkHalosEquivalenceTests
     private static void AssertMatchesFullRecompute(TestDiagram diagram)
     {
         var expected = ExpectedHalos(diagram);
-        expected.Values.Sum(h => h.Count).Should().BeGreaterThan(0, "the diagram should have crossings to compare");
         foreach (var (link, halos) in expected)
             link.Halos.Should().Equal(halos);
     }

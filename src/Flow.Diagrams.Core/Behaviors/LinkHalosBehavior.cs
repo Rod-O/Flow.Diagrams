@@ -47,6 +47,7 @@ public class LinkHalosBehavior : Behavior
         {
             link.Changed -= OnLinkChanged;
             link.OrderChanged -= OnLinkOrderChanged;
+            link.VisibilityChanged -= OnLinkVisibilityChanged;
         }
         _tracked.Clear();
         _order.Clear();
@@ -59,6 +60,7 @@ public class LinkHalosBehavior : Behavior
         _tracked[link] = tracked;
         link.Changed += OnLinkChanged;
         link.OrderChanged += OnLinkOrderChanged;
+        link.VisibilityChanged += OnLinkVisibilityChanged;
         return tracked;
     }
 
@@ -82,6 +84,7 @@ public class LinkHalosBehavior : Behavior
     {
         link.Changed -= OnLinkChanged;
         link.OrderChanged -= OnLinkOrderChanged;
+        link.VisibilityChanged -= OnLinkVisibilityChanged;
         if (!_tracked.Remove(link, out var removed))
             return;
 
@@ -106,6 +109,17 @@ public class LinkHalosBehavior : Behavior
         var oldBox = tracked.Box;
         tracked.SetPolyline(polyline);
         UpdateAround(tracked, oldBox);
+    }
+
+    // A hidden link breaks nothing and keeps the halos it had; shown again, it gets its own and breaks those above it.
+    private void OnLinkVisibilityChanged(Model model)
+    {
+        if (!_tracked.TryGetValue((BaseLinkModel)model, out var tracked))
+            return;
+
+        if (tracked.Link.Visible)
+            Recompute(tracked);
+        RecomputeAbove(tracked, tracked.Box);
     }
 
     private void OnLinkOrderChanged(SelectableModel model)
@@ -200,6 +214,12 @@ public class LinkHalosBehavior : Behavior
             return;
 
         Recompute(changed);
+        RecomputeAbove(changed, oldBox);
+    }
+
+    /// <summary>Recomputes the links drawn above <paramref name="changed"/> that overlap where it is or <paramref name="oldBox"/>.</summary>
+    private void RecomputeAbove(Tracked changed, Box oldBox)
+    {
         for (var rank = changed.Rank + 1; rank < _order.Count; rank++)
         {
             var upper = _order[rank];
