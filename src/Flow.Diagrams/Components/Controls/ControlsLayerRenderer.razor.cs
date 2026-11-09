@@ -38,14 +38,7 @@ public partial class ControlsLayerRenderer : IDisposable
     }
 
     /// <summary>Renders only after the diagram's controls changed for a model of this instance's layer.</summary>
-    protected override bool ShouldRender()
-    {
-        if (!_shouldRender)
-            return false;
-
-        _shouldRender = false;
-        return true;
-    }
+    protected override bool ShouldRender() => _shouldRender;
 
     private void OnControlsChangeCaused(Model cause)
     {
