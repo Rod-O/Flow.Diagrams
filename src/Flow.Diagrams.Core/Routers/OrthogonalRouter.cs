@@ -35,6 +35,10 @@ public class OrthogonalRouter : Router
     }
 
     /// <inheritdoc />
+    /// <remarks>Vertices are ignored, so <c>false</c>.</remarks>
+    public override bool FollowsVertices => false;
+
+    /// <inheritdoc />
     public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
     {
         if (!link.IsAttached)

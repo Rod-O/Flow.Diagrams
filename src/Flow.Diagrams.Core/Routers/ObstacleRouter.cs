@@ -49,6 +49,10 @@ public class ObstacleRouter : Router
     }
 
     /// <inheritdoc />
+    /// <remarks>Vertices are ignored, so <c>false</c>.</remarks>
+    public override bool FollowsVertices => false;
+
+    /// <inheritdoc />
     /// <remarks>Returns an empty route when the two ports face each other on one line with nothing in between.</remarks>
     public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
     {

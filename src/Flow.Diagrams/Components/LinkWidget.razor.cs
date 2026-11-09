@@ -8,7 +8,8 @@ namespace Flow.Diagrams.Components;
 /// <summary>
 /// The default widget for a <see cref="LinkModel"/>: its path, markers, vertex handles and, unless
 /// <c>LabelsOnTop</c> is set, its labels. It also draws a wide transparent helper path that makes the link easy to pick and,
-/// for a segmentable link, to drag a new vertex out of.
+/// for a segmentable link, to drag a new vertex out of. Vertex handles and new vertices are offered only when the link's
+/// router <see cref="Core.Routers.Router.FollowsVertices"/>.
 /// </summary>
 public partial class LinkWidget
 {
@@ -18,6 +19,9 @@ public partial class LinkWidget
     [CascadingParameter] public BlazorDiagram BlazorDiagram { get; set; } = null!;
     /// <summary>The link to draw. A custom link type that derives from <c>BaseLinkModel</c> but not <see cref="LinkModel"/> needs its own widget registered.</summary>
     [Parameter] public LinkModel Link { get; set; } = null!;
+
+    private bool FollowsVertices => (Link.Router ?? BlazorDiagram.Options.Links.DefaultRouter).FollowsVertices;
+    private bool CreatesVertices => Link.Segmentable && FollowsVertices;
 
     private RenderFragment GetSelectionHelperPath(string color, string d, int index)
     {
@@ -34,14 +38,14 @@ public partial class LinkWidget
             builder.AddAttribute(8, "onmouseenter", EventCallback.Factory.Create<MouseEventArgs>(this, OnMouseEnter));
             builder.AddAttribute(9, "onmouseleave", EventCallback.Factory.Create<MouseEventArgs>(this, OnMouseLeave));
             builder.AddAttribute(10, "onpointerdown", EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.PointerEventArgs>(this, e => OnPointerDown(e, index)));
-            builder.AddEventStopPropagationAttribute(11, "onpointerdown", Link.Segmentable);
+            builder.AddEventStopPropagationAttribute(11, "onpointerdown", CreatesVertices);
             builder.CloseElement();
         };
     }
 
     private void OnPointerDown(PointerEventArgs e, int index)
     {
-        if (!Link.Segmentable)
+        if (!CreatesVertices)
             return;
 
         var vertex = CreateVertex(e.ClientX, e.ClientY, index);

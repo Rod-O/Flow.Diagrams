@@ -76,7 +76,8 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// <summary>The marker drawn at the target end, or <c>null</c> for none.</summary>
     public LinkMarker? TargetMarker { get; set; }
     /// <summary>
-    /// Whether pressing the pointer on a segment of the link creates a vertex there and starts dragging it.
+    /// Whether pressing the pointer on a segment of the link creates a vertex there and starts dragging it. Has no
+    /// effect when the link's router does not <see cref="Routers.Router.FollowsVertices"/>.
     /// </summary>
     public bool Segmentable { get; set; } = false;
     /// <summary>

@@ -36,6 +36,9 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
   while the diagram's drawing order was still unsorted, putting the halo on the lower-layer link.
 - `ObstacleRouterOptions.MinStub` applied only to a `TargetMarker`; a `SourceMarker` could sit on a corner. It now
   applies at whichever end carries a marker.
+- With `OrthogonalRouter` or `ObstacleRouter`, the link widget drew vertex handles and a `Segmentable` link created
+  vertices that moved nothing. New `Router.FollowsVertices` (default `true`, `false` for those two routers): the
+  widget offers vertices only when the router follows them.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 
