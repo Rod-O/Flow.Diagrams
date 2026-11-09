@@ -93,6 +93,7 @@ Set `Locked` on a node, group, link or port:
 - a locked node or group is not moved by dragging;
 - a locked node, group or link is not deleted by the Delete key or the remove control;
 - a locked port, or any port of a locked node, can neither start a link nor receive one;
+- a link that starts on a node cannot end on a locked node or group;
 - locked nodes and groups get a `locked` CSS class.
 
 {{example locked}}

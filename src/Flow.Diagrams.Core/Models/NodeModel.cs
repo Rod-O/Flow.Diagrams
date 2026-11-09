@@ -206,8 +206,9 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     /// <summary>A rectangle at the node's position and size; override for another outline.</summary>
     public virtual IShape GetShape() => Shapes.Rectangle(this);
 
-    /// <summary>A link starting on a node may end on any model except a port or a link.</summary>
-    public virtual bool CanAttachTo(ILinkable other) => other is not PortModel && other is not BaseLinkModel;
+    /// <summary>A link starting on a node may end on any model except a port, a link or a locked model.</summary>
+    public virtual bool CanAttachTo(ILinkable other) =>
+        other is not PortModel && other is not BaseLinkModel && other is not Model { Locked: true };
 
     private void UpdatePortPositions(double deltaX, double deltaY)
     {
