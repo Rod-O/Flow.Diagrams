@@ -1,5 +1,4 @@
-﻿using System;
-using Flow.Diagrams.Core.Models;
+﻿using Flow.Diagrams.Core.Models;
 
 namespace Flow.Diagrams.Core.Geometry;
 
