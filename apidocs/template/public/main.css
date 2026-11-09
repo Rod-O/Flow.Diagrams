@@ -1,0 +1,43 @@
+/* The API reference wears the catalog's look: IBM Plex Sans, the brand green, the same surfaces and lines. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root,
+[data-bs-theme="light"] {
+    --bs-body-font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bs-body-bg: #f6f7f5;
+    --bs-body-color: #1e2326;
+    --bs-secondary-color: #5f676b;
+    --bs-border-color: #dfe3e1;
+    --bs-link-color: #4d6d14;
+    --bs-link-color-rgb: 77, 109, 20;
+    --bs-link-hover-color: #6e9a1e;
+    --bs-link-hover-color-rgb: 110, 154, 30;
+    --bs-tertiary-bg: #ffffff;
+    --bs-code-color: #4d6d14;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #15191b;
+    --bs-body-color: #eceee9;
+    --bs-secondary-color: #a3aaa7;
+    --bs-border-color: #333a3d;
+    --bs-link-color: #b8e04a;
+    --bs-link-color-rgb: 184, 224, 74;
+    --bs-link-hover-color: #d2ee86;
+    --bs-link-hover-color-rgb: 210, 238, 134;
+    --bs-tertiary-bg: #1e2326;
+    --bs-code-color: #b8e04a;
+}
+
+body { font-size: 15px; }
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; }
+
+header.bg-body { background: #ffffff !important; }
+[data-bs-theme="dark"] header.bg-body { background: #1e2326 !important; }
+.navbar-brand { font-size: 17px; font-weight: 600; }
+#logo { width: 28px; height: 28px; margin-right: 8px; }
+.navbar .nav-link { color: var(--bs-secondary-color); }
+.navbar .nav-link:hover, .navbar .nav-link.active { color: var(--bs-body-color); }
+
+pre, code { border-radius: 6px; }
+table { --bs-table-bg: transparent; }

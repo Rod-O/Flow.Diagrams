@@ -1,0 +1,91 @@
+@using Catalog.Examples.Showcases
+@implements IDisposable
+@* The landing page's live drawing: a cooling loop that routes every line again whenever a symbol is dropped. *@
+
+<ExampleCanvas Diagram="_diagram" Class="hero-canvas" SelectionBox="false" />
+
+@code {
+    private const double PipeY = 200;
+    private const double SignalY = 60;
+    private const string ProcessColor = "#1f6fb2";
+    private static readonly LinkMarker Flow = new("M 0 -7 12 0 0 7 z", 12);
+
+    private readonly BlazorDiagram _diagram = new();
+    private readonly ObstacleRouter _router = new();
+
+    protected override void OnInitialized()
+    {
+        _diagram.RegisterComponent<PidNode, PidWidget>();
+        _diagram.Options.Links.DefaultRouter = _router;
+        _diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        _diagram.Options.Links.SvgLabels = true;
+        _diagram.Options.Links.LabelsOnTop = true;
+        _diagram.Options.Zoom.Enabled = false;
+        _diagram.RegisterBehavior(new LinkHalosBehavior(_diagram));
+
+        var supply = Add(PidKind.Terminal, 0, 130, "Make-up");
+        var tank = Add(PidKind.Tank, 130, PipeY, "T-101", "Buffer tank");
+        var pump = Add(PidKind.Pump, 330, PipeY, "P-101", "Feed pump");
+        var filter = Add(PidKind.Filter, 470, PipeY, "F-101", "Strainer");
+        var cooler = Add(PidKind.HeatExchanger, 610, PipeY, "E-101", "Cooler");
+        var control = Add(PidKind.ControlValve, 830, PipeY, "V-103");
+        var product = Add(PidKind.Terminal, 940, PipeY, "To process");
+        var coolantIn = Add(PidKind.Terminal, 602, 350, "CW in");
+        var coolantOut = Add(PidKind.Terminal, 692, 350, "CW out");
+        var level = Add(PidKind.Instrument, 168, SignalY, "LT-101");
+        var levelCtl = Add(PidKind.Panel, 340, SignalY, "LIC-101");
+        var temp = Add(PidKind.Instrument, 663, SignalY, "TT-101");
+        var tempCtl = Add(PidKind.Panel, 830, SignalY, "TIC-101");
+        var flow = Add(PidKind.Instrument, 548, 300, "FT-101");
+        var flowInd = Add(PidKind.Panel, 548, SignalY, "FI-101");
+
+        Process(supply.Port(PortAlignment.Right), tank.Port(PortAlignment.Left));
+        Process(tank.Port(PortAlignment.Right), pump.Port(PortAlignment.Left), "DN80");
+        Process(pump.Port(PortAlignment.Right), filter.Port(PortAlignment.Left));
+        Process(filter.Port(PortAlignment.Right), cooler.Port(PortAlignment.Left), "12 m³/h");
+        Process(cooler.Port(PortAlignment.Right), control.Port(PortAlignment.Left), "18 °C");
+        Process(control.Port(PortAlignment.Right), product.Port(PortAlignment.Left));
+        Process(coolantIn.Port(PortAlignment.Top), cooler.Port(PortAlignment.Bottom, 0));
+        Process(cooler.Port(PortAlignment.Bottom, 1), coolantOut.Port(PortAlignment.Top));
+
+        Signal(tank.Port(PortAlignment.Top), level.Port(PortAlignment.Bottom), arrow: false);
+        Signal(level.Port(PortAlignment.Right), levelCtl.Port(PortAlignment.Left), "4–20 mA");
+        Signal(levelCtl.Port(PortAlignment.Bottom), pump.Port(PortAlignment.Top));
+        Signal(cooler.Port(PortAlignment.Top), temp.Port(PortAlignment.Bottom), arrow: false);
+        Signal(temp.Port(PortAlignment.Right), tempCtl.Port(PortAlignment.Left), "4–20 mA");
+        Signal(tempCtl.Port(PortAlignment.Bottom), control.Port(PortAlignment.Top));
+        Signal(flow.Port(PortAlignment.Top), flowInd.Port(PortAlignment.Bottom));
+
+        foreach (var node in _diagram.Nodes)
+            node.Moved += OnMoved;
+    }
+
+    // A link is routed again only when its own ends move; after a drop, every line takes the moved symbol into account.
+    private void OnMoved(Flow.Diagrams.Core.Models.Base.MovableModel _) => _router.RouteAll(_diagram);
+
+    public void Dispose()
+    {
+        foreach (var node in _diagram.Nodes)
+            node.Moved -= OnMoved;
+    }
+
+    private PidNode Add(PidKind kind, double left, double axisY, string tag, string? caption = null) =>
+        _diagram.Nodes.Add(new PidNode(kind, left, axisY, tag, caption));
+
+    private void Process(PortModel from, PortModel to, string? label = null)
+    {
+        var vertical = from.Alignment is PortAlignment.Top or PortAlignment.Bottom;
+        var link = new LinkModel(from, to) { Color = ProcessColor, Width = 4, TargetMarker = Flow, Layer = 1 };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, 0.5, vertical ? new Point(24, 0) : new Point(0, -14)));
+        _diagram.Links.Add(link);
+    }
+
+    private void Signal(PortModel from, PortModel to, string? label = null, bool arrow = true)
+    {
+        var link = new LinkModel(from, to) { Color = "#8a9499", Width = 1.5, TargetMarker = arrow ? LinkMarker.Arrow : null };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, 0.5));
+        _diagram.Links.Add(link);
+    }
+}

@@ -1,4 +1,10 @@
-- name: API reference
-  href: api/
-- name: Guides and examples
+- name: Overview
   href: https://rod-o.github.io/Flow.Diagrams/
+- name: Guides
+  href: https://rod-o.github.io/Flow.Diagrams/guides
+- name: Examples
+  href: https://rod-o.github.io/Flow.Diagrams/examples
+- name: API
+  href: api/
+- name: GitHub
+  href: https://github.com/Rod-O/Flow.Diagrams

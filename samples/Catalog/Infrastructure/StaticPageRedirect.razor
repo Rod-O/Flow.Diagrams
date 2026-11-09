@@ -1,0 +1,13 @@
+@inject NavigationManager Nav
+@* The API reference is static HTML next to the app; the router intercepts links to it, so load those pages for real. *@
+
+@code {
+    /// <summary>The address the app started on: if the server answered a reference address with the app, do not loop.</summary>
+    [Parameter] public string StartUri { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Nav.ToBaseRelativePath(Nav.Uri).StartsWith("reference/", StringComparison.Ordinal) && Nav.Uri != StartUri)
+            Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+}
