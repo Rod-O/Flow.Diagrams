@@ -39,6 +39,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public LinkMarker? TargetMarker { get; set; }
     public bool Segmentable { get; set; } = false;
     public List<LinkVertexModel> Vertices { get; } = new();
+
+    /// <summary>Where this link crosses links drawn below it; set by <see cref="Behaviors.LinkHalosBehavior"/>.</summary>
+    public IReadOnlyList<LinkHalo> Halos { get; private set; } = Array.Empty<LinkHalo>();
     public List<LinkLabelModel> Labels { get; } = new();
     public IReadOnlyList<BaseLinkModel> Links => _links;
 
@@ -113,6 +116,16 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     }
 
     public bool CanAttachTo(ILinkable other) => true;
+
+    /// <summary>Replaces the halos and redraws the link, without routing it again.</summary>
+    public void SetHalos(IReadOnlyList<LinkHalo> halos)
+    {
+        if (Halos.SequenceEqual(halos))
+            return;
+
+        Halos = halos;
+        base.Refresh();
+    }
 
     /// <summary>
     /// Triggers the TargetAttached event

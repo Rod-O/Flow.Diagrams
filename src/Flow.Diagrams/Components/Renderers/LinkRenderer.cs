@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text;
+using Flow.Diagrams.Core.Extensions;
+using Flow.Diagrams.Core.Models;
 using Flow.Diagrams.Core.Models.Base;
 using Flow.Diagrams.Extensions;
 using Microsoft.AspNetCore.Components;
@@ -59,9 +61,26 @@ public class LinkRenderer : ComponentBase, IDisposable
         builder.AddEventStopPropagationAttribute(6, "onpointerup", true);
         builder.AddAttribute(7, "onmouseenter", EventCallback.Factory.Create<MouseEventArgs>(this, OnMouseEnter));
         builder.AddAttribute(8, "onmouseleave", EventCallback.Factory.Create<MouseEventArgs>(this, OnMouseLeave));
-        builder.OpenComponent(9, componentType);
-        builder.AddAttribute(10, "Link", Link);
+        builder.OpenRegion(9);
+        foreach (var halo in Link.Halos)
+            BuildHalo(builder, halo);
+        builder.CloseRegion();
+        builder.OpenComponent(10, componentType);
+        builder.AddAttribute(11, "Link", Link);
         builder.CloseComponent();
+        builder.CloseElement();
+    }
+
+    // Drawn before the link's widget: above the links below it, under its own stroke.
+    private void BuildHalo(RenderTreeBuilder builder, LinkHalo halo)
+    {
+        builder.OpenElement(0, "path");
+        builder.AddAttribute(1, "class", "diagram-link-halo");
+        builder.AddAttribute(2, "d", FormattableString.Invariant($"M {halo.Start.X} {halo.Start.Y} L {halo.End.X} {halo.End.Y}"));
+        builder.AddAttribute(3, "stroke", BlazorDiagram.Options.Links.HaloColor);
+        builder.AddAttribute(4, "stroke-width", halo.Width.ToInvariantString());
+        builder.AddAttribute(5, "fill", "none");
+        builder.AddAttribute(6, "pointer-events", "none");
         builder.CloseElement();
     }
 

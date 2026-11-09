@@ -79,14 +79,7 @@ public class ObstacleRouter : Router
         diagram.Nodes.Where(n => n is not GroupModel && n.Visible).Select(n => n.GetBounds()).OfType<Rectangle>();
 
     /// <summary>Whether two links may share a line. By default, links that share a port.</summary>
-    protected virtual bool SameNet(BaseLinkModel a, BaseLinkModel b) =>
-        Ports(a).Any(p => Ports(b).Contains(p));
-
-    private static IEnumerable<PortModel> Ports(BaseLinkModel link)
-    {
-        if (link.Source is SinglePortAnchor s) yield return s.Port;
-        if (link.Target is SinglePortAnchor t) yield return t.Port;
-    }
+    protected virtual bool SameNet(BaseLinkModel a, BaseLinkModel b) => LinkGeometry.SharePort(a, b);
 
     private End? ResolveEnd(BaseLinkModel link, Anchor anchor)
     {
@@ -143,12 +136,8 @@ public class ObstacleRouter : Router
         var placed = new List<List<Point>>();
         foreach (var other in diagram.Links)
         {
-            if (ReferenceEquals(other, link) || other.Route is not { } route || SameNet(other, link))
-                continue;
-            var a = other.Source.GetPosition(other, route);
-            var b = other.Target.GetPosition(other, route);
-            if (a != null && b != null)
-                placed.Add(new[] { a }.Concat(route).Append(b).ToList());
+            if (!ReferenceEquals(other, link) && !SameNet(other, link) && LinkGeometry.Polyline(other) is { } polyline)
+                placed.Add(polyline);
         }
         return placed;
     }

@@ -15,6 +15,9 @@ public class DiagramLinkOptions
     public bool EnableSnapping { get; set; } = false;
     public bool RequireTarget { get; set; } = true;
 
+    /// <summary>The colour of link halos (<see cref="Behaviors.LinkHalosBehavior"/>): the diagram's background.</summary>
+    public string HaloColor { get; set; } = "white";
+
     public double SnappingRadius
     {
         get => _snappingRadius;
