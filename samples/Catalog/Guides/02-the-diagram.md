@@ -63,7 +63,7 @@ Events are plain .NET events, raised outside your component's render cycle: when
 | `PointerMove` | On every move; from the canvas the model is always `null`. |
 | `PointerEnter`, `PointerLeave` | When the pointer enters or leaves a node, group or link. |
 | `PointerClick` | Down and up on the same model without moving. |
-| `PointerDoubleClick` | A click within 500 ms of the previous click, on any model. |
+| `PointerDoubleClick` | A click within 500 ms of the previous click on the same model (or on the background twice). |
 | `SelectionChanged` | Once per model that becomes selected or unselected. |
 | `KeyDown`, `Wheel` | Keyboard (while the canvas has focus) and wheel input. |
 | `PanChanged`, `ZoomChanged`, `ContainerChanged` | After the viewport or the canvas size changes. |
@@ -102,6 +102,5 @@ A locked node can still be selected, and its ports are not locked with it: users
 ## Traps
 
 - `Batch` does not restore `SuspendRefresh` if the action throws; the diagram then stops redrawing.
-- A double click is any two clicks within 500 ms, even on two different models. Check the model you receive.
 - Keyboard shortcut keys are compared case-sensitively: `"g"` with Shift held arrives as `"G"`.
 - Virtualization rechecks what is visible only on zoom, pan and canvas resize, not when nodes are added or moved.

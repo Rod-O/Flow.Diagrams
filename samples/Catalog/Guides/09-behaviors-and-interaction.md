@@ -42,7 +42,7 @@ To turn something off, prefer its option when there is one (`AllowPanning`, `Opt
 
 ## Clicks and double clicks
 
-`PointerClick` fires on pointer up when the pointer did not move since pointer down on the same model. `PointerDoubleClick` fires right after a click that comes within 500 ms of the previous click, **on any model**: a click on a node followed by a click on the canvas is a double click on the canvas. That is why the behavior above records where the previous click landed and checks both. Both events need `EventsBehavior`; without it they never fire.
+`PointerClick` fires on pointer up when the pointer did not move since pointer down on the same model. `PointerDoubleClick` fires right after a click that comes within 500 ms of the previous click on the same model (two clicks on the background count as the same). The click that completes a double click starts no new one, so three quick clicks are one double click and one click. Both events need `EventsBehavior`; without it they never fire.
 
 Double-clicking a link vertex removes the vertex; that path raises no diagram event.
 
