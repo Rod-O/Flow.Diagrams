@@ -141,7 +141,7 @@ public class DragNewLinkBehavior : Behavior
         {
             Diagram.Links.Remove(OngoingLink);
         }
-        else if (!Diagram.Options.Links.RequireTarget)
+        else
         {
             OngoingLink.Refresh();
         }
