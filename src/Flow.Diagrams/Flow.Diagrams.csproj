@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <Authors>Rodolfo Ochoa, zHaytam</Authors>
+    <Authors>Rodolfo Ochoa</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Rod-O/Flow.Diagrams</RepositoryUrl>
     <Description>SVG-first diagram library for Blazor: nodes, ports, links and groups, obstacle-avoiding routing, layers, crossing halos and SVG export.</Description>

@@ -1,0 +1,21 @@
+@page "/guides"
+
+<PageTitle>Guides · Flow.Diagrams</PageTitle>
+
+<section class="intro">
+    <h1>Guides</h1>
+    <p>How Flow.Diagrams works, one topic at a time. Every guide runs its examples live; every line of code in them is
+        taken from an example that compiles. For every type and member, see the <a href="reference/">API reference</a>.</p>
+</section>
+
+<ol class="guide-list">
+    @foreach (var guide in GuideRegistry.All)
+    {
+        <li>
+            <a href="guides/@guide.Id">
+                <h3>@guide.Title</h3>
+                <p>@guide.Summary</p>
+            </a>
+        </li>
+    }
+</ol>

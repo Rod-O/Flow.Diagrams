@@ -1,0 +1,74 @@
+@page "/guides/{Id}"
+
+@if (_guide == null)
+{
+    <p class="empty">No guide “@Id”. <a href="guides">All guides</a>.</p>
+    return;
+}
+
+<PageTitle>@_guide.Title · Flow.Diagrams</PageTitle>
+
+<article class="guide">
+    <a class="back" href="guides">← All guides</a>
+    <h1>@_guide.Title</h1>
+
+    @foreach (var part in _parts)
+    {
+        switch (part)
+        {
+            case MarkdownPart markdown:
+                @((MarkupString)markdown.Html)
+                break;
+            case ExamplePart example:
+                <figure class="guide-example">
+                    <div class="guide-example-live">
+                        <DynamicComponent @key="example.Example.Id" Type="example.Example.Component" />
+                    </div>
+                    <figcaption>
+                        <a href="examples/@example.Example.Id">@example.Example.Meta.Title</a>: @example.Example.Meta.Description
+                    </figcaption>
+                </figure>
+                break;
+            case SourcePart source:
+                <div class="guide-source">
+                    <div class="guide-source-name">@source.FileName</div>
+                    <pre><code>@source.Text</code></pre>
+                </div>
+                break;
+            case BrokenPart broken:
+                <p class="guide-broken" role="alert">@broken.Message</p>
+                break;
+        }
+    }
+
+    <nav class="guide-nav">
+        @if (Neighbour(-1) is { } previous)
+        {
+            <a href="guides/@previous.Id">← @previous.Title</a>
+        }
+        <span></span>
+        @if (Neighbour(1) is { } next)
+        {
+            <a href="guides/@next.Id">@next.Title →</a>
+        }
+    </nav>
+</article>
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private GuideInfo? _guide;
+    private IReadOnlyList<GuidePart> _parts = [];
+
+    protected override void OnParametersSet()
+    {
+        _guide = GuideRegistry.Find(Id);
+        _parts = _guide == null ? [] : GuideRegistry.Render(_guide);
+    }
+
+    private GuideInfo? Neighbour(int step)
+    {
+        var index = GuideRegistry.All.ToList().IndexOf(_guide!) + step;
+        return index >= 0 && index < GuideRegistry.All.Count ? GuideRegistry.All[index] : null;
+    }
+}

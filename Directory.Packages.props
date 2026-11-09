@@ -2,6 +2,7 @@
 
 	<ItemGroup>
 		<PackageVersion Include="SvgPathProperties" Version="1.1.2" />
+		<PackageVersion Include="Markdig" Version="1.5.0" />
 		<PackageVersion Include="bunit" Version="1.36.0" />
 		<!-- bunit 1.36 resolves AngleSharp 1.1.2, which has GHSA-pgww-w46g-26qg. -->
 		<PackageVersion Include="AngleSharp" Version="1.5.0" />

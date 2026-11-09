@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>Rodolfo Ochoa, zHaytam</Authors>
+    <Authors>Rodolfo Ochoa</Authors>
     <Description>Layout algorithms for Flow.Diagrams.</Description>
     <RepositoryUrl>https://github.com/Rod-O/Flow.Diagrams</RepositoryUrl>
     <PackageId>Flow.Diagrams.Algorithms</PackageId>
