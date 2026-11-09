@@ -4,8 +4,10 @@ using System;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>Writes every diagram change, zoom, pan, selection and node, link and group add or remove to <see cref="Console"/>. For debugging only; not registered by default.</summary>
 public class DebugEventsBehavior : Behavior
 {
+    /// <summary>Starts logging events of <paramref name="diagram"/>.</summary>
     public DebugEventsBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.Changed += Diagram_Changed;
@@ -76,6 +78,7 @@ public class DebugEventsBehavior : Behavior
         Console.WriteLine("Changed");
     }
 
+    /// <summary>Stops logging.</summary>
     public override void Dispose()
     {
         Diagram.Changed -= Diagram_Changed;

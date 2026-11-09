@@ -4,6 +4,11 @@ using System.Diagnostics;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>
+/// Turns raw pointer events into the diagram's click and double-click events: a press and release on the same model with no
+/// move in between raises <see cref="Diagram.PointerClick"/>, and a second click within 500 ms of the previous one (on any
+/// model) also raises <see cref="Diagram.PointerDoubleClick"/>. Registered by default.
+/// </summary>
 public class EventsBehavior : Behavior
 {
     private readonly Stopwatch _mouseClickSw;
@@ -11,6 +16,7 @@ public class EventsBehavior : Behavior
     private bool _captureMouseMove;
     private int _mouseMovedCount;
 
+    /// <summary>Starts listening to pointer events of <paramref name="diagram"/>.</summary>
     public EventsBehavior(Diagram diagram) : base(diagram)
     {
         _mouseClickSw = new Stopwatch();
@@ -59,6 +65,7 @@ public class EventsBehavior : Behavior
         }
     }
 
+    /// <summary>Stops listening to pointer events.</summary>
     public override void Dispose()
     {
         Diagram.PointerDown -= OnPointerDown;

@@ -2,8 +2,14 @@ using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>
+/// Hides models that lie outside the visible area by setting <see cref="Models.Base.Model.Visible"/>, per the kinds enabled in
+/// <see cref="Options.DiagramOptions.Virtualization"/>. Rechecked when the zoom, pan or container size changes, not when models are
+/// added or moved. Registered by default; does nothing while virtualization is disabled.
+/// </summary>
 public class VirtualizationBehavior : Behavior
 {
+    /// <summary>Starts listening to zoom, pan and container changes of <paramref name="diagram"/>.</summary>
     public VirtualizationBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.ZoomChanged += CheckVisibility;
@@ -60,6 +66,7 @@ public class VirtualizationBehavior : Behavior
         model.Visible = right > 0 && left < Diagram.Container!.Width && bottom > 0 && top < Diagram.Container.Height;
     }
 
+    /// <summary>Stops listening to diagram changes.</summary>
     public override void Dispose()
     {
         Diagram.ZoomChanged -= CheckVisibility;

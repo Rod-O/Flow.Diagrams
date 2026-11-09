@@ -15,6 +15,7 @@ public class LinkHalosBehavior : Behavior
 {
     private readonly Dictionary<BaseLinkModel, List<Point>?> _polylines = new();
 
+    /// <summary>Computes the halos of the links already in <paramref name="diagram"/> and keeps them current from then on.</summary>
     public LinkHalosBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.Links.Added += OnLinkAdded;
@@ -30,6 +31,7 @@ public class LinkHalosBehavior : Behavior
     /// <summary>Whether two links never break each other. By default, links that share a port.</summary>
     protected virtual bool SameNet(BaseLinkModel a, BaseLinkModel b) => LinkGeometry.SharePort(a, b);
 
+    /// <summary>Stops tracking links; halos already set stay on the links.</summary>
     public override void Dispose()
     {
         Diagram.Links.Added -= OnLinkAdded;

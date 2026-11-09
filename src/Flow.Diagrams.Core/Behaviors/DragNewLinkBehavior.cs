@@ -7,12 +7,20 @@ using Flow.Diagrams.Core.Geometry;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>
+/// Creates links by dragging: pressing the left button on a port starts a link from it, which follows the pointer and
+/// snaps to a nearby port when <see cref="Options.DiagramLinkOptions.EnableSnapping"/> is on. Releasing over a linkable model attaches the
+/// target; releasing elsewhere removes the link when <see cref="Options.DiagramLinkOptions.RequireTarget"/> is set. Registered by default;
+/// controls such as <see cref="Controls.Default.DragNewLinkControl"/> start drags through <see cref="StartFrom(ILinkable, double, double)"/>.
+/// </summary>
 public class DragNewLinkBehavior : Behavior
 {
     private PositionAnchor? _targetPositionAnchor;
 
+    /// <summary>The link being dragged; null when no drag is in progress.</summary>
     public BaseLinkModel? OngoingLink { get; private set; }
 
+    /// <summary>Starts listening to pointer events of <paramref name="diagram"/>.</summary>
     public DragNewLinkBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.PointerDown += OnPointerDown;
@@ -20,6 +28,13 @@ public class DragNewLinkBehavior : Behavior
         Diagram.PointerUp += OnPointerUp;
     }
 
+    /// <summary>
+    /// Creates a link from <paramref name="source"/> with <see cref="Options.DiagramLinkOptions.Factory"/> and begins dragging its
+    /// target; does nothing when a drag is already in progress.
+    /// </summary>
+    /// <param name="source">The model the link starts from.</param>
+    /// <param name="clientX">Pointer X in screen pixels, as <c>ClientX</c> of <see cref="Events.PointerEventArgs"/>.</param>
+    /// <param name="clientY">Pointer Y in screen pixels.</param>
     public void StartFrom(ILinkable source, double clientX, double clientY)
     {
         if (OngoingLink != null)
@@ -33,6 +48,13 @@ public class DragNewLinkBehavior : Behavior
         Diagram.Links.Add(OngoingLink);
     }
 
+    /// <summary>
+    /// Detaches the target of an existing <paramref name="link"/> and drags it, so an attached end can be moved to another
+    /// model; does nothing when a drag is already in progress.
+    /// </summary>
+    /// <param name="link">The link whose target is dragged.</param>
+    /// <param name="clientX">Pointer X in screen pixels, as <c>ClientX</c> of <see cref="Events.PointerEventArgs"/>.</param>
+    /// <param name="clientY">Pointer Y in screen pixels.</param>
     public void StartFrom(BaseLinkModel link, double clientX, double clientY)
     {
         if (OngoingLink != null)
@@ -162,6 +184,7 @@ public class DragNewLinkBehavior : Behavior
         return nearestSnapPort;
     }
 
+    /// <summary>Stops listening to pointer events.</summary>
     public override void Dispose()
     {
         Diagram.PointerDown -= OnPointerDown;

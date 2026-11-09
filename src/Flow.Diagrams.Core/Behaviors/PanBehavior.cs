@@ -4,12 +4,14 @@ using Flow.Diagrams.Core.Events;
 
 namespace Flow.Diagrams.Core.Behaviors;
 
+/// <summary>Pans the diagram by dragging the empty background with the left button, unless Shift is held or <see cref="Options.DiagramOptions.AllowPanning"/> is off. Registered by default.</summary>
 public class PanBehavior : Behavior
 {
     private Point? _initialPan;
     private double _lastClientX;
     private double _lastClientY;
 
+    /// <summary>Starts listening to pointer events of <paramref name="diagram"/>.</summary>
     public PanBehavior(Diagram diagram) : base(diagram)
     {
         Diagram.PointerDown += OnPointerDown;
@@ -57,6 +59,7 @@ public class PanBehavior : Behavior
         _initialPan = null;
     }
 
+    /// <summary>Stops listening to pointer events.</summary>
     public override void Dispose()
     {
         Diagram.PointerDown -= OnPointerDown;
