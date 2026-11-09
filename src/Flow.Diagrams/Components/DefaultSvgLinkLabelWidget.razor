@@ -1,13 +1,19 @@
-@* Centred on the label's position. The stroke, painted under the fill, is a halo in the background colour that keeps
-   the text readable across lines without measuring it for a box. *@
+@* Centred on the label's position. The first text is a halo in the background colour that keeps the label readable
+   across lines without measuring it for a box; it is a separate element because SVG-to-PDF converters such as
+   Svg.Skia ignore paint-order. *@
+<text class="diagram-link-label-halo"
+      text-anchor="middle"
+      dominant-baseline="central"
+      font-size="12"
+      fill="none"
+      stroke="@BlazorDiagram.Options.Links.HaloColor"
+      stroke-width="4"
+      stroke-linejoin="round"
+      pointer-events="none">@Label.Content</text>
 <text text-anchor="middle"
       dominant-baseline="central"
       font-size="12"
       fill="@BlazorDiagram.Options.Links.DefaultColor"
-      stroke="@BlazorDiagram.Options.Links.HaloColor"
-      stroke-width="4"
-      stroke-linejoin="round"
-      paint-order="stroke"
       pointer-events="none">@Label.Content</text>
 
 @code {

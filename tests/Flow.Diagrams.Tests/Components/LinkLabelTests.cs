@@ -29,7 +29,7 @@ public class LinkLabelTests
         cut.FindAll("foreignObject").Should().BeEmpty();
         var label = cut.Find("g.diagram-link-label");
         label.GetAttribute("transform").Should().StartWith("translate(");
-        label.QuerySelector("text")!.TextContent.Should().Be("4-20 mA");
+        label.QuerySelectorAll("text").Select(t => t.TextContent).Should().Equal("4-20 mA", "4-20 mA");
     }
 
     [Fact]
