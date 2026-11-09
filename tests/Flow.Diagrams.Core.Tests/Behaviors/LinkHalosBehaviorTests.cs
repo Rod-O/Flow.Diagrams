@@ -143,6 +143,40 @@ public class LinkHalosBehaviorTests
     }
 
     [Fact]
+    public void SendToFrontWithinALowerLayer_ShouldKeepTheHaloOnTheUpperLayersLink()
+    {
+        // Arrange: the vertical link's layer puts it above the horizontal one whatever their orders.
+        var diagram = StraightDiagram();
+        diagram.RegisterBehavior(new LinkHalosBehavior(diagram));
+        var (horizontal, vertical) = Cross(diagram);
+        vertical.Layer = 1;
+
+        // Act
+        diagram.SendToFront(horizontal);
+
+        // Assert
+        horizontal.Halos.Should().BeEmpty();
+        vertical.Halos.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void SendToBackWithinAnUpperLayer_ShouldKeepTheHaloOnThatLayersLink()
+    {
+        // Arrange
+        var diagram = StraightDiagram();
+        diagram.RegisterBehavior(new LinkHalosBehavior(diagram));
+        var (horizontal, vertical) = Cross(diagram);
+        vertical.Layer = 1;
+
+        // Act
+        diagram.SendToBack(vertical);
+
+        // Assert
+        horizontal.Halos.Should().BeEmpty();
+        vertical.Halos.Should().ContainSingle();
+    }
+
+    [Fact]
     public void SmoothLinks_ShouldGetNoHalos()
     {
         var diagram = new TestDiagram();

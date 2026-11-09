@@ -32,6 +32,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - A group moved by auto-sizing left its ports behind (upstream #581).
 - `LinkHalosBehavior` found only horizontal-by-vertical crossings, so diagonal straight links never got halos; any
   two crossing segments now do, the halo laid along the upper one.
+- `LinkHalosBehavior` left stale halos after `SendToFront`/`SendToBack` with links in several layers: it recomputed
+  while the diagram's drawing order was still unsorted, putting the halo on the lower-layer link.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

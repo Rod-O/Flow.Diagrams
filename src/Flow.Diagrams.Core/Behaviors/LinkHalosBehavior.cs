@@ -82,7 +82,9 @@ public class LinkHalosBehavior : Behavior
     /// <summary>Recomputes the halos of <paramref name="changed"/> and of every link drawn above it (all links when null).</summary>
     private void UpdateFrom(BaseLinkModel? changed)
     {
-        var drawn = Diagram.OrderedSelectables.OfType<BaseLinkModel>().Where(l => l.Visible).ToList();
+        // Sorted here: SendToFront and SendToBack raise OrderChanged before the diagram re-sorts its list.
+        var drawn = Diagram.OrderedSelectables.OfType<BaseLinkModel>().Where(l => l.Visible)
+            .OrderBy(l => l.Layer).ThenBy(l => l.Order).ToList();
         var start = changed == null ? 0 : drawn.IndexOf(changed);
         if (start < 0)
             return;
