@@ -25,11 +25,13 @@
         var sensor = Node(60, 330, "Sensor");
         var display = Node(560, 400, "Display");
 
+        #region net
         // One port, three links: one net.
         foreach (var tank in new[] { tank1, tank2, tank3 })
             Link(pump, PortAlignment.Right, tank, PortAlignment.Left, "#2471a3");
 
         Link(sensor, PortAlignment.Right, display, PortAlignment.Left, "#d68910");
+        #endregion
     }
 
     private NodeModel Node(double x, double y, string title)

@@ -1,0 +1,57 @@
+@inherits ExampleBase
+@attribute [Example("draw-order", "Draw order", ExampleCategory.Layers,
+    "Within a layer, Order decides what is drawn in front. Select a node or a link, then bring it to the front or send it to the back: the stacked nodes change places, and the crossing link in front is the one that bridges.",
+    Order = 4)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="BringToFront">Bring to front</button>
+        <button @onclick="SendToBack">Send to back</button>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.RegisterBehavior(new LinkHalosBehavior(Diagram));
+
+        Node(40, 60, "First");
+        Node(100, 110, "Second");
+        Node(160, 160, "Third");
+
+        var west = Node(340, 160, "West");
+        var east = Node(760, 160, "East");
+        var north = Node(560, 0, "North");
+        var south = Node(560, 340, "South");
+        Link(west, PortAlignment.Right, east, PortAlignment.Left, "#2471a3");
+        Link(north, PortAlignment.Bottom, south, PortAlignment.Top, "#c0392b");
+    }
+
+    #region order
+    private void BringToFront()
+    {
+        foreach (var model in Diagram.GetSelectedModels().ToList())
+            Diagram.SendToFront(model);
+    }
+
+    private void SendToBack()
+    {
+        foreach (var model in Diagram.GetSelectedModels().ToList())
+            Diagram.SendToBack(model);
+    }
+    #endregion
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to, string color) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { Color = color, Width = 4 });
+}

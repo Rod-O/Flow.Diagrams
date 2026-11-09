@@ -33,11 +33,13 @@
 
     private void Set(bool? on, bool? svg)
     {
+        #region options
         Diagram.Options.Links.LabelsOnTop = on ?? Diagram.Options.Links.LabelsOnTop;
         Diagram.Options.Links.SvgLabels = svg ?? Diagram.Options.Links.SvgLabels;
         Diagram.Refresh();
         foreach (var link in Diagram.Links)
             link.Refresh();
+        #endregion
     }
 
     private NodeModel Node(double x, double y, string title)

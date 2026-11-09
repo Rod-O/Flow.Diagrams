@@ -12,7 +12,9 @@
 @code {
     protected override void OnInitialized()
     {
+        #region enable
         Diagram.Options.Groups.Enabled = true;
+        #endregion
 
         var source = Node(60, 80, "Source");
         var parse = Node(300, 40, "Parse");
@@ -24,9 +26,11 @@
         Link(source, PortAlignment.Right, parse, PortAlignment.Left);
         Link(source, PortAlignment.Right, check, PortAlignment.Left);
 
+        #region group
         var pipeline = Diagram.Groups.Group(parse, check);
 
         Diagram.Links.Add(new LinkModel(pipeline, store) { TargetMarker = LinkMarker.Arrow });
+        #endregion
         Link(spare, PortAlignment.Right, report, PortAlignment.Left);
     }
 

@@ -12,6 +12,7 @@
         var b = Node(220, 300, "B");
         var c = Node(520, 60, "C");
 
+        #region vertices
         var straight = new LinkModel(a.GetPort(PortAlignment.Right)!, b.GetPort(PortAlignment.Left)!)
         {
             PathGenerator = new StraightPathGenerator(),
@@ -20,6 +21,7 @@
         straight.Labels.Add(new LinkLabelModel(straight, "Straight"));
         straight.Vertices.Add(new LinkVertexModel(straight, new Point(240, 90)));
         straight.Vertices.Add(new LinkVertexModel(straight, new Point(120, 240)));
+        #endregion
 
         var smooth = new LinkModel(b.GetPort(PortAlignment.Right)!, c.GetPort(PortAlignment.Left)!)
         {
