@@ -1,0 +1,25 @@
+@inherits ExampleBase
+@attribute [Example("minimal-setup", "Minimal setup", ExampleCategory.Basics,
+    "The least a page needs: a BlazorDiagram, a DiagramCanvas inside a CascadingValue of it, and a container with a height. Two nodes and a link.", Order = 0)]
+
+@* #region markup *@
+<div style="height: 360px; border: 1px solid #dfe3e1">
+    <CascadingValue Value="Diagram" IsFixed="true">
+        <DiagramCanvas />
+    </CascadingValue>
+</div>
+@* #endregion *@
+
+@code {
+    protected override void OnInitialized()
+    {
+        #region model
+        Diagram = new BlazorDiagram();
+
+        var first = Diagram.Nodes.Add(new NodeModel(new Point(60, 60)) { Title = "First" });
+        var second = Diagram.Nodes.Add(new NodeModel(new Point(320, 160)) { Title = "Second" });
+
+        Diagram.Links.Add(new LinkModel(first.AddPort(PortAlignment.Right), second.AddPort(PortAlignment.Left)));
+        #endregion
+    }
+}

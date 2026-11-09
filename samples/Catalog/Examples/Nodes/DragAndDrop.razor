@@ -2,6 +2,7 @@
 @attribute [Example("drag-and-drop", "Drag and drop", ExampleCategory.Nodes,
     "Drag a kind from the palette onto the canvas to create a node where you drop it. The palette uses plain HTML5 drag events; GetRelativeMousePoint turns the drop position into diagram coordinates.", Order = 5)]
 
+@* #region markup *@
 <div class="dnd">
     <div class="dnd-palette">
         @foreach (var kind in _kinds)
@@ -16,6 +17,7 @@
         <ExampleCanvas Diagram="Diagram" Fit="false" />
     </div>
 </div>
+@* #endregion *@
 
 <style>
     .dnd { flex: 1; display: grid; grid-template-columns: 200px 1fr; gap: 12px; min-height: 0; }
@@ -40,6 +42,7 @@
 
     protected override void OnInitialized() => Add(_kinds[1], new Point(260, 140));
 
+    #region drop
     private void Drop(DragEventArgs e)
     {
         if (_dragged == null)
@@ -48,6 +51,7 @@
         Add(_dragged, Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY));
         _dragged = null;
     }
+    #endregion
 
     private void Add(Kind kind, Point position)
     {

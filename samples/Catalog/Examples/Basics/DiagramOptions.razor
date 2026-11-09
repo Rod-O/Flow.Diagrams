@@ -1,0 +1,65 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Options
+@attribute [Example("diagram-options", "Diagram options", ExampleCategory.Basics,
+    "Options set when the diagram is created: zoom limits, a snapping grid, a default router and a veto on deleting. Double-click the background to add a node there; select Start and press Delete, it stays.", Order = 10)]
+
+<ExampleCanvas Diagram="Diagram">
+    <Widgets>
+        <GridWidget Size="20" Mode="GridMode.Point" />
+    </Widgets>
+</ExampleCanvas>
+
+@code {
+    private int _added;
+
+    protected override void OnInitialized()
+    {
+        #region options
+        var options = new BlazorDiagramOptions
+        {
+            GridSize = 20,
+            Zoom = { Minimum = 0.5, Maximum = 1.5 },
+            Links =
+            {
+                DefaultRouter = new OrthogonalRouter(),
+                DefaultPathGenerator = new StraightPathGenerator(radius: 6),
+            },
+            Constraints = { ShouldDeleteNode = node => ValueTask.FromResult(node.Title != "Start") },
+        };
+        Diagram = new BlazorDiagram(options);
+        #endregion
+
+        #region batch
+        Diagram.Batch(() =>
+        {
+            var start = Node(40, 120, "Start");
+            var check = Node(260, 40, "Check");
+            var finish = Node(480, 120, "Finish");
+            Link(start, check);
+            Link(check, finish);
+        });
+        #endregion
+
+        #region double-click
+        Diagram.PointerDoubleClick += (model, e) =>
+        {
+            if (model != null)
+                return;
+
+            var position = Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY);
+            Node(position.X, position.Y, $"Added {++_added}");
+        };
+        #endregion
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+
+    private void Link(NodeModel from, NodeModel to) =>
+        Diagram.Links.Add(new LinkModel(from.GetPort(PortAlignment.Right)!, to.GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+}
