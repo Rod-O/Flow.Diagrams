@@ -51,7 +51,7 @@ The widget draws in the node's own coordinates: `(0, 0)` is the node's top-left 
 
 SVG nodes need a controlled size. A measured SVG node's box includes everything drawn, ports sticking out of the shape included; a widget that draws to `Node.Size` then grows, is measured bigger, and grows again on every render.
 
-To resize a controlled node, set `Size`, call `Refresh()`, and call `ReinitializePorts()` so the ports are measured at their new places. Measured nodes do the last two for you.
+To resize a controlled node, call `SetSize(size)`: it sets `Size`, refreshes the node and the links attached to it, and calls `ReinitializePorts()` so the ports are measured at their new places, as the renderer does when it measures a node. Setting `Size` alone does none of that.
 
 ## Adding and removing at run time
 

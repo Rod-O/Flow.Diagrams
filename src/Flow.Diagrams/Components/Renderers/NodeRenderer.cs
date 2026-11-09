@@ -77,10 +77,7 @@ public class NodeRenderer : ComponentBase, IDisposable
             return;
         }
 
-        Node.Size = size;
-        Node.Refresh();
-        Node.RefreshLinks();
-        Node.ReinitializePorts();
+        Node.SetSize(size);
     }
 
     /// <inheritdoc />

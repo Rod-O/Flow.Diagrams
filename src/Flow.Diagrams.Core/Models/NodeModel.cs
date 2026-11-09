@@ -42,8 +42,8 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
 
     /// <summary>
     /// The node's size in diagram units, or <c>null</c> until it is measured or assigned; bounds, ports and links
-    /// need it. Raises <see cref="SizeChanged"/> when it changes; it does not refresh the node, so on a <see
-    /// cref="ControlledSize"/> node call <see cref="Model.Refresh"/> and <see cref="ReinitializePorts"/> after changing it.
+    /// need it. Raises <see cref="SizeChanged"/> when it changes; it does not refresh the node, so to resize a <see
+    /// cref="ControlledSize"/> node use <see cref="SetSize"/>.
     /// </summary>
     public Size? Size
     {
@@ -62,6 +62,22 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     /// be set in an object initializer.
     /// </summary>
     public bool ControlledSize { get; init; }
+
+    /// <summary>
+    /// Sets <see cref="Size"/>, then refreshes the node and the links attached to it and calls <see
+    /// cref="ReinitializePorts"/> so the ports are measured at their new places: what the renderer does when it measures
+    /// a new size, for a <see cref="ControlledSize"/> node. Does nothing when <paramref name="size"/> equals the current size.
+    /// </summary>
+    public void SetSize(Size size)
+    {
+        if (size.Equals(_size))
+            return;
+
+        Size = size;
+        Refresh();
+        RefreshLinks();
+        ReinitializePorts();
+    }
 
     /// <summary>The group that contains this node, or <c>null</c>.</summary>
     public GroupModel? Group { get; internal set; }
