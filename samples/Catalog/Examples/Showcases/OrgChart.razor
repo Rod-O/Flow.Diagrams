@@ -1,0 +1,49 @@
+@inherits ExampleBase
+@attribute [Example("org-chart", "Org chart", ExampleCategory.Showcases,
+    "A tree laid out by a small function in the example itself: leaves get evenly spaced slots, every parent is centred over its children, one level per row. The links are orthogonal and branch from a single port.",
+    Order = 5)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    private record Person(string Name, string Title, params Person[] Reports);
+
+    private const double SlotWidth = 196, LevelHeight = 110;
+    private static readonly string[] Palette = ["#38474d", "#1f6fb2", "#6e9a1e", "#e08a1e"];
+
+    private int _nextSlot;
+
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<OrgChartNode, OrgChartWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
+
+        var company = new Person("Maria Soto", "Chief Executive",
+            new Person("Daniel Reyes", "Chief Technology Officer",
+                new Person("Priya Nair", "Platform Lead", new Person("Tom Becker", "Backend"), new Person("Aiko Mori", "Infrastructure")),
+                new Person("Lucas Ferreira", "Mobile Lead", new Person("Sara Lund", "iOS"))),
+            new Person("Hannah Weiss", "Chief Financial Officer",
+                new Person("Omar Haddad", "Controller"),
+                new Person("Elena Petrova", "Planning")),
+            new Person("Carlos Vega", "Chief Operating Officer",
+                new Person("Grace Okafor", "Support"),
+                new Person("Noah Fischer", "Operations")));
+
+        Place(company, 0, 0);
+    }
+
+    // Leaves take the next free slot, left to right; a parent sits at the middle of its first and last child.
+    private OrgChartNode Place(Person person, int depth, int branch)
+    {
+        var reports = person.Reports.Select((r, i) => Place(r, depth + 1, depth == 0 ? i + 1 : branch)).ToList();
+        var centerX = reports.Count == 0 ? _nextSlot++ * SlotWidth : (CenterX(reports[0]) + CenterX(reports[^1])) / 2;
+
+        var node = Diagram.Nodes.Add(new OrgChartNode(person.Name, person.Title, Palette[branch], centerX, depth * LevelHeight));
+        foreach (var report in reports)
+            Diagram.Links.Add(new LinkModel(node.GetPort(PortAlignment.Bottom)!, report.GetPort(PortAlignment.Top)!) { Color = "#8a9499", Width = 2 });
+        return node;
+    }
+
+    private static double CenterX(NodeModel node) => node.Position.X + node.Size!.Width / 2;
+}

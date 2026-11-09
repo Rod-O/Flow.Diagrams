@@ -1,0 +1,19 @@
+@{
+    var (w, h) = (Group.Size!.Width, Group.Size.Height);
+}
+
+<rect x="0.5" y="0.5" width="@(w - 1)" height="@(h - 1)" rx="4" fill="#f4f6f5" stroke="#38474d" stroke-width="1.5" />
+<g>
+    <text x="14" y="26" font-size="14" font-weight="600" fill="#38474d">Panel A1</text>
+    <text x="@(w - 14)" y="26" text-anchor="end" font-size="11" fill="#5f676b">@($"{w:0} × {h:0} mm backplate")</text>
+</g>
+@foreach (var top in Group.RailTops)
+{
+    <rect x="0" y="@(top - Group.Position.Y)" width="@w" height="@ExportUnitsPlate.RailHeight" fill="#c9cfcd" stroke="#8a9499" stroke-width="0.8" />
+}
+
+<Flow.Diagrams.Components.GroupNodes Group="Group" />
+
+@code {
+    [Parameter] public ExportUnitsPlate Group { get; set; } = null!;
+}

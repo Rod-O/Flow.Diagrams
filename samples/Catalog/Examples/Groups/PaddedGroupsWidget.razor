@@ -1,0 +1,12 @@
+@* The frame is the group's own box; the top padding is the band the title sits in. *@
+<div style="position: absolute; inset: 0; border: 2px solid #6e9a1e; border-radius: 12px; background: rgba(110, 154, 30, .06); box-sizing: border-box;">
+    <div style="height: @(Group.PaddingBySide.Top)px; display: flex; align-items: center; padding-left: @(Group.PaddingBySide.Left)px; background: #eef6dc; border-radius: 10px 10px 0 0; border-bottom: 1px solid #6e9a1e; font: 600 14px system-ui, sans-serif; color: #38474d; box-sizing: border-box; overflow: hidden;">
+        @Group.Heading
+    </div>
+</div>
+
+<Flow.Diagrams.Components.GroupNodes Group="Group" />
+
+@code {
+    [Parameter] public PaddedGroupsGroup Group { get; set; } = null!;
+}

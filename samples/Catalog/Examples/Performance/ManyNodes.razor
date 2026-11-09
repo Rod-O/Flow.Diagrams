@@ -1,0 +1,88 @@
+@inherits ExampleBase
+@using System.Diagnostics
+@attribute [Example("many-nodes", "Many nodes", ExampleCategory.Performance,
+    "A grid of nodes, each linked to its right and lower neighbour. Pick how many, and switch virtualization on: nodes outside the viewport stop being drawn, so pan and zoom stay light. Zoom in on a large grid with it off, then on.",
+    Order = 1)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Nodes
+            <select @onchange="OnCountChanged">
+                @foreach (var count in new[] { 100, 500, 1000 })
+                {
+                    <option value="@count" selected="@(count == _count)">@count</option>
+                }
+            </select>
+        </label>
+        <label><input type="checkbox" checked="@Diagram.Options.Virtualization.Enabled" @onchange="OnVirtualizationChanged" /> Virtualization</label>
+        <button @onclick="Fit">Zoom to fit</button>
+        <span class="dim">@Diagram.Nodes.Count nodes, @Diagram.Links.Count links, built in @_buildMilliseconds ms</span>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" Fit="false" />
+</div>
+
+@code {
+    private int _count = 100;
+    private long _buildMilliseconds;
+
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Build();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await Fit();
+    }
+
+    private void Build()
+    {
+        var clock = Stopwatch.StartNew();
+        Diagram.Links.Clear();
+        Diagram.Nodes.Clear();
+
+        var columns = (int)Math.Ceiling(Math.Sqrt(_count * 1.6));
+        var grid = new NodeModel[_count];
+        for (var i = 0; i < _count; i++)
+            grid[i] = Diagram.Nodes.Add(new NodeModel(new Point(i % columns * 150, i / columns * 120)) { Title = $"#{i + 1}" });
+
+        for (var i = 0; i < _count; i++)
+        {
+            if ((i + 1) % columns != 0 && i + 1 < _count)
+                Link(grid[i], PortAlignment.Right, grid[i + 1], PortAlignment.Left);
+            if (i + columns < _count)
+                Link(grid[i], PortAlignment.Bottom, grid[i + columns], PortAlignment.Top);
+        }
+
+        _buildMilliseconds = clock.ElapsedMilliseconds;
+    }
+
+    private void Link(NodeModel from, PortAlignment fromSide, NodeModel to, PortAlignment toSide) =>
+        Diagram.Links.Add(new LinkModel(from.GetPort(fromSide) ?? from.AddPort(fromSide), to.GetPort(toSide) ?? to.AddPort(toSide)));
+
+    private async Task OnCountChanged(ChangeEventArgs e)
+    {
+        _count = int.Parse(e.Value!.ToString()!);
+        Build();
+        await Fit();
+    }
+
+    private void OnVirtualizationChanged(ChangeEventArgs e)
+    {
+        Diagram.Options.Virtualization.Enabled = (bool)e.Value!;
+        foreach (var node in Diagram.Nodes)
+            node.Visible = true;
+
+        // Virtualization re-checks what is in view when the view moves.
+        Diagram.SetPan(Diagram.Pan.X + 1, Diagram.Pan.Y);
+    }
+
+    // Nodes are measured after they are drawn; fit once their sizes are known.
+    private async Task Fit()
+    {
+        await Task.Delay(400);
+        Diagram.ZoomToFit(30);
+    }
+}

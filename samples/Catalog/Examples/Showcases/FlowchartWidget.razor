@@ -1,0 +1,40 @@
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var stroke = Node.Selected ? "#6e9a1e" : "#38474d";
+    var slant = Node.Shape == FlowchartShape.Data ? FlowchartNode.Slant : 0;
+}
+
+@switch (Node.Shape)
+{
+    case FlowchartShape.Terminal:
+        <rect x="1" y="1" width="@(w - 2)" height="@(h - 2)" rx="@(h / 2 - 1)" fill="#eef6dc" stroke="@stroke" stroke-width="2" />
+        break;
+    case FlowchartShape.Decision:
+        <polygon points="@($"{w / 2},1 {w - 1},{h / 2} {w / 2},{h - 1} 1,{h / 2}")" fill="#fff4d6" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case FlowchartShape.Data:
+        <polygon points="@($"{slant},1 {w - 1},1 {w - slant},{h - 1} 1,{h - 1}")" fill="#efe8fa" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    default:
+        <rect x="1" y="1" width="@(w - 2)" height="@(h - 2)" rx="6" fill="#e3f0fb" stroke="@stroke" stroke-width="2" />
+        break;
+}
+<g><text x="@(w / 2)" y="@(h / 2)" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#1e2326">@Node.Text</text></g>
+
+@foreach (var port in Node.Ports)
+{
+    var (cx, cy) = port.Alignment switch
+    {
+        PortAlignment.Top => (w / 2, 0.0),
+        PortAlignment.Right => (w - slant / 2, h / 2),
+        PortAlignment.Bottom => (w / 2, h),
+        _ => (slant / 2, h / 2),
+    };
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@cx" cy="@cy" r="1.5" fill="transparent" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public FlowchartNode Node { get; set; } = null!;
+}

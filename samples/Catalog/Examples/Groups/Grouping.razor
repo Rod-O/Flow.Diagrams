@@ -1,0 +1,43 @@
+@inherits ExampleBase
+@attribute [Example("grouping", "Grouping nodes", ExampleCategory.Groups,
+    "A group frames its children and moves them together. Select two or more nodes and press Ctrl+Alt+G to group them, again to ungroup. Links can end on the group itself.", Order = 1)]
+
+<ExampleCanvas Diagram="Diagram" Navigator="true" />
+
+<style>
+    div.diagram-group.default { outline: 2px dashed #9bb86a; border-radius: 12px; background: rgba(110, 154, 30, .08); }
+    div.diagram-group.default.selected { outline-color: #6e9a1e; }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.Options.Groups.Enabled = true;
+
+        var source = Node(60, 80, "Source");
+        var parse = Node(300, 40, "Parse");
+        var check = Node(300, 200, "Check");
+        var store = Node(620, 120, "Store");
+        var report = Node(620, 340, "Report");
+        var spare = Node(60, 340, "Spare");
+
+        Link(source, PortAlignment.Right, parse, PortAlignment.Left);
+        Link(source, PortAlignment.Right, check, PortAlignment.Left);
+
+        var pipeline = Diagram.Groups.Group(parse, check);
+
+        Diagram.Links.Add(new LinkModel(pipeline, store) { TargetMarker = LinkMarker.Arrow });
+        Link(spare, PortAlignment.Right, report, PortAlignment.Left);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+
+    private void Link(NodeModel a, PortAlignment from, NodeModel b, PortAlignment to) =>
+        Diagram.Links.Add(new LinkModel(a.GetPort(from)!, b.GetPort(to)!) { TargetMarker = LinkMarker.Arrow });
+}

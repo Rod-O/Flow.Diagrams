@@ -1,0 +1,75 @@
+@{
+    var (w, h) = (Node.Size!.Width, Node.Size.Height);
+    var stroke = Node.Selected ? "#6e9a1e" : "#38474d";
+    var parts = Node.Tag.Split('-');
+}
+
+@switch (Node.Kind)
+{
+    case PidKind.Tank:
+        <path d="M0,16 A60,16 0 0 1 120,16 V164 A60,16 0 0 1 0,164 Z" fill="#f4f8fb" />
+        <path d="M0,96 A60,16 0 0 0 120,96 V164 A60,16 0 0 1 0,164 Z" fill="#cfe5f7" />
+        <path d="M0,16 A60,16 0 0 1 120,16 V164 A60,16 0 0 1 0,164 Z M0,16 A60,16 0 0 0 120,16" fill="none" stroke="@stroke" stroke-width="2" />
+        break;
+    case PidKind.Pump:
+        <circle cx="32" cy="32" r="30" fill="#e3f0fb" stroke="@stroke" stroke-width="2" />
+        <polygon points="22,16 22,48 48,32" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case PidKind.Valve:
+        <polygon points="1,1 22,14 1,27" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        <polygon points="43,1 22,14 43,27" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case PidKind.ControlValve:
+        <polygon points="1,33 22,46 1,59" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        <polygon points="43,33 22,46 43,59" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        <line x1="22" y1="20" x2="22" y2="46" stroke="@stroke" stroke-width="2" />
+        <path d="M6,20 A16,16 0 0 1 38,20 Z" fill="#fff4d6" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case PidKind.CheckValve:
+        <polygon points="2,3 2,25 26,14" fill="#ffffff" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        <line x1="30" y1="3" x2="30" y2="25" stroke="@stroke" stroke-width="2" />
+        break;
+    case PidKind.Filter:
+        <rect x="1" y="1" width="62" height="46" rx="4" fill="#fdf3e0" stroke="@stroke" stroke-width="2" />
+        <polyline points="8,38 20,10 32,38 44,10 56,38" fill="none" stroke="@stroke" stroke-width="1.5" stroke-linejoin="round" />
+        break;
+    case PidKind.HeatExchanger:
+        <rect x="1" y="1" width="148" height="62" rx="8" fill="#fde8e4" stroke="@stroke" stroke-width="2" />
+        <polyline points="0,32 28,32 46,12 64,52 82,12 100,52 118,32 150,32" fill="none" stroke="@stroke" stroke-width="2" stroke-linejoin="round" />
+        break;
+    case PidKind.Instrument:
+    case PidKind.Panel:
+        <circle cx="22" cy="22" r="21" fill="#ffffff" stroke="@stroke" stroke-width="2" />
+        @if (Node.Kind == PidKind.Panel)
+        {
+            <line x1="1" y1="22" x2="43" y2="22" stroke="@stroke" stroke-width="1.5" />
+        }
+        <g>
+            <text x="22" y="16" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="700" fill="#1e2326">@parts[0]</text>
+            <text x="22" y="31" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#1e2326">@parts[^1]</text>
+        </g>
+        break;
+    case PidKind.Terminal:
+        <rect x="1" y="1" width="74" height="28" rx="14" fill="#eef6dc" stroke="@stroke" stroke-width="2" />
+        <g><text x="38" y="15" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#1e2326">@Node.Tag</text></g>
+        break;
+}
+
+@if (Node.Kind is not (PidKind.Instrument or PidKind.Panel or PidKind.Terminal))
+{
+    <g>
+        <text x="@(w / 2)" y="@(h + 16)" text-anchor="middle" font-size="12" font-weight="600" fill="#1e2326">@Node.Tag</text>
+        <text x="@(w / 2)" y="@(h + 30)" text-anchor="middle" font-size="11" fill="#5f676b">@Node.Caption</text>
+    </g>
+}
+
+@foreach (var (port, spot) in Node.PortSpots)
+{
+    <PortRenderer @key="port" Port="port">
+        <circle cx="@spot.X" cy="@spot.Y" r="1.5" fill="transparent" />
+    </PortRenderer>
+}
+
+@code {
+    [Parameter] public PidNode Node { get; set; } = null!;
+}

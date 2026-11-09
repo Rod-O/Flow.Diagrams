@@ -1,0 +1,12 @@
+@{
+    var (w, h) = (Group.Size!.Width, Group.Size.Height);
+}
+
+<rect x="1" y="1" width="@(w - 2)" height="@(h - 2)" rx="16" fill="#f7faef" stroke="@(Group.Selected ? "#6e9a1e" : "#9bb86a")" stroke-width="2" stroke-dasharray="8 5" />
+<text x="18" y="28" font-size="15" font-weight="600" fill="#38474d">@Group.Heading</text>
+
+<Flow.Diagrams.Components.GroupNodes Group="Group" />
+
+@code {
+    [Parameter] public SvgGroupsGroup Group { get; set; } = null!;
+}

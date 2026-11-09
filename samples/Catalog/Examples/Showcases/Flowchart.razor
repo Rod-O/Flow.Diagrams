@@ -1,0 +1,55 @@
+@inherits ExampleBase
+@attribute [Example("flowchart", "Flowchart", ExampleCategory.Showcases,
+    "A login flow with terminals, process boxes, a data step and three decisions. Orthogonal routing keeps every link to right angles; the decisions' exits are labelled Yes and No. Drag a box and the links follow.",
+    Order = 3)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<FlowchartNode, FlowchartWidget>();
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.LabelsOnTop = true;
+
+        const double top = 100, middle = 260, bottom = 420;
+        var start = Add(FlowchartShape.Terminal, 80, top, "Start");
+        var enter = Add(FlowchartShape.Data, 270, top, "Enter credentials");
+        var valid = Add(FlowchartShape.Decision, 480, top, "Valid?");
+        var load = Add(FlowchartShape.Process, 700, top, "Load profile");
+        var admin = Add(FlowchartShape.Decision, 910, top, "Admin?");
+        var dashboard = Add(FlowchartShape.Process, 1130, top, "Show dashboard");
+        var end = Add(FlowchartShape.Terminal, 1330, top, "End");
+
+        var retry = Add(FlowchartShape.Decision, 480, middle, "Attempts < 3?");
+        var console = Add(FlowchartShape.Process, 910, middle, "Show admin console");
+        var lockout = Add(FlowchartShape.Process, 480, bottom, "Lock account");
+        var locked = Add(FlowchartShape.Terminal, 700, bottom, "Account locked");
+
+        Link(start, PortAlignment.Right, enter, PortAlignment.Left);
+        Link(enter, PortAlignment.Right, valid, PortAlignment.Left);
+        Link(valid, PortAlignment.Right, load, PortAlignment.Left, "Yes");
+        Link(valid, PortAlignment.Bottom, retry, PortAlignment.Top, "No");
+        Link(load, PortAlignment.Right, admin, PortAlignment.Left);
+        Link(admin, PortAlignment.Right, dashboard, PortAlignment.Left, "No");
+        Link(admin, PortAlignment.Bottom, console, PortAlignment.Top, "Yes");
+        Link(dashboard, PortAlignment.Right, end, PortAlignment.Left);
+        Link(console, PortAlignment.Right, end, PortAlignment.Bottom);
+        Link(retry, PortAlignment.Left, enter, PortAlignment.Bottom, "Yes");
+        Link(retry, PortAlignment.Bottom, lockout, PortAlignment.Top, "No");
+        Link(lockout, PortAlignment.Right, locked, PortAlignment.Left);
+    }
+
+    private FlowchartNode Add(FlowchartShape shape, double x, double y, string text) =>
+        Diagram.Nodes.Add(new FlowchartNode(shape, x, y, text));
+
+    private void Link(FlowchartNode from, PortAlignment fromSide, FlowchartNode to, PortAlignment toSide, string? label = null)
+    {
+        var link = new LinkModel(from.GetPort(fromSide)!, to.GetPort(toSide)!) { TargetMarker = LinkMarker.Arrow, Color = "#38474d" };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, 24));
+        Diagram.Links.Add(link);
+    }
+}

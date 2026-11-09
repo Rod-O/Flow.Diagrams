@@ -1,0 +1,60 @@
+@inherits ExampleBase
+@attribute [Example("group-padding", "Group padding per side", ExampleCategory.Groups,
+    "GroupPadding sets the space between the children and the group's frame on each side. A tall top padding becomes the title band the custom group widget draws in. Move the sliders, then drag a child.", Order = 2, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <label>Top <input type="range" min="10" max="90" step="2" value="@_top" @oninput="e => Rebuild(top: Value(e))" /> @_top</label>
+        <label>Sides <input type="range" min="10" max="90" step="2" value="@_sides" @oninput="e => Rebuild(sides: Value(e))" /> @_sides</label>
+    </ExampleToolbar>
+    <ExampleCanvas Diagram="Diagram" />
+</div>
+
+@code {
+    private readonly NodeModel[] _children = new NodeModel[3];
+    private PaddedGroupsGroup _group = null!;
+    private int _top = 50;
+    private int _sides = 30;
+
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<PaddedGroupsGroup, PaddedGroupsWidget>();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.Options.Links.DefaultRouter = new OrthogonalRouter();
+
+        _children[0] = Node(200, 140, "Valve");
+        _children[1] = Node(400, 140, "Pump");
+        _children[2] = Node(400, 260, "Motor");
+        var feed = Node(40, 140, "Feed");
+
+        Diagram.Links.Add(new LinkModel(feed.GetPort(PortAlignment.Right)!, _children[0].GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+        Diagram.Links.Add(new LinkModel(_children[0].GetPort(PortAlignment.Right)!, _children[1].GetPort(PortAlignment.Left)!) { TargetMarker = LinkMarker.Arrow });
+        Diagram.Links.Add(new LinkModel(_children[2].GetPort(PortAlignment.Top)!, _children[1].GetPort(PortAlignment.Bottom)!) { TargetMarker = LinkMarker.Arrow });
+
+        AddGroup();
+    }
+
+    private static int Value(ChangeEventArgs e) => int.Parse(e.Value!.ToString()!);
+
+    private void Rebuild(int? top = null, int? sides = null)
+    {
+        _top = top ?? _top;
+        _sides = sides ?? _sides;
+        Diagram.Groups.Remove(_group);
+        AddGroup();
+    }
+
+    private void AddGroup()
+    {
+        _group = new PaddedGroupsGroup(_children, "Pump station", new GroupPadding(_sides, _top, _sides, 24));
+        Diagram.Groups.Add(_group);
+    }
+
+    private NodeModel Node(double x, double y, string title)
+    {
+        var node = Diagram.Nodes.Add(new NodeModel(new Point(x, y)) { Title = title });
+        foreach (var alignment in new[] { PortAlignment.Top, PortAlignment.Right, PortAlignment.Bottom, PortAlignment.Left })
+            node.AddPort(alignment);
+        return node;
+    }
+}

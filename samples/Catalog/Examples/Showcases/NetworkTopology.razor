@@ -1,0 +1,57 @@
+@inherits ExampleBase
+@attribute [Example("network-topology", "Network topology", ExampleCategory.Showcases,
+    "An office network in tidy tiers: internet, firewall, core switch, access switches, then servers, workstations and a Wi-Fi access point. Uplinks leave one port and branch like a tee; link colours follow the VLAN. Drag a node and the links re-route around the rest.",
+    Order = 2)]
+
+<ExampleCanvas Diagram="Diagram" />
+
+@code {
+    private const double Spacing = 110;
+    private const string Uplink = "#38474d", ServerVlan = "#6e9a1e", OfficeVlan = "#1f6fb2", WifiVlan = "#e08a1e";
+
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<NetworkTopologyNode, NetworkTopologyWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter();
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator(radius: 8);
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.LabelsOnTop = true;
+
+        var internet = Add(NetworkKind.Internet, 4, 20, "Internet");
+        var firewall = Add(NetworkKind.Firewall, 4, 150, "FW-01", "10.0.0.1");
+        var core = Add(NetworkKind.CoreSwitch, 4, 275, "CORE-01", "10.0.0.2");
+        Connect(internet, firewall, Uplink, "1 Gbps WAN");
+        Connect(firewall, core, Uplink, "10 Gbps");
+
+        Branch(core, 1, "SW-SRV", "10.0.10.2", ServerVlan,
+            ("WEB-01", "10.0.10.11", NetworkKind.Server), ("APP-01", "10.0.10.12", NetworkKind.Server), ("DB-01", "10.0.10.13", NetworkKind.Server));
+        Branch(core, 4, "SW-OFFICE", "10.0.20.2", OfficeVlan,
+            ("PC-101", "10.0.20.21", NetworkKind.Workstation), ("PC-102", "10.0.20.22", NetworkKind.Workstation), ("PC-103", "10.0.20.23", NetworkKind.Workstation));
+        Branch(core, 7, "SW-FLOOR2", "10.0.30.2", WifiVlan,
+            ("PC-201", "10.0.30.21", NetworkKind.Workstation), ("PC-202", "10.0.30.22", NetworkKind.Workstation), ("AP-01", "10.0.30.5", NetworkKind.AccessPoint));
+    }
+
+    // Leaf slots are numbered across the whole row; a switch sits above the middle slot of its three leaves.
+    private void Branch(NetworkTopologyNode core, int middleSlot, string name, string address, string color,
+        params (string Name, string Address, NetworkKind Kind)[] leaves)
+    {
+        var access = Add(NetworkKind.AccessSwitch, middleSlot, 405, name, address);
+        Connect(core, access, Uplink);
+        for (var i = 0; i < leaves.Length; i++)
+        {
+            var leaf = Add(leaves[i].Kind, middleSlot - 1 + i, 525, leaves[i].Name, leaves[i].Address);
+            Connect(access, leaf, color);
+        }
+    }
+
+    private NetworkTopologyNode Add(NetworkKind kind, int slot, double top, string name, string? address = null) =>
+        Diagram.Nodes.Add(new NetworkTopologyNode(kind, 60 + slot * Spacing, top, name, address));
+
+    private void Connect(NetworkTopologyNode upper, NetworkTopologyNode lower, string color, string? label = null)
+    {
+        var link = new LinkModel(upper.GetPort(PortAlignment.Bottom)!, lower.GetPort(PortAlignment.Top)!) { Color = color, Width = 2.5 };
+        if (label != null)
+            link.Labels.Add(new LinkLabelModel(link, label, 0.5, new Point(42, 0)));
+        Diagram.Links.Add(link);
+    }
+}

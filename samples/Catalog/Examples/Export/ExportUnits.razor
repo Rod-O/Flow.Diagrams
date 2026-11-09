@@ -1,0 +1,131 @@
+@inherits ExampleBase
+@using Flow.Diagrams.Export
+@using System.Text
+@using System.Text.RegularExpressions
+@inject IServiceProvider Services
+@attribute [Example("export-units", "Export in millimetres", ExampleCategory.Export,
+    "A panel layout drawn in millimetres, one diagram unit per mm. SvgExportOptions sets the document's unit, so a converter prints it at true size, plus the margin, the background (none for transparent) and a stylesheet embedded for the labels. Export, then change an option.",
+    Order = 2, New = true)]
+
+<div class="example-column">
+    <ExampleToolbar>
+        <button @onclick="Export">Export</button>
+        <label>Unit
+            <select @onchange="e => Set(unit: (string)e.Value!)">
+                <option value="mm" selected>mm</option>
+                <option value="cm">cm</option>
+                <option value="in">in</option>
+                <option value="">none (pixels)</option>
+            </select>
+        </label>
+        <label>Margin <input type="range" min="0" max="40" step="2" value="@_margin" @oninput="e => Set(margin: int.Parse((string)e.Value!))" /> @_margin</label>
+        <label><input type="checkbox" checked="@_whiteBackground" @onchange="e => Set(whiteBackground: (bool)e.Value!)" /> White background</label>
+        <label><input type="checkbox" checked="@_embedCss" @onchange="e => Set(embedCss: (bool)e.Value!)" /> Embed stylesheet</label>
+        @if (_export != null)
+        {
+            <code class="dim">@Header()</code>
+        }
+    </ExampleToolbar>
+    <div class="export-split">
+        <ExampleCanvas Diagram="Diagram" />
+        <div class="export-result">
+            @if (_export == null)
+            {
+                <p class="dim">The exported document appears here.</p>
+            }
+            else
+            {
+                <img alt="Exported SVG" src="@($"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(_export.Svg))}")" />
+                <pre>@_export.Svg</pre>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .export-split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
+    .export-result { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); }
+    .export-result img { max-width: 100%; border: 1px solid var(--line); background: repeating-conic-gradient(#e6e8e7 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+    .export-result pre { font: 11px/1.4 var(--mono); white-space: pre-wrap; word-break: break-all; margin: 0; }
+</style>
+
+@code {
+    private const string LabelStyle = "text { font-family: Arial, Helvetica, sans-serif; letter-spacing: .03em; }";
+
+    private SvgExport? _export;
+    private string _unit = "mm";
+    private int _margin = 10;
+    private bool _whiteBackground = true;
+    private bool _embedCss = true;
+
+    protected override void OnInitialized()
+    {
+        Diagram.RegisterComponent<ExportUnitsDevice, ExportUnitsWidget>();
+        Diagram.RegisterComponent<ExportUnitsPlate, ExportUnitsPlateWidget>();
+        Diagram.Options.Links.DefaultRouter = new ObstacleRouter(new ObstacleRouterOptions { Margin = 8, OuterRing = 20, MinStub = 10 });
+        Diagram.Options.Links.DefaultPathGenerator = new StraightPathGenerator();
+        Diagram.Options.Links.SvgLabels = true;
+        Diagram.Options.Links.LabelsOnTop = true;
+
+        // Row 1 sits on the upper rail, row 2 on the lower one; every device is placed by its top-left corner.
+        var breaker = Add("QF1", "#e8ecef", 40, 70, 54, 100);
+        Add("QF2", "#e8ecef", 98, 70, 36, 100);
+        Add("QF3", "#e8ecef", 138, 70, 18, 100);
+        var contactor = Add("KM1", "#f1e6c8", 170, 70, 45, 100);
+        var supply = Add("PSU 24 V", "#dfe9d0", 235, 70, 72, 100);
+        var plc = Add("PLC", "#d6e6f5", 330, 70, 108, 100);
+
+        var drive = Add("VFD", "#f1e0c8", 40, 245, 120, 150);
+        var relayA = Add("K1", "#e8ecef", 200, 270, 15, 78);
+        var relayB = Add("K2", "#e8ecef", 219, 270, 15, 78);
+        var terminals = Add("X1 terminals", "#e3e0e8", 280, 295, 158, 28);
+
+        Diagram.Groups.Add(new ExportUnitsPlate(Diagram.Nodes, [110, 310]));
+
+        Wire(breaker, drive, "L1 L2 L3");
+        Wire(contactor, relayA, "A1 A2");
+        Wire(supply, relayB, "24 V");
+        Wire(plc, terminals, "I/O");
+    }
+
+    private ExportUnitsDevice Add(string label, string fill, double x, double y, double width, double height) =>
+        Diagram.Nodes.Add(new ExportUnitsDevice(label, fill, x, y, width, height));
+
+    private void Wire(ExportUnitsDevice from, ExportUnitsDevice to, string? label = null)
+    {
+        var wire = new LinkModel(from.GetPort(PortAlignment.Bottom)!, to.GetPort(PortAlignment.Top)!) { Color = "#c0392b", Width = 1.5 };
+        if (label != null)
+            wire.Labels.Add(new LinkLabelModel(wire, label, 0.5));
+        Diagram.Links.Add(wire);
+    }
+
+    private void Set(string? unit = null, int? margin = null, bool? whiteBackground = null, bool? embedCss = null)
+    {
+        _unit = unit ?? _unit;
+        _margin = margin ?? _margin;
+        _whiteBackground = whiteBackground ?? _whiteBackground;
+        _embedCss = embedCss ?? _embedCss;
+        if (_export != null)
+            _ = Export();
+    }
+
+    private async Task Export()
+    {
+        _export = await DiagramSvgExporter.ExportAsync(Diagram, Services, new SvgExportOptions
+        {
+            Unit = _unit,
+            Margin = _margin,
+            Background = _whiteBackground ? "white" : null,
+            Css = _embedCss ? LabelStyle : null,
+        });
+        StateHasChanged();
+    }
+
+    private string Header()
+    {
+        var match = Regex.Match(_export!.Svg, @"<svg[^>]*>");
+        var width = Regex.Match(match.Value, @"width=""([^""]+)""").Groups[1].Value;
+        var height = Regex.Match(match.Value, @"height=""([^""]+)""").Groups[1].Value;
+        return $"document {width} × {height}";
+    }
+}
