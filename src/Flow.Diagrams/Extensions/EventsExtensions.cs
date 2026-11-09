@@ -23,7 +23,7 @@ public static class EventsExtensions
     /// <summary>Copies a keyboard event.</summary>
     public static KeyboardEventArgs ToCore(this Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
     {
-        return new KeyboardEventArgs(e.Key, e.Code, e.Location, e.CtrlKey, e.ShiftKey, e.AltKey);
+        return new KeyboardEventArgs(e.Key, e.Code, e.Location, e.CtrlKey, e.ShiftKey, e.AltKey, e.MetaKey);
     }
 
     /// <summary>Copies a wheel event, including the three deltas and the delta mode.</summary>

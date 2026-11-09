@@ -21,6 +21,8 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - `samples/Catalog`: a gallery of live examples with previews, source and export; `tools/catalog-previews`.
 - `DiagramSvgExporter`: the diagram's SVG layer as a standalone SVG document, ready to convert to PDF; reports
   what is drawn as HTML.
+- Meta (Cmd) in keyboard shortcuts: `KeyboardEventArgs.MetaKey`, and `SetShortcut`/`RemoveShortcut` overloads and
+  `KeysUtils.GetStringRepresentation` with a `meta` argument.
 
 ### Fixed
 
@@ -32,6 +34,11 @@ First release of Flow.Diagrams. Forked from Z.Blazor.Diagrams 3.0.4.1 and rename
 - A group moved by auto-sizing left its ports behind (upstream #581).
 - `EventsBehavior` raised a double click for two quick clicks on different models, and a third quick click raised a
   second one; a double click now needs both clicks on the same model and ends the sequence.
+- `KeyboardShortcutsBehavior` compared keys case-sensitively, so Shift+letter shortcuts (the browser reports `"A"`)
+  and Caps Lock never fired; keys are now compared ignoring case. The default `Ctrl+Alt+g` never fired on macOS, where
+  Option+G types `©`; a key that types neither a letter nor a digit is now matched on its physical key (`Code`).
+- An exception thrown by a shortcut action was unobserved (`async void`); it now goes to the new
+  `KeyboardShortcutsBehavior.ActionFailed` event, and is rethrown only when nothing handles it.
 
 ## Diagrams (3.0.4.1) - 2026-03-02
 

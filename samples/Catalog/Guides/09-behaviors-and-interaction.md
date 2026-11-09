@@ -52,10 +52,10 @@ Double-clicking a link vertex removes the vertex; that path raises no diagram ev
 
 {{source custom-behavior CustomBehavior.razor shortcut}}
 
+The key is the browser's `KeyboardEvent.key`, compared ignoring case, so Ctrl+Shift+A is `SetShortcut("a", true, true, false, ...)` even though the browser reports `"A"`. When the key types something other than a letter or digit, as Option does on macOS (Option+G is `©`), the physical key is used instead, so the default `Ctrl+Alt+g` works there too. The overload with a `meta` argument binds shortcuts that need Meta (Cmd on macOS); the others fire only when Meta is not held. If an action throws, `ActionFailed` receives the exception; without a handler it is rethrown and reaches Blazor as an unhandled error.
+
 Traps:
 
-- The key is the browser's `KeyboardEvent.key`, compared case-sensitively. With Shift held, a letter arrives in upper case: Ctrl+Shift+A is `SetShortcut("A", true, true, false, ...)`; `"a"` with `shift: true` never matches. On macOS, Option changes the character too (Option+G is `©`), so the default `Ctrl+Alt+g` does not fire there.
-- Only Ctrl, Shift and Alt are seen; the Meta (Cmd) key is not.
 - Keys reach the diagram only while the canvas has focus. Clicking it focuses it.
 
 ## Selection

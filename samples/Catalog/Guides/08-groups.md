@@ -10,7 +10,7 @@ Frame a set of nodes in a group that moves them together and sizes itself around
 
 `Diagram.Groups.Group(nodes)` creates a group with `Options.Groups.Factory` (a plain [GroupModel](xref:Flow.Diagrams.Core.Models.GroupModel) with 30 units of padding, unless you replace it) and adds it. You can also construct a `GroupModel` yourself and pass it to `Diagram.Groups.Add`. Groups live in `Diagram.Groups`, not `Diagram.Nodes`; the children stay in `Diagram.Nodes`, and each child's `Group` points to its group. A group is a node, so a link can end on the group itself, as above, or on one of its ports.
 
-Users can group and ungroup with Ctrl+Alt+G once you turn it on (the binding is for the key `g`, matched case-sensitively, so with Shift or Caps Lock it does nothing); `Groups.Group` works without it:
+Users can group and ungroup with Ctrl+Alt+G once you turn it on; `Groups.Group` works without it:
 
 {{source grouping Grouping.razor enable}}
 

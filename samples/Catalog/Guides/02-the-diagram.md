@@ -102,5 +102,4 @@ A locked node can still be selected, and its ports are not locked with it: users
 ## Traps
 
 - `Batch` does not restore `SuspendRefresh` if the action throws; the diagram then stops redrawing.
-- Keyboard shortcut keys are compared case-sensitively: `"g"` with Shift held arrives as `"G"`.
 - Virtualization rechecks what is visible only on zoom, pan and canvas resize, not when nodes are added or moved.
