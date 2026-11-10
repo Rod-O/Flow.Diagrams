@@ -1,4 +1,5 @@
 ﻿using Flow.Diagrams.Core.Anchors;
+using Flow.Diagrams.Core.ChangeTracking;
 using Flow.Diagrams.Core.Geometry;
 using System;
 using System.Collections.Generic;
@@ -231,7 +232,19 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public void TriggerSourceAttached() => SourceAttached?.Invoke(this);
 
     /// <summary>Recomputes <see cref="Route"/> and <see cref="PathGeneratorResult"/>.</summary>
-    protected override void UpdateGeometry() => GeneratePath();
+    protected internal override void UpdateGeometry() => GeneratePath();
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        foreach (var link in Links)
+            tracker.Mark(link, ModelChanges.Geometry);
+
+        foreach (var label in Labels)
+            tracker.Mark(label, ModelChanges.Appearance);
+
+        foreach (var vertex in Vertices)
+            tracker.Mark(vertex, ModelChanges.Appearance);
+    }
 
     private void GeneratePath()
     {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 ﻿using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
@@ -163,6 +163,9 @@ public class GroupModel : NodeModel
             Refresh();
         }
     }
+
+    /// <summary>Fits the group around its children, as <see cref="UpdateDimensions"/> does.</summary>
+    protected internal override void UpdateGeometry() => UpdateDimensions();
 
     /// <summary>
     /// Recomputes the group's position and size from <see cref="GetChildrenBounds"/> and the padding. Returns

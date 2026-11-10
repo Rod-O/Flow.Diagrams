@@ -1,4 +1,5 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
 using System.Collections.Generic;
 
@@ -40,6 +41,14 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
 
     /// <summary>The node the port belongs to.</summary>
     public NodeModel Parent { get; }
+
+    internal override ChangeTracker? Tracker => Parent.Tracker;
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        foreach (var link in Links)
+            tracker.Mark(link, ModelChanges.Geometry);
+    }
     /// <summary>
     /// The side or corner of the node the port sits on; routers and anchors use it to leave the node in the right
     /// direction.

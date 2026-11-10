@@ -1,4 +1,5 @@
 ﻿using Flow.Diagrams.Core.Behaviors;
+using Flow.Diagrams.Core.ChangeTracking;
 using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Layers;
@@ -146,6 +147,8 @@ public abstract class Diagram
     /// While <c>true</c>, <see cref="Refresh"/> does nothing. Prefer <see cref="Batch"/>, which restores it for you.
     /// </summary>
     public bool SuspendRefresh { get; set; }
+    /// <summary>Collects model changes so each model is raised once per <see cref="Batch"/>.</summary>
+    internal ChangeTracker Changes { get; } = new();
     /// <summary>
     /// While <c>true</c>, changing <see cref="SelectableModel.Order"/> or <see cref="SelectableModel.Layer"/> does
     /// not re-sort <see cref="OrderedSelectables"/>. The ordering methods set it internally and always restore it;
@@ -170,10 +173,12 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Runs <paramref name="action"/> with refreshes suspended and calls <see cref="Refresh"/> once afterwards.
-    /// Inside an outer batch (or any suspended refresh) it only runs the action and leaves the refresh to the outer
-    /// caller. If the action throws, refreshes are still restored and the diagram refreshed (whatever the action
-    /// changed before throwing is drawn), then the exception propagates.
+    /// Runs <paramref name="action"/> with refreshes suspended and model changes deferred, then raises each changed
+    /// model's <see cref="Model.Changed"/> once and calls <see cref="Refresh"/> once. Inside an outer batch (or any
+    /// suspended refresh) it only runs the action and leaves both to the outer caller. If the action throws, the
+    /// models are still raised, refreshes restored and the diagram refreshed (whatever the action changed before
+    /// throwing is drawn), then the action's exception propagates; an exception from a model's handler propagates
+    /// only when the action did not throw.
     /// </summary>
     public void Batch(Action action)
     {
@@ -186,9 +191,28 @@ public abstract class Diagram
         }
 
         SuspendRefresh = true;
+        var suspension = Changes.Suspend();
         try
         {
-            action();
+            try
+            {
+                action();
+            }
+            catch
+            {
+                try
+                {
+                    suspension.Dispose();
+                }
+                catch (Exception)
+                {
+                    // The action's exception is the one the caller sees.
+                }
+
+                throw;
+            }
+
+            suspension.Dispose();
         }
         finally
         {

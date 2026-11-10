@@ -1,4 +1,5 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -240,6 +241,18 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     protected void TriggerMoving()
     {
         Moving?.Invoke(this);
+    }
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        foreach (var link in Links)
+            tracker.Mark(link, ModelChanges.Geometry);
+
+        foreach (var link in PortLinks)
+            tracker.Mark(link, ModelChanges.Geometry);
+
+        if (Group != null)
+            tracker.Mark(Group, ModelChanges.Geometry);
     }
 
     void ILinkable.AddLink(BaseLinkModel link) => _links.Add(link);

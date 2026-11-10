@@ -37,6 +37,7 @@ public abstract class BaseLayer<T> : IReadOnlyList<T> where T : Model
         Diagram.Batch(() =>
         {
             _items.Add(item);
+            item.AttachTracker(Diagram.Changes);
             OnItemAdded(item);
             Added?.Invoke(item);
         });
@@ -54,6 +55,7 @@ public abstract class BaseLayer<T> : IReadOnlyList<T> where T : Model
             foreach (var item in items)
             {
                 _items.Add(item);
+                item.AttachTracker(Diagram.Changes);
                 OnItemAdded(item);
                 Added?.Invoke(item);
             }
@@ -71,6 +73,7 @@ public abstract class BaseLayer<T> : IReadOnlyList<T> where T : Model
             Diagram.Batch(() =>
             {
                 OnItemRemoved(item);
+                item.AttachTracker(null);
                 Removed?.Invoke(item);
             });
         }
@@ -89,6 +92,7 @@ public abstract class BaseLayer<T> : IReadOnlyList<T> where T : Model
                 if (_items.Remove(item))
                 {
                     OnItemRemoved(item);
+                    item.AttachTracker(null);
                     Removed?.Invoke(item);
                 }
             }
@@ -111,6 +115,7 @@ public abstract class BaseLayer<T> : IReadOnlyList<T> where T : Model
                 var item = _items[i];
                 _items.RemoveAt(i);
                 OnItemRemoved(item);
+                item.AttachTracker(null);
                 Removed?.Invoke(item);
             }
         });

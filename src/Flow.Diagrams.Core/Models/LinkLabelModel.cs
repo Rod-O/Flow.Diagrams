@@ -1,4 +1,5 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Models;
@@ -32,6 +33,8 @@ public class LinkLabelModel : Model
 
     /// <summary>The link the label belongs to.</summary>
     public BaseLinkModel Parent { get; }
+
+    internal override ChangeTracker? Tracker => Parent.Tracker;
     /// <summary>The text of the label.</summary>
     public string Content { get; set; }
     /// <summary>

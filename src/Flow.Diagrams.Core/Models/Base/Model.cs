@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using System;
 using System.Collections.Generic;
 
 namespace Flow.Diagrams.Core.Models.Base;
@@ -10,6 +11,7 @@ namespace Flow.Diagrams.Core.Models.Base;
 public abstract class Model
 {
     private bool _visible = true;
+    private ChangeTracker? _tracker;
     
     /// <summary>Creates a model with a new GUID as its <see cref="Id"/>.</summary>
     protected Model() : this(Guid.NewGuid().ToString()) { }
@@ -59,18 +61,42 @@ public abstract class Model
 
     /// <summary>
     /// Raises <see cref="Changed"/> with <paramref name="changes"/> plus <see cref="ModelChanges.Appearance"/>; when
-    /// <paramref name="changes"/> has <see cref="ModelChanges.Geometry"/>, derived geometry is recomputed first.
+    /// <paramref name="changes"/> has <see cref="ModelChanges.Geometry"/>, derived geometry is recomputed first and
+    /// the models that depend on this one are marked too. In a diagram the raise is deferred to the end of the
+    /// current <see cref="Diagram.Batch"/>, once per model with the union of its changes; outside a batch, or outside
+    /// a diagram, it happens before this method returns.
     /// </summary>
     public void MarkChanged(ModelChanges changes)
     {
+        if (Tracker is { } tracker)
+        {
+            tracker.Mark(this, changes);
+            return;
+        }
+
         if (changes.HasFlag(ModelChanges.Geometry))
             UpdateGeometry();
 
-        Changed?.Invoke(this, changes | ModelChanges.Appearance);
+        RaiseChanged(changes | ModelChanges.Appearance);
     }
 
     /// <summary>Recomputes the state derived from other models, such as a link's route; does nothing by default.</summary>
-    protected virtual void UpdateGeometry() { }
+    protected internal virtual void UpdateGeometry() { }
+
+    /// <summary>
+    /// The tracker of the diagram whose layer holds this model, or <c>null</c> outside a diagram. Ports, labels and
+    /// vertices use their parent's.
+    /// </summary>
+    internal virtual ChangeTracker? Tracker => _tracker;
+
+    /// <summary>Set by a layer when it adds this model, and cleared when it removes it.</summary>
+    internal void AttachTracker(ChangeTracker? tracker) => _tracker = tracker;
+
+    /// <summary>Marks the models whose geometry derives from this one's; none by default.</summary>
+    internal virtual void PropagateGeometry(ChangeTracker tracker) { }
+
+    /// <summary>Raises <see cref="Changed"/> with exactly <paramref name="changes"/>.</summary>
+    internal void RaiseChanged(ModelChanges changes) => Changed?.Invoke(this, changes);
 
     /// <summary>
     /// Assigns <paramref name="value"/> to <paramref name="field"/> and calls <see cref="MarkChanged"/> with
