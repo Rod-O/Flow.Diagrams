@@ -334,6 +334,98 @@ public class ChangeTrackerTests
         router.Calls.Should().Be(1);
     }
 
+    [Fact]
+    public void ALinkEndingOnALinkMarkedLater_ShouldRouteAgainstTheHostsNewPath()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var n1 = diagram.Nodes.Add(new NodeModel(new Point(0, 200)) { Size = new Size(100, 50) });
+        var n2 = diagram.Nodes.Add(new NodeModel(new Point(0, 0)) { Size = new Size(100, 50) });
+        var n3 = diagram.Nodes.Add(new NodeModel(new Point(300, 0)) { Size = new Size(100, 50) });
+        var a = diagram.Links.Add(new LinkModel(n2, n3));
+        var router = new TargetRecordingRouter();
+        var b = diagram.Links.Add(new LinkModel(new Flow.Diagrams.Core.Anchors.SinglePortAnchor(n1.AddPort(PortAlignment.Top)),
+            new Flow.Diagrams.Core.Anchors.LinkAnchor(a, 0.5)) { Router = router });
+
+        // Act
+        diagram.Batch(() =>
+        {
+            n1.SetPosition(10, 210);
+            n2.SetPosition(0, 100);
+        });
+
+        // Assert
+        router.LastTarget.Should().Be(b.Target.GetPlainPosition());
+    }
+
+    [Fact]
+    public void LinksAnchoredOnEachOther_ShouldEachRouteOncePerFlush()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var n1 = diagram.Nodes.Add(new NodeModel(new Point(0, 0)) { Size = new Size(100, 50) });
+        var n2 = diagram.Nodes.Add(new NodeModel(new Point(300, 0)) { Size = new Size(100, 50) });
+        var router = new CountingRouter();
+        var a = diagram.Links.Add(new LinkModel(n1, n2) { Router = router });
+        var b = diagram.Links.Add(new LinkModel(new Flow.Diagrams.Core.Anchors.ShapeIntersectionAnchor(n2), new Flow.Diagrams.Core.Anchors.LinkAnchor(a, 0.5)) { Router = router });
+        a.SetTarget(new Flow.Diagrams.Core.Anchors.LinkAnchor(b, 0.5));
+        router.Calls = 0;
+
+        // Act
+        n2.SetPosition(300, 100);
+
+        // Assert
+        router.Calls.Should().Be(2);
+    }
+
+    [Fact]
+    public void ARouterThatThrowsForOneLink_ShouldNotStopTheRestOfThePass()
+    {
+        // Arrange
+        var (diagram, a, b, link) = CreateLinkedNodes();
+        var failing = new ThrowingRouter();
+        var failingLink = diagram.Links.Add(new LinkModel(a, b) { Router = failing });
+        var raisedA = Record(a);
+        var raisedLink = Record(link);
+        var raisedFailingLink = Record(failingLink);
+        failing.Throw = true;
+
+        // Act
+        var act = () => diagram.Batch(() => a.SetPosition(10, 10));
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("route");
+        raisedA.Should().Equal(AppearanceAndGeometry);
+        raisedLink.Should().Equal(AppearanceAndGeometry);
+        raisedFailingLink.Should().Equal(AppearanceAndGeometry);
+        a.MarkChanged(ModelChanges.Appearance);
+        raisedA.Should().Equal(AppearanceAndGeometry, ModelChanges.Appearance);
+    }
+
+    [Fact]
+    public void AnInputHandlerThatThrows_ShouldWinOverAFlushThatThrows()
+    {
+        // Arrange
+        var (diagram, node, _, _) = CreateLinkedNodes();
+        var raised = Record(node);
+        node.Changed += (_, _) => throw new InvalidOperationException("flush");
+        diagram.PointerDown += (_, _) =>
+        {
+            node.Title = "changed";
+            throw new InvalidOperationException("handler");
+        };
+
+        // Act
+        var act = () => diagram.TriggerPointerDown(null, Pointer(10, 10));
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("handler");
+        raised.Should().Equal(ModelChanges.Appearance);
+        var markAgain = () => node.Selected = true;
+        markAgain.Should().Throw<InvalidOperationException>().WithMessage("flush");
+        raised.Should().Equal(ModelChanges.Appearance, ModelChanges.Appearance);
+    }
+
     private static Flow.Diagrams.Core.Events.PointerEventArgs Pointer(double x, double y) =>
         new(x, y, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true);
 
@@ -354,6 +446,25 @@ public class ChangeTrackerTests
         var raised = new List<ModelChanges>();
         model.Changed += (_, changes) => raised.Add(changes);
         return raised;
+    }
+
+    private sealed class TargetRecordingRouter : Router
+    {
+        public Point? LastTarget { get; private set; }
+
+        public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
+        {
+            LastTarget = link.Target.GetPlainPosition();
+            return [];
+        }
+    }
+
+    private sealed class ThrowingRouter : Router
+    {
+        public bool Throw { get; set; }
+
+        public override Point[] GetRoute(Diagram diagram, BaseLinkModel link) =>
+            Throw ? throw new InvalidOperationException("route") : [];
     }
 
     private sealed class CountingRouter : Router

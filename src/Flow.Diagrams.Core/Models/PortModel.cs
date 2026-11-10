@@ -49,8 +49,8 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
 
     internal override void PropagateGeometry(ChangeTracker tracker)
     {
-        foreach (var link in Links)
-            tracker.Mark(link, ModelChanges.Geometry);
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
     }
     /// <summary>
     /// The side or corner of the node the port sits on; routers and anchors use it to leave the node in the right

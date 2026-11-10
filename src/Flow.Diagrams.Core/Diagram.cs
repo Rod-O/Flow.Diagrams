@@ -200,15 +200,7 @@ public abstract class Diagram
             }
             catch
             {
-                try
-                {
-                    suspension.Dispose();
-                }
-                catch (Exception)
-                {
-                    // The action's exception is the one the caller sees.
-                }
-
+                suspension.DisposeAfterFailure();
                 throw;
             }
 
@@ -606,50 +598,43 @@ public abstract class Diagram
     /// </summary>
     public void TriggerPointerDown(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerDown?.Invoke(model, e);
+        RaiseInput(PointerDown, model, e);
     }
 
     /// <summary>Raises <see cref="PointerMove"/>.</summary>
     public void TriggerPointerMove(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerMove?.Invoke(model, e);
+        RaiseInput(PointerMove, model, e);
     }
 
     /// <summary>Raises <see cref="PointerUp"/>.</summary>
     public void TriggerPointerUp(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerUp?.Invoke(model, e);
+        RaiseInput(PointerUp, model, e);
     }
 
     /// <summary>Raises <see cref="PointerEnter"/>.</summary>
     public void TriggerPointerEnter(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerEnter?.Invoke(model, e);
+        RaiseInput(PointerEnter, model, e);
     }
 
     /// <summary>Raises <see cref="PointerLeave"/>.</summary>
     public void TriggerPointerLeave(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerLeave?.Invoke(model, e);
+        RaiseInput(PointerLeave, model, e);
     }
 
     /// <summary>Raises <see cref="KeyDown"/>.</summary>
     public void TriggerKeyDown(KeyboardEventArgs e)
     {
-        using (Changes.Suspend())
-            KeyDown?.Invoke(e);
+        RaiseInput(KeyDown, e);
     }
 
     /// <summary>Raises <see cref="Wheel"/>.</summary>
     public void TriggerWheel(WheelEventArgs e)
     {
-        using (Changes.Suspend())
-            Wheel?.Invoke(e);
+        RaiseInput(Wheel, e);
     }
 
     /// <summary>
@@ -658,8 +643,7 @@ public abstract class Diagram
     /// </summary>
     public void TriggerPointerClick(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerClick?.Invoke(model, e);
+        RaiseInput(PointerClick, model, e);
     }
 
     /// <summary>
@@ -668,8 +652,40 @@ public abstract class Diagram
     /// </summary>
     public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e)
     {
-        using (Changes.Suspend())
-            PointerDoubleClick?.Invoke(model, e);
+        RaiseInput(PointerDoubleClick, model, e);
+    }
+
+    // An input event flushes once at its end, like a Batch: the handler's exception wins over one from the flush.
+    private void RaiseInput<T>(Action<T>? handler, T e)
+    {
+        var suspension = Changes.Suspend();
+        try
+        {
+            handler?.Invoke(e);
+        }
+        catch
+        {
+            suspension.DisposeAfterFailure();
+            throw;
+        }
+
+        suspension.Dispose();
+    }
+
+    private void RaiseInput<T>(Action<Model?, T>? handler, Model? model, T e)
+    {
+        var suspension = Changes.Suspend();
+        try
+        {
+            handler?.Invoke(model, e);
+        }
+        catch
+        {
+            suspension.DisposeAfterFailure();
+            throw;
+        }
+
+        suspension.Dispose();
     }
 
     #endregion

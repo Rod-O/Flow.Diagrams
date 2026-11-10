@@ -105,9 +105,9 @@ public abstract class Model
     /// <summary>
     /// Defers what this model marks until the returned handle is disposed, so a method that changes several
     /// properties raises and recomputes once. In a diagram this is the tracker's suspension; elsewhere it holds back
-    /// this model's own marks.
+    /// this model's own marks. The handle is a struct: dispose it exactly once.
     /// </summary>
-    internal IDisposable Suspend() => Tracker?.Suspend() ?? new LocalSuspension(this);
+    internal Suspension Suspend() => Tracker is { } tracker ? new Suspension(tracker.Suspend()) : new Suspension(this);
 
     /// <summary>Set by a layer when it adds this model, and cleared when it removes it.</summary>
     internal void AttachTracker(ChangeTracker? tracker) => _tracker = tracker;
@@ -132,26 +132,39 @@ public abstract class Model
         return true;
     }
 
-    private sealed class LocalSuspension : IDisposable
+    /// <summary>A suspension of the diagram's tracker, or of this model's own marks outside a diagram.</summary>
+    internal readonly struct Suspension : IDisposable
     {
-        private Model? _model;
+        private readonly ChangeTracker.Suspension _tracked;
+        private readonly Model? _model;
 
-        public LocalSuspension(Model model)
+        public Suspension(ChangeTracker.Suspension tracked)
         {
+            _tracked = tracked;
+            _model = null;
+        }
+
+        public Suspension(Model model)
+        {
+            _tracked = default;
             _model = model;
             model._suspended++;
         }
 
         public void Dispose()
         {
-            var model = _model;
-            _model = null;
-            if (model == null || --model._suspended > 0 || model._held == ModelChanges.None)
+            if (_model == null)
+            {
+                _tracked.Dispose();
+                return;
+            }
+
+            if (--_model._suspended > 0 || _model._held == ModelChanges.None)
                 return;
 
-            var held = model._held;
-            model._held = ModelChanges.None;
-            model.MarkChanged(held);
+            var held = _model._held;
+            _model._held = ModelChanges.None;
+            _model.MarkChanged(held);
         }
     }
 }

@@ -279,14 +279,14 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
     internal override void PropagateGeometry(ChangeTracker tracker)
     {
-        foreach (var link in Links)
-            tracker.Mark(link, ModelChanges.Geometry);
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
 
-        foreach (var label in Labels)
-            tracker.Mark(label, ModelChanges.Appearance);
+        for (var i = 0; i < Labels.Count; i++)
+            tracker.Mark(Labels[i], ModelChanges.Appearance);
 
-        foreach (var vertex in Vertices)
-            tracker.Mark(vertex, ModelChanges.Appearance);
+        for (var i = 0; i < Vertices.Count; i++)
+            tracker.Mark(Vertices[i], ModelChanges.Appearance);
     }
 
     /// <summary>Recomputes the route now, without marking or raising; for callers that route a link repeatedly inside one flush.</summary>

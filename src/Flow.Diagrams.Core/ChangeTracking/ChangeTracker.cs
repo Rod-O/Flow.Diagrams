@@ -1,3 +1,4 @@
+using Flow.Diagrams.Core.Anchors;
 using Flow.Diagrams.Core.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,11 @@ internal sealed class ChangeTracker
     public const int MaxPasses = 64;
 
     private List<Model> _order = new();
-    private Dictionary<Model, ModelChanges> _pending = new(ReferenceEqualityComparer.Instance);
+    private Dictionary<Model, ModelChanges> _pending = new();
     private List<Model> _passOrder = new();
-    private Dictionary<Model, ModelChanges> _passChanges = new(ReferenceEqualityComparer.Instance);
+    private Dictionary<Model, ModelChanges> _passChanges = new();
+    private readonly HashSet<BaseLinkModel> _routed = new();
+    private Exception? _firstFailure;
     private Phase _phase;
     private Model? _updating;
     private int _depth;
@@ -55,8 +58,11 @@ internal sealed class ChangeTracker
             Flush();
     }
 
-    /// <summary>Defers flushing until the returned handle is disposed; suspensions nest, and the outermost flushes.</summary>
-    public IDisposable Suspend()
+    /// <summary>
+    /// Defers flushing until the returned handle is disposed; suspensions nest, and the outermost flushes. The handle
+    /// is a struct: dispose it exactly once.
+    /// </summary>
+    public Suspension Suspend()
     {
         _depth++;
         return new Suspension(this);
@@ -89,19 +95,18 @@ internal sealed class ChangeTracker
     private void Flush()
     {
         IsFlushing = true;
-        Exception? firstFailure = null;
+        _firstFailure = null;
         try
         {
             for (var pass = 1; pass <= MaxPasses && _order.Count > 0; pass++)
             {
-                _passOrder = _order;
-                _passChanges = _pending;
-                _order = new List<Model>();
-                _pending = new Dictionary<Model, ModelChanges>(ReferenceEqualityComparer.Instance);
+                // The previous pass left its buffers empty; they collect the marks of this one.
+                (_passOrder, _order) = (_order, _passOrder);
+                (_passChanges, _pending) = (_pending, _passChanges);
 
                 // Links route against the geometry of the nodes and groups they attach to, so those go first.
-                UpdateGeometry(Phase.NodeGeometry);
-                UpdateGeometry(Phase.LinkGeometry);
+                UpdateNodeGeometry();
+                UpdateLinkGeometry();
 
                 _phase = Phase.Raise;
                 for (var i = 0; i < _passOrder.Count; i++)
@@ -116,9 +121,12 @@ internal sealed class ChangeTracker
                     }
                     catch (Exception e)
                     {
-                        firstFailure ??= e;
+                        _firstFailure ??= e;
                     }
                 }
+
+                _passOrder.Clear();
+                _passChanges.Clear();
             }
 
             if (_order.Count > 0)
@@ -133,52 +141,103 @@ internal sealed class ChangeTracker
         {
             _phase = Phase.Idle;
             _updating = null;
-            _passOrder = new List<Model>();
-            _passChanges = new Dictionary<Model, ModelChanges>(ReferenceEqualityComparer.Instance);
+            _passOrder.Clear();
+            _passChanges.Clear();
+            _routed.Clear();
             IsFlushing = false;
         }
 
-        if (firstFailure != null)
-            ExceptionDispatchInfo.Capture(firstFailure).Throw();
+        var failure = _firstFailure;
+        _firstFailure = null;
+        if (failure != null)
+            ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
-    private void UpdateGeometry(Phase phase)
+    private void UpdateNodeGeometry()
     {
-        _phase = phase;
-        var links = phase == Phase.LinkGeometry;
+        _phase = Phase.NodeGeometry;
         // Indexed, because links marked while the nodes update are appended to this pass.
         for (var i = 0; i < _passOrder.Count; i++)
         {
             var model = _passOrder[i];
-            if (model is BaseLinkModel != links || model.Tracker != this)
-                continue;
-
-            if (!_passChanges[model].HasFlag(ModelChanges.Geometry))
-                continue;
-
-            _updating = model;
-            try
-            {
-                model.UpdateGeometry();
-            }
-            finally
-            {
-                _updating = null;
-            }
+            if (model is not BaseLinkModel && NeedsGeometry(model))
+                UpdateGeometry(model);
         }
     }
 
-    private sealed class Suspension : IDisposable
+    private void UpdateLinkGeometry()
     {
-        private ChangeTracker? _tracker;
+        _phase = Phase.LinkGeometry;
+        for (var i = 0; i < _passOrder.Count; i++)
+        {
+            if (_passOrder[i] is BaseLinkModel link && NeedsGeometry(link))
+                Route(link);
+        }
+
+        _routed.Clear();
+    }
+
+    /// <summary>Routes <paramref name="link"/> once per pass, after the pending links its anchors sit on.</summary>
+    private void Route(BaseLinkModel link)
+    {
+        // Added before the hosts are routed, so links anchored on each other in a cycle stop here.
+        if (!_routed.Add(link))
+            return;
+
+        RouteHost(link.Source);
+        RouteHost(link.Target);
+        UpdateGeometry(link);
+    }
+
+    private void RouteHost(Anchor anchor)
+    {
+        if (anchor is LinkAnchor { Link: var host } && _passChanges.ContainsKey(host) && NeedsGeometry(host))
+            Route(host);
+    }
+
+    private bool NeedsGeometry(Model model) =>
+        model.Tracker == this && _passChanges[model].HasFlag(ModelChanges.Geometry);
+
+    private void UpdateGeometry(Model model)
+    {
+        _updating = model;
+        try
+        {
+            model.UpdateGeometry();
+        }
+        catch (Exception e)
+        {
+            _firstFailure ??= e;
+        }
+        finally
+        {
+            _updating = null;
+        }
+    }
+
+    /// <summary>A suspension of a <see cref="ChangeTracker"/>; disposing it resumes the tracker, which flushes when it is the outermost.</summary>
+    internal readonly struct Suspension : IDisposable
+    {
+        private readonly ChangeTracker? _tracker;
 
         public Suspension(ChangeTracker tracker) => _tracker = tracker;
 
-        public void Dispose()
+        public void Dispose() => _tracker?.Resume();
+
+        /// <summary>
+        /// Resumes like <see cref="Dispose"/>, discarding an exception from the flush, so the exception already in
+        /// flight is the one the caller sees.
+        /// </summary>
+        public void DisposeAfterFailure()
         {
-            var tracker = _tracker;
-            _tracker = null;
-            tracker?.Resume();
+            try
+            {
+                Dispose();
+            }
+            catch (Exception)
+            {
+                // The caller rethrows its own exception.
+            }
         }
     }
 }

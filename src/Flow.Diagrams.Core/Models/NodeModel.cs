@@ -257,11 +257,11 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
 
     internal override void PropagateGeometry(ChangeTracker tracker)
     {
-        foreach (var link in Links)
-            tracker.Mark(link, ModelChanges.Geometry);
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
 
-        foreach (var link in PortLinks)
-            tracker.Mark(link, ModelChanges.Geometry);
+        for (var i = 0; i < _ports.Count; i++)
+            _ports[i].PropagateGeometry(tracker);
 
         if (Group != null)
             tracker.Mark(Group, ModelChanges.Geometry);
