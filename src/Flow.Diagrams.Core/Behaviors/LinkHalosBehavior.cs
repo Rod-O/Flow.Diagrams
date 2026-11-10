@@ -13,7 +13,7 @@ namespace Flow.Diagrams.Core.Behaviors;
 /// </summary>
 /// <remarks>
 /// Setting a link's <see cref="BaseLinkModel.PathGenerator"/>, or the diagram's default one, raises no event: the
-/// halos follow the switch at the link's next <see cref="BaseLinkModel.Refresh"/>, as its drawing does.
+/// halos follow the switch at the link's next <see cref="Model.Refresh"/>, as its drawing does.
 /// <para>When a link's route changes, only the links whose bounding boxes overlap its old or its new one are recomputed, so
 /// the cost of a change follows the links around it rather than the size of the diagram.</para>
 /// </remarks>
@@ -102,8 +102,11 @@ public class LinkHalosBehavior : Behavior
                 Recompute(_order[rank]);
     }
 
-    private void OnLinkChanged(Model model)
+    private void OnLinkChanged(Model model, ModelChanges changes)
     {
+        if (!changes.HasFlag(ModelChanges.Geometry))
+            return;
+
         if (!_tracked.TryGetValue((BaseLinkModel)model, out var tracked))
             return;
 

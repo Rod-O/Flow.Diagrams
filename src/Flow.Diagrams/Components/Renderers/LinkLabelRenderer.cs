@@ -68,6 +68,8 @@ public class LinkLabelRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    private void OnLabelChanged(Model model, ModelChanges changes) => OnLabelChanged(model);
+
     private void OnLabelChanged(Model _)
     {
         InvokeAsync(StateHasChanged);

@@ -172,6 +172,8 @@ public class NodeRenderer : ComponentBase, IDisposable
         }
     }
 
+    private void OnNodeChanged(Model model, ModelChanges changes) => OnNodeChanged(model);
+
     private void OnNodeChanged(Model _)
     {
         ReRender();

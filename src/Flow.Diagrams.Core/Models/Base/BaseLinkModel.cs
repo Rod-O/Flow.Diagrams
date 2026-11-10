@@ -53,12 +53,12 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// </summary>
     public Diagram? Diagram { get; internal set; }
     /// <summary>
-    /// The points the router produced at the last <see cref="Refresh"/>, or <c>null</c> when the link has no diagram
+    /// The points the router produced at the last <see cref="Model.Refresh"/>, or <c>null</c> when the link has no diagram
     /// or an anchor has no position.
     /// </summary>
     public Point[]? Route { get; private set; }
     /// <summary>
-    /// The drawable path generated from <see cref="Route"/> at the last <see cref="Refresh"/>, or <c>null</c> when
+    /// The drawable path generated from <see cref="Route"/> at the last <see cref="Model.Refresh"/>, or <c>null</c> when
     /// there is no route.
     /// </summary>
     public PathGeneratorResult? PathGeneratorResult { get; private set; }
@@ -69,12 +69,12 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public bool IsAttached => Source is not PositionAnchor && Target is not PositionAnchor;
     /// <summary>
     /// The router of this link; <c>null</c> uses <see cref="Options.DiagramLinkOptions.DefaultRouter"/>. Takes effect
-    /// on the next <see cref="Refresh"/>.
+    /// on the next <see cref="Model.Refresh"/>.
     /// </summary>
     public Router? Router { get; set; }
     /// <summary>
     /// The path generator of this link; <c>null</c> uses <see
-    /// cref="Options.DiagramLinkOptions.DefaultPathGenerator"/>. Takes effect on the next <see cref="Refresh"/>.
+    /// cref="Options.DiagramLinkOptions.DefaultPathGenerator"/>. Takes effect on the next <see cref="Model.Refresh"/>.
     /// </summary>
     public PathGenerator? PathGenerator { get; set; }
     /// <summary>The marker drawn at the source end, or <c>null</c> for none.</summary>
@@ -99,15 +99,6 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     public List<LinkLabelModel> Labels { get; } = new();
     /// <summary>The links attached to this link.</summary>
     public IReadOnlyList<BaseLinkModel> Links => _links;
-
-    /// <summary>
-    /// Recomputes <see cref="Route"/> and <see cref="PathGeneratorResult"/>, then raises <see cref="Model.Changed"/>.
-    /// </summary>
-    public override void Refresh()
-    {
-        GeneratePath();
-        base.Refresh();
-    }
 
     /// <summary>Refreshes each link attached to this link.</summary>
     public void RefreshLinks()
@@ -228,7 +219,7 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
             return;
 
         Halos = halos;
-        base.Refresh();
+        MarkChanged(ModelChanges.Appearance);
     }
 
     /// <summary>
@@ -238,6 +229,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
     /// <summary>Raises <see cref="SourceAttached"/>.</summary>
     public void TriggerSourceAttached() => SourceAttached?.Invoke(this);
+
+    /// <summary>Recomputes <see cref="Route"/> and <see cref="PathGeneratorResult"/>.</summary>
+    protected override void UpdateGeometry() => GeneratePath();
 
     private void GeneratePath()
     {

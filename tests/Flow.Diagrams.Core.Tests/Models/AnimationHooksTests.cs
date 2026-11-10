@@ -13,7 +13,7 @@ public class AnimationHooksTests
         // Arrange
         var node = new NodeModel();
         var raised = 0;
-        node.Changed += _ => raised++;
+        node.Changed += (_, _) => raised++;
 
         // Act
         node.CssClass = "diagram-pulse";
@@ -29,7 +29,7 @@ public class AnimationHooksTests
         // Arrange
         var node = new NodeModel { CssClass = "a" };
         var raised = 0;
-        node.Changed += _ => raised++;
+        node.Changed += (_, _) => raised++;
 
         // Act
         node.CssClass = "a";
@@ -44,7 +44,7 @@ public class AnimationHooksTests
         // Arrange
         var link = new LinkModel(new NodeModel(), new NodeModel());
         Model? sender = null;
-        link.Changed += m => sender = m;
+        link.Changed += (m, _) => sender = m;
 
         // Act
         link.CssClass = "highlight";
@@ -59,7 +59,7 @@ public class AnimationHooksTests
         // Arrange
         var link = new LinkModel(new NodeModel(), new NodeModel());
         var raised = 0;
-        link.Changed += _ => raised++;
+        link.Changed += (_, _) => raised++;
 
         // Act
         link.Flow = new LinkFlow();

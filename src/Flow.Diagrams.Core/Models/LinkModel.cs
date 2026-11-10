@@ -50,13 +50,6 @@ public class LinkModel : BaseLinkModel
     public LinkFlow? Flow
     {
         get => _flow;
-        set
-        {
-            if (Equals(value, _flow))
-                return;
-
-            _flow = value;
-            RaiseChanged();
-        }
+        set => SetField(ref _flow, value, ModelChanges.Appearance);
     }
 }

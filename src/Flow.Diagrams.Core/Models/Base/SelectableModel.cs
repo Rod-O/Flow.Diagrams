@@ -8,6 +8,7 @@ public abstract class SelectableModel : Model
     private int _order;
     private int _layer;
     private string? _cssClass;
+    private bool _selected;
 
     /// <summary>
     /// Raised when <see cref="Order"/> or <see cref="Layer"/> changes; the diagram re-sorts its drawing order in
@@ -23,9 +24,14 @@ public abstract class SelectableModel : Model
 
     /// <summary>
     /// Whether the model is selected. Read-only from outside the library; select through <see
-    /// cref="Diagram.SelectModel"/> and <see cref="Diagram.UnselectModel"/>.
+    /// cref="Diagram.SelectModel"/> and <see cref="Diagram.UnselectModel"/>. A change raises <see
+    /// cref="Model.Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public bool Selected { get; internal set; }
+    public bool Selected
+    {
+        get => _selected;
+        internal set => SetField(ref _selected, value, ModelChanges.Appearance);
+    }
     /// <summary>
     /// Extra CSS classes, space-separated, that the renderer adds to the model's wrapper element next to the classes
     /// the library sets (<c>selected</c>, <c>locked</c>, ...), so an app can style and animate a model with plain CSS;
@@ -35,14 +41,7 @@ public abstract class SelectableModel : Model
     public string? CssClass
     {
         get => _cssClass;
-        set
-        {
-            if (value == _cssClass)
-                return;
-
-            _cssClass = value;
-            RaiseChanged();
-        }
+        set => SetField(ref _cssClass, value, ModelChanges.Appearance);
     }
     /// <summary>
     /// Position in the drawing order within the <see cref="Layer"/>; higher is drawn in front. A model added with 0

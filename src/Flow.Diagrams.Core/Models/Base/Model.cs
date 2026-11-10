@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Flow.Diagrams.Core.Models.Base;
 
@@ -21,8 +22,8 @@ public abstract class Model
         Id = id;
     }
 
-    /// <summary>Raised by <see cref="Refresh"/>; the renderer redraws the model in response.</summary>
-    public event Action<Model>? Changed;
+    /// <summary>Raised by <see cref="MarkChanged"/> with what changed; the renderer redraws the model in response.</summary>
+    public event Action<Model, ModelChanges>? Changed;
     /// <summary>Raised when <see cref="Visible"/> actually changes value.</summary>
     public event Action<Model>? VisibilityChanged;
 
@@ -52,10 +53,36 @@ public abstract class Model
     }
 
     /// <summary>
-    /// Raises <see cref="Changed"/> so the model is redrawn. Overrides may recompute derived state first.
+    /// Recomputes derived geometry, such as a link's route, and raises <see cref="Changed"/> so the model is redrawn.
     /// </summary>
-    public virtual void Refresh() => Changed?.Invoke(this);
+    public virtual void Refresh() => MarkChanged(ModelChanges.Appearance | ModelChanges.Geometry);
 
-    // Redraw without the derived-state work an override of Refresh may do, such as routing a link again.
-    private protected void RaiseChanged() => Changed?.Invoke(this);
+    /// <summary>
+    /// Raises <see cref="Changed"/> with <paramref name="changes"/> plus <see cref="ModelChanges.Appearance"/>; when
+    /// <paramref name="changes"/> has <see cref="ModelChanges.Geometry"/>, derived geometry is recomputed first.
+    /// </summary>
+    public void MarkChanged(ModelChanges changes)
+    {
+        if (changes.HasFlag(ModelChanges.Geometry))
+            UpdateGeometry();
+
+        Changed?.Invoke(this, changes | ModelChanges.Appearance);
+    }
+
+    /// <summary>Recomputes the state derived from other models, such as a link's route; does nothing by default.</summary>
+    protected virtual void UpdateGeometry() { }
+
+    /// <summary>
+    /// Assigns <paramref name="value"/> to <paramref name="field"/> and calls <see cref="MarkChanged"/> with
+    /// <paramref name="changes"/>; returns <c>false</c> and does nothing when the value is already equal.
+    /// </summary>
+    protected bool SetField<T>(ref T field, T value, ModelChanges changes)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+
+        field = value;
+        MarkChanged(changes);
+        return true;
+    }
 }

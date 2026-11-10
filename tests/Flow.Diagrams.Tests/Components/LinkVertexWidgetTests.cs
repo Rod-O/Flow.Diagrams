@@ -92,7 +92,7 @@ public class LinkVertexWidgetTests
         int linkRefreshes = 0;
         var vertex = new LinkVertexModel(link, new Point(10.5, 20));
         link.Vertices.Add(vertex);
-        link.Changed += _ => linkRefreshes++;
+        link.Changed += (_, _) => linkRefreshes++;
 
         // Act
         var cut = ctx.RenderComponent<LinkVertexRenderer>(parameters => parameters

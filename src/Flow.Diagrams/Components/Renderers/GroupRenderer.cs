@@ -79,6 +79,8 @@ public class GroupRenderer : ComponentBase, IDisposable
         }
     }
 
+    private void OnGroupChanged(Model model, ModelChanges changes) => OnGroupChanged(model);
+
     private void OnGroupChanged(Model _)
     {
         _shouldRender = true;

@@ -176,6 +176,8 @@ public class PortRenderer : ComponentBase, IDisposable
         }
     }
 
+    private void OnPortChanged(Model model, ModelChanges changes) => OnPortChanged(model);
+
     private async void OnPortChanged(Model _)
     {
         // If an update is ongoing and the port is refreshed again,

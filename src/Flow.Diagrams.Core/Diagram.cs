@@ -231,7 +231,7 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. With <paramref
+    /// Selects <paramref name="model"/>, redraws it and raises <see cref="SelectionChanged"/>. With <paramref
     /// name="unselectOthers"/>, everything else is unselected first. If it is already selected, it is left as is
     /// (no refresh, no event for it); only the others are unselected.
     /// </summary>
@@ -250,12 +250,11 @@ public abstract class Diagram
             return;
 
         model.Selected = true;
-        model.Refresh();
         SelectionChanged?.Invoke(model);
     }
 
     /// <summary>
-    /// Unselects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>; does nothing if it
+    /// Unselects <paramref name="model"/>, redraws it and raises <see cref="SelectionChanged"/>; does nothing if it
     /// is not selected.
     /// </summary>
     public void UnselectModel(SelectableModel model)
@@ -264,19 +263,17 @@ public abstract class Diagram
             return;
 
         model.Selected = false;
-        model.Refresh();
         SelectionChanged?.Invoke(model);
     }
 
     /// <summary>
-    /// Unselects every selected model, refreshing each and raising <see cref="SelectionChanged"/> once per model.
+    /// Unselects every selected model, redrawing each and raising <see cref="SelectionChanged"/> once per model.
     /// </summary>
     public void UnselectAll()
     {
         foreach (var model in GetSelectedModels())
         {
             model.Selected = false;
-            model.Refresh();
             // Todo: will result in many events, maybe one event for all of them?
             SelectionChanged?.Invoke(model);
         }

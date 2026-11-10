@@ -33,8 +33,8 @@ public class NodeModelTests
         var link = diagram.Links.Add(new LinkModel(node, diagram.Nodes.Add(new NodeModel())));
         var nodeRefreshes = 0;
         var linkRefreshes = 0;
-        node.Changed += _ => nodeRefreshes++;
-        link.Changed += _ => linkRefreshes++;
+        node.Changed += (_, _) => nodeRefreshes++;
+        link.Changed += (_, _) => linkRefreshes++;
 
         // Act
         node.SetSize(new Size(200, 80));
@@ -54,7 +54,7 @@ public class NodeModelTests
         var port = node.AddPort(PortAlignment.Right);
         port.Initialized = true;
         var refreshes = 0;
-        node.Changed += _ => refreshes++;
+        node.Changed += (_, _) => refreshes++;
 
         // Act
         node.SetSize(new Size(100, 60));
