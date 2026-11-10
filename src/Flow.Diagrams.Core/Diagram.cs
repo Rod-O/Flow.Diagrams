@@ -604,37 +604,73 @@ public abstract class Diagram
     /// <summary>
     /// Raises <see cref="PointerDown"/>. The renderer calls it; call it yourself to simulate input.
     /// </summary>
-    public void TriggerPointerDown(Model? model, PointerEventArgs e) => PointerDown?.Invoke(model, e);
+    public void TriggerPointerDown(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerDown?.Invoke(model, e);
+    }
 
     /// <summary>Raises <see cref="PointerMove"/>.</summary>
-    public void TriggerPointerMove(Model? model, PointerEventArgs e) => PointerMove?.Invoke(model, e);
+    public void TriggerPointerMove(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerMove?.Invoke(model, e);
+    }
 
     /// <summary>Raises <see cref="PointerUp"/>.</summary>
-    public void TriggerPointerUp(Model? model, PointerEventArgs e) => PointerUp?.Invoke(model, e);
+    public void TriggerPointerUp(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerUp?.Invoke(model, e);
+    }
 
     /// <summary>Raises <see cref="PointerEnter"/>.</summary>
-    public void TriggerPointerEnter(Model? model, PointerEventArgs e) => PointerEnter?.Invoke(model, e);
+    public void TriggerPointerEnter(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerEnter?.Invoke(model, e);
+    }
 
     /// <summary>Raises <see cref="PointerLeave"/>.</summary>
-    public void TriggerPointerLeave(Model? model, PointerEventArgs e) => PointerLeave?.Invoke(model, e);
+    public void TriggerPointerLeave(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerLeave?.Invoke(model, e);
+    }
 
     /// <summary>Raises <see cref="KeyDown"/>.</summary>
-    public void TriggerKeyDown(KeyboardEventArgs e) => KeyDown?.Invoke(e);
+    public void TriggerKeyDown(KeyboardEventArgs e)
+    {
+        using (Changes.Suspend())
+            KeyDown?.Invoke(e);
+    }
 
     /// <summary>Raises <see cref="Wheel"/>.</summary>
-    public void TriggerWheel(WheelEventArgs e) => Wheel?.Invoke(e);
+    public void TriggerWheel(WheelEventArgs e)
+    {
+        using (Changes.Suspend())
+            Wheel?.Invoke(e);
+    }
 
     /// <summary>
     /// Raises <see cref="PointerClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it when a press and release
     /// land on the same model without movement.
     /// </summary>
-    public void TriggerPointerClick(Model? model, PointerEventArgs e) => PointerClick?.Invoke(model, e);
+    public void TriggerPointerClick(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerClick?.Invoke(model, e);
+    }
 
     /// <summary>
     /// Raises <see cref="PointerDoubleClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it for two clicks within
     /// 500 ms.
     /// </summary>
-    public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e) => PointerDoubleClick?.Invoke(model, e);
+    public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e)
+    {
+        using (Changes.Suspend())
+            PointerDoubleClick?.Invoke(model, e);
+    }
 
     #endregion
 }

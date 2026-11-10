@@ -270,6 +270,73 @@ public class ChangeTrackerTests
         raised.Should().Equal(ModelChanges.Appearance);
     }
 
+    [Fact]
+    public void PointerMoveThatDragsTwoNodes_ShouldRaiseEachNodeAndLinkOnce()
+    {
+        // Arrange
+        var (diagram, a, b, link) = CreateLinkedNodes();
+        a.Selected = true;
+        b.Selected = true;
+        var router = (CountingRouter)link.Router!;
+        diagram.TriggerPointerDown(a, Pointer(10, 10));
+        var raisedA = Record(a);
+        var raisedB = Record(b);
+        var raisedLink = Record(link);
+        router.Calls = 0;
+
+        // Act
+        diagram.TriggerPointerMove(null, Pointer(40, 30));
+
+        // Assert
+        raisedA.Should().HaveCount(1);
+        raisedB.Should().HaveCount(1);
+        raisedLink.Should().HaveCount(1);
+        router.Calls.Should().Be(1);
+    }
+
+    [Fact]
+    public void PointerMoveWithNoGesture_ShouldNotRaiseDiagramChanged()
+    {
+        // Arrange
+        var (diagram, _, _, _) = CreateLinkedNodes();
+        var raised = 0;
+        diagram.Changed += () => raised++;
+
+        // Act
+        diagram.TriggerPointerMove(null, Pointer(40, 30));
+
+        // Assert
+        raised.Should().Be(0);
+    }
+
+    [Fact]
+    public void PointerMoveThatSnapsANewLinkToAPort_ShouldRouteTheLinkOnce()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        diagram.SetContainer(new Rectangle(0, 0, 1000, 400));
+        diagram.Options.Links.EnableSnapping = true;
+        diagram.Options.Links.SnappingRadius = 60;
+        var router = new CountingRouter();
+        diagram.Options.Links.Factory = (_, source, target) =>
+            new LinkModel(new Flow.Diagrams.Core.Anchors.SinglePortAnchor((PortModel)source), target) { Router = router };
+        var node1 = diagram.Nodes.Add(new NodeModel(new Point(100, 50)));
+        var node2 = diagram.Nodes.Add(new NodeModel(new Point(160, 50)));
+        var port1 = node1.AddPort(new PortModel(node1) { Initialized = true, Position = new Point(110, 60), Size = new Size(10, 20) });
+        node2.AddPort(new PortModel(node2) { Initialized = true, Position = new Point(170, 60), Size = new Size(10, 20) });
+        diagram.TriggerPointerDown(port1, Pointer(100, 100));
+        router.Calls = 0;
+
+        // Act
+        diagram.TriggerPointerMove(null, Pointer(140, 100));
+
+        // Assert
+        router.Calls.Should().Be(1);
+    }
+
+    private static Flow.Diagrams.Core.Events.PointerEventArgs Pointer(double x, double y) =>
+        new(x, y, 0, 0, false, false, false, 0, 0, 0, 0, 0, 0, string.Empty, true);
+
     private static (TestDiagram Diagram, NodeModel A, NodeModel B, LinkModel Link) CreateLinkedNodes()
     {
         var diagram = new TestDiagram();

@@ -77,7 +77,7 @@ public class NodeRenderer : ComponentBase, IDisposable
             return;
         }
 
-        Node.SetSize(size);
+        BlazorDiagram.Batch(() => Node.SetSize(size));
     }
 
     /// <inheritdoc />
