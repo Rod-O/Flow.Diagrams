@@ -63,6 +63,7 @@ public abstract class Model
 
     /// <summary>
     /// Recomputes derived geometry, such as a link's route, and raises <see cref="Changed"/> so the model is redrawn.
+    /// Setting a property already does this; call it for state the diagram cannot see, such as a property you added.
     /// </summary>
     public virtual void Refresh() => MarkChanged(ModelChanges.Appearance | ModelChanges.Geometry);
 

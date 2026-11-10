@@ -81,7 +81,7 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
     public IReadOnlyList<BaseLinkModel> Links => _links;
     /// <summary>
     /// If set to false, the renderer measures the port again the next time it is marked as changed, and updates its
-    /// position and size
+    /// position and size.
     /// </summary>
     public bool Initialized { get; set; }
 

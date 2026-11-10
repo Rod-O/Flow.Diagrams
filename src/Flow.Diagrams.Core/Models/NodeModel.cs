@@ -188,8 +188,8 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     }
 
     /// <summary>
-    /// Moves the node and its ports by the given offset in diagram units without raising <see cref="Moving"/>. Used
-    /// when a group moves its children.
+    /// Moves the node and its ports by the given offset in diagram units without raising <see cref="Moving"/>; its
+    /// links are routed again. Used when a group moves its children.
     /// </summary>
     public virtual void UpdatePositionSilently(double deltaX, double deltaY)
     {

@@ -68,7 +68,7 @@ Events are plain .NET events, raised outside your component's render cycle: when
 | `KeyDown`, `Wheel` | Keyboard (while the canvas has focus) and wheel input. |
 | `PanChanged`, `ZoomChanged`, `ContainerChanged` | After the viewport or the canvas size changes. |
 | `Nodes.Added`, `Nodes.Removed` (and `Links`, `Groups`) | For each item added or removed. |
-| `Changed` | When the diagram needs to redraw (models added or removed, pan, zoom, drawing order); the canvas listens to it. Input events do not raise it. |
+| `Changed` | When the diagram needs to redraw (models added or removed, pan, zoom, drawing order); the canvas listens to it. A pointer move with no gesture does not raise it. |
 
 Two node events are easy to confuse: `Moved` fires once when a drag that moved the node ends, and never for `SetPosition`; `Moving` fires on every `SetPosition`, including each step of a drag.
 

@@ -290,6 +290,7 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     }
 
     /// <summary>Recomputes the route now, without marking or raising; for callers that route a link repeatedly inside one flush.</summary>
+    // Follow it with a Geometry mark: LinkHalosBehavior recomputes halos only on Geometry marks.
     internal void RegenerateRoute() => GeneratePath();
 
     private void GeneratePath()

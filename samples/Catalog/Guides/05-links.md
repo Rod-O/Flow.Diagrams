@@ -16,9 +16,10 @@ Changing a link that is already in the diagram redraws it, and re-routes it when
 |---|---|
 | `Model.Locked` | Appearance |
 | `SelectableModel.Selected` | Appearance (selecting a link redraws it; it does not re-route it) |
-| `BaseLinkModel.Router`, `PathGenerator`, `SourceMarker`, `TargetMarker`, `SetSource`, `SetTarget`, `AddVertex` | Geometry |
+| `SelectableModel.CssClass` | Appearance |
+| `BaseLinkModel.Router`, `PathGenerator`, `SourceMarker`, `TargetMarker`, `SetSource`, `SetTarget`, `AddVertex`, `InsertVertex`, `RemoveVertex` | Geometry |
 | `BaseLinkModel.Segmentable`, `AddLabel` | Appearance |
-| `LinkModel.Color`, `SelectedColor`, `Width` | Appearance |
+| `LinkModel.Color`, `SelectedColor`, `Width`, `Flow` | Appearance |
 | `LinkLabelModel.Content`, `Distance`, `Offset` | Appearance |
 | `LinkVertexModel.SetPosition` | Geometry |
 

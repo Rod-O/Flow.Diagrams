@@ -57,12 +57,13 @@ To resize a controlled node, call `SetSize(size)`: it sets `Size`, which redraws
 
 The diagram redraws from the model: `Diagram.Nodes.Add` and `Remove` work at any time, and removing a node removes its links too. Setting a node's properties redraws it; call `node.Refresh()` only for state the diagram cannot see, such as a property you added.
 
-A node, port and group mark their changes as follows. A mark is `Appearance` (redraw) or `Geometry` (redraw, and recompute what depends on the shape: links, group bounds).
+A node and its ports mark their changes as follows; a group is a node and marks the same way. A mark is `Appearance` (redraw) or `Geometry` (redraw, and recompute what depends on the shape: links, group bounds).
 
 | Member | Marks |
 |---|---|
 | `Model.Locked` | Appearance |
 | `SelectableModel.Selected` | Appearance |
+| `SelectableModel.CssClass` | Appearance |
 | `MovableModel.Position` (setter) | Geometry |
 | `NodeModel.Title` | Appearance |
 | `NodeModel.Size` (still raises `SizeChanged`) | Geometry |

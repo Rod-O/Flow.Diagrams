@@ -174,11 +174,12 @@ public abstract class Diagram
 
     /// <summary>
     /// Runs <paramref name="action"/> with refreshes suspended and model changes deferred, then raises each changed
-    /// model's <see cref="Model.Changed"/> once and calls <see cref="Refresh"/> once. Inside an outer batch (or any
-    /// suspended refresh) it only runs the action and leaves both to the outer caller. If the action throws, the
-    /// models are still raised, refreshes restored and the diagram refreshed (whatever the action changed before
-    /// throwing is drawn), then the action's exception propagates; an exception from a model's handler propagates
-    /// only when the action did not throw.
+    /// model's <see cref="Model.Changed"/> once and calls <see cref="Refresh"/> once. Inside an outer batch it only
+    /// runs the action and leaves both to the outer batch. While <see cref="SuspendRefresh"/> was set by hand it also
+    /// only runs the action, and does not defer model changes: outside an input event each flushes as it is made. If
+    /// the action throws, the models are still raised, refreshes restored and the diagram refreshed (whatever the
+    /// action changed before throwing is drawn), then the action's exception propagates; an exception from a model's
+    /// handler propagates only when the action did not throw.
     /// </summary>
     public void Batch(Action action)
     {

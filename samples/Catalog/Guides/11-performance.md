@@ -10,7 +10,7 @@ Every drawn piece is a component that redraws only when its own model says so. T
 
 | Component | Redraws when |
 |---|---|
-| [DiagramCanvas](xref:Flow.Diagrams.Components.DiagramCanvas) | The diagram raises `Changed`: models added or removed, pan, zoom, drawing order. Input events do not raise it, so a pointer move with no gesture renders no canvas. |
+| [DiagramCanvas](xref:Flow.Diagrams.Components.DiagramCanvas) | The diagram raises `Changed`: models added or removed, pan, zoom, drawing order. A pointer move with no gesture raises no `Diagram.Changed`, so it renders no canvas. |
 | `NodeRenderer`, `GroupRenderer`, `LinkRenderer`, `PortRenderer` | Their model raises `Changed` (a property was set, or `model.Refresh()` ran) or its `Visible` changes. |
 | `ControlsLayerRenderer` | The controls of a model in its layer are shown, hidden, changed, or their model changes while they are shown. |
 
