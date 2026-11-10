@@ -1,4 +1,4 @@
-﻿using Flow.Diagrams.Core.Geometry;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models;
 using FluentAssertions;
 using Xunit;

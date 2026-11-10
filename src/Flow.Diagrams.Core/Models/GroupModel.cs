@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 ﻿using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
