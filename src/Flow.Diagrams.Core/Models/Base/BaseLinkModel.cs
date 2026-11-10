@@ -289,6 +289,9 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
             tracker.Mark(vertex, ModelChanges.Appearance);
     }
 
+    /// <summary>Recomputes the route now, without marking or raising; for callers that route a link repeatedly inside one flush.</summary>
+    internal void RegenerateRoute() => GeneratePath();
+
     private void GeneratePath()
     {
         if (Diagram != null)

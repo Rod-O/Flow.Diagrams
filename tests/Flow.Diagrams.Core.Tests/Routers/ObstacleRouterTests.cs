@@ -142,6 +142,47 @@ public class ObstacleRouterTests
         route.Should().BeEmpty();
     }
 
+    [Fact]
+    public void RouteAll_ShouldRouteEveryLinkOncePerPassAndRaiseEachOnceWithGeometry()
+    {
+        // Arrange
+        var diagram = new TestDiagram();
+        var router = new CountingObstacleRouter();
+        var links = new List<LinkModel>();
+        for (var i = 0; i < 3; i++)
+        {
+            var a = AddNode(diagram, 0, i * 150, 60, 60);
+            var b = AddNode(diagram, 400, i * 150, 60, 60);
+            links.Add(Connect(diagram, router, Port(a, PortAlignment.Right), Port(b, PortAlignment.Left)));
+        }
+
+        router.Calls = 0;
+        var raised = links.Select(_ => new List<ModelChanges>()).ToList();
+        for (var i = 0; i < links.Count; i++)
+        {
+            var seen = raised[i];
+            links[i].Changed += (_, changes) => seen.Add(changes);
+        }
+
+        // Act
+        router.RouteAll(diagram, reroutePasses: 2);
+
+        // Assert
+        router.Calls.Should().Be(3 * links.Count);
+        raised.Should().OnlyContain(r => r.Count == 1 && r[0].HasFlag(ModelChanges.Geometry));
+    }
+
+    private sealed class CountingObstacleRouter : ObstacleRouter
+    {
+        public int Calls { get; set; }
+
+        public override Point[] GetRoute(Diagram diagram, BaseLinkModel link)
+        {
+            Calls++;
+            return base.GetRoute(diagram, link);
+        }
+    }
+
     private static int CrossingsWithAVerticalNet(double crossCost)
     {
         // A vertical link from P down to Q walls off the middle; the horizontal link from A to B must either cross it

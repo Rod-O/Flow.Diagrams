@@ -44,9 +44,13 @@ public class ObstacleRouter : Router
         var links = diagram.Links.Where(l => ReferenceEquals(l.Router ?? diagram.Options.Links.DefaultRouter, this)).ToList();
         diagram.Batch(() =>
         {
-            for (var pass = 0; pass <= reroutePasses; pass++)
+            for (var pass = 0; pass < reroutePasses; pass++)
                 foreach (var link in links)
-                    link.MarkChanged(ModelChanges.Geometry);
+                    link.RegenerateRoute();
+
+            // Marks inside a batch collapse into one flush: the earlier passes route synchronously, this one raises.
+            foreach (var link in links)
+                link.MarkChanged(ModelChanges.Geometry);
         });
     }
 
