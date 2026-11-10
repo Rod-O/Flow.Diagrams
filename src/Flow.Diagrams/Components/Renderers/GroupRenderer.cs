@@ -68,7 +68,6 @@ public class GroupRenderer : ComponentBase, IDisposable
             if (_lastSize == null || !_lastSize.Equals(Group.Size))
             {
                 Group.ReinitializePorts();
-                Group.RefreshLinks();
                 _lastSize = Group.Size;
             }
         }

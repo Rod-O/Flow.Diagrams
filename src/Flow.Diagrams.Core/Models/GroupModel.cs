@@ -70,10 +70,7 @@ public class GroupModel : NodeModel
         child.Moving += OnNodeChanged;
         child.OrderChanged += OnChildOrderChanged;
 
-        if (UpdateDimensions())
-        {
-            Refresh();
-        }
+        UpdateDimensions();
     }
 
     /// <summary>Removes <paramref name="child"/> and resizes the group; does nothing if it is not a child.</summary>
@@ -87,39 +84,35 @@ public class GroupModel : NodeModel
         child.Moving -= OnNodeChanged;
         child.OrderChanged -= OnChildOrderChanged;
 
-        if (UpdateDimensions())
-        {
-            Refresh();
-            RefreshLinks();
-        }
+        UpdateDimensions();
     }
 
-    /// <summary>Moves the group and every child by the same offset, then refreshes them and their links.</summary>
+    /// <summary>
+    /// Moves the group and every child by the same offset; the group, the children and their links are marked once.
+    /// </summary>
     public override void SetPosition(double x, double y)
     {
         var deltaX = x - Position.X;
         var deltaY = y - Position.Y;
-        base.SetPosition(x, y);
-
-        foreach (var node in Children)
+        using (Suspend())
         {
-            node.UpdatePositionSilently(deltaX, deltaY);
-            node.RefreshLinks();
-        }
+            base.SetPosition(x, y);
 
-        Refresh();
-        RefreshLinks();
+            foreach (var node in Children)
+                node.UpdatePositionSilently(deltaX, deltaY);
+        }
     }
 
-    /// <summary>Moves the group and every child by the given offset without refreshing links.</summary>
+    /// <summary>Moves the group and every child by the given offset without raising <see cref="NodeModel.Moving"/>.</summary>
     public override void UpdatePositionSilently(double deltaX, double deltaY)
     {
-        base.UpdatePositionSilently(deltaX, deltaY);
+        using (Suspend())
+        {
+            base.UpdatePositionSilently(deltaX, deltaY);
 
-        foreach (var child in Children)
-            child.UpdatePositionSilently(deltaX, deltaY);
-
-        Refresh();
+            foreach (var child in Children)
+                child.UpdatePositionSilently(deltaX, deltaY);
+        }
     }
 
     /// <summary>
@@ -154,15 +147,9 @@ public class GroupModel : NodeModel
     }
 
     // Children are drawn inside the group's element in their drawing order, so the group redraws when it changes.
-    private void OnChildOrderChanged(SelectableModel _) => Refresh();
+    private void OnChildOrderChanged(SelectableModel _) => MarkChanged(ModelChanges.Appearance);
 
-    private void OnNodeChanged(NodeModel node)
-    {
-        if (UpdateDimensions())
-        {
-            Refresh();
-        }
-    }
+    private void OnNodeChanged(NodeModel node) => UpdateDimensions();
 
     /// <summary>Fits the group around its children, as <see cref="UpdateDimensions"/> does.</summary>
     protected internal override void UpdateGeometry() => UpdateDimensions();

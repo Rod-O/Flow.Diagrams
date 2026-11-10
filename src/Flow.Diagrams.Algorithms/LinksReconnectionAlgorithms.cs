@@ -19,9 +19,6 @@ public static class LinksReconnectionAlgorithms
     /// </summary>
     public static void ReconnectLinksToClosestPorts(this Diagram diagram)
     {
-        // Only refresh ports once
-        var modelsToRefresh = new HashSet<Model>();
-
         foreach (var link in diagram.Links.ToArray())
         {
             if (link.Locked || link.Source is not SinglePortAnchor spa1 || link.Target is not SinglePortAnchor spa2)
@@ -60,24 +57,13 @@ public static class LinksReconnectionAlgorithms
             // Reconnect
             if (spa1.Port != minSourcePort)
             {
-                modelsToRefresh.Add(spa1.Port);
-                modelsToRefresh.Add(minSourcePort);
                 link.SetSource(new SinglePortAnchor(minSourcePort));
-                modelsToRefresh.Add(link);
             }
 
             if (spa2.Port != minTargetPort)
             {
-                modelsToRefresh.Add(spa2.Port);
-                modelsToRefresh.Add(minTargetPort);
                 link.SetTarget(new SinglePortAnchor(minTargetPort));
-                modelsToRefresh.Add(link);
             }
-        }
-
-        foreach (var model in modelsToRefresh)
-        {
-            model.Refresh();
         }
     }
 

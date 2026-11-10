@@ -158,21 +158,20 @@ public class PortRenderer : ComponentBase, IDisposable
         var pan = BlazorDiagram.Pan;
         var rect = await JSRuntime.GetBoundingClientRect(_element);
 
-        Port.Size = new Size(rect.Width / zoom, rect.Height / zoom);
-        Port.Position = new Point((rect.Left - BlazorDiagram.Container.Left - pan.X) / zoom,
-            (rect.Top - BlazorDiagram.Container.Top - pan.Y) / zoom);
-
+        // Initialized first: the marks of the setters below must not start another measurement.
         Port.Initialized = true;
         _updatingDimensions = false;
+        var changedMeanwhile = _shouldRefreshPort;
+        _shouldRefreshPort = false;
 
-        if (_shouldRefreshPort)
+        using (Port.Suspend())
         {
-            _shouldRefreshPort = false;
-            Port.RefreshAll();
-        }
-        else
-        {
-            Port.RefreshLinks();
+            if (changedMeanwhile)
+                Port.MarkChanged(ModelChanges.Appearance);
+
+            Port.Size = new Size(rect.Width / zoom, rect.Height / zoom);
+            Port.Position = new Point((rect.Left - BlazorDiagram.Container.Left - pan.X) / zoom,
+                (rect.Top - BlazorDiagram.Container.Top - pan.Y) / zoom);
         }
     }
 

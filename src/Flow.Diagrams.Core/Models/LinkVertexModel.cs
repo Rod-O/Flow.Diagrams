@@ -21,11 +21,6 @@ public class LinkVertexModel : MovableModel
 
     internal override ChangeTracker? Tracker => Parent.Tracker;
 
-    /// <summary>Moves the vertex and refreshes the parent link so it is routed through the new position.</summary>
-    public override void SetPosition(double x, double y)
-    {
-        base.SetPosition(x, y);
-        Refresh();
-        Parent.Refresh();
-    }
+    // Moving a vertex routes the parent link through the new position.
+    internal override void PropagateGeometry(ChangeTracker tracker) => tracker.Mark(Parent, ModelChanges.Geometry);
 }

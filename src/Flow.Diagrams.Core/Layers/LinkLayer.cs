@@ -19,7 +19,7 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
         link.Diagram = Diagram;
         HandleAnchor(link, link.Source, true);
         HandleAnchor(link, link.Target, true);
-        link.Refresh();
+        link.MarkChanged(ModelChanges.Geometry);
 
         link.SourceChanged += OnLinkSourceChanged;
         link.TargetChanged += OnLinkTargetChanged;
@@ -34,7 +34,7 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
         link.Diagram = null;
         HandleAnchor(link, link.Source, false);
         HandleAnchor(link, link.Target, false);
-        link.Refresh();
+        link.MarkChanged(ModelChanges.Geometry);
 
         link.SourceChanged -= OnLinkSourceChanged;
         link.TargetChanged -= OnLinkTargetChanged;
@@ -68,7 +68,7 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
 
         if (anchor.Model is Model model)
         {
-            model.Refresh();
+            model.MarkChanged(ModelChanges.Appearance);
         }
     }
 }

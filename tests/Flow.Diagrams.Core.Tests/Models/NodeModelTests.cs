@@ -42,8 +42,7 @@ public class NodeModelTests
         // Assert
         node.Size.Should().Be(new Size(200, 80));
         nodeRefreshes.Should().Be(1);
-        // Refresh and RefreshLinks each flush outside a batch, and the node's Refresh already marks the link.
-        linkRefreshes.Should().Be(2);
+        linkRefreshes.Should().Be(1);
         port.Initialized.Should().BeFalse();
     }
 

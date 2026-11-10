@@ -11,6 +11,9 @@ namespace Flow.Diagrams.Core.Models.Base;
 public abstract class Model
 {
     private bool _visible = true;
+    private bool _locked;
+    private int _suspended;
+    private ModelChanges _held;
     private ChangeTracker? _tracker;
     
     /// <summary>Creates a model with a new GUID as its <see cref="Id"/>.</summary>
@@ -33,10 +36,14 @@ public abstract class Model
     public string Id { get; }
     /// <summary>
     /// Whether the model is protected from interaction: a locked movable model is not moved by dragging, and a locked
-    /// port cannot start a link or receive one. Nodes and groups also get a <c>locked</c> CSS class. Setting it does
-    /// not refresh the model.
+    /// port cannot start a link or receive one. Nodes and groups also get a <c>locked</c> CSS class. A change raises
+    /// <see cref="Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public bool Locked { get; set; }
+    public bool Locked
+    {
+        get => _locked;
+        set => SetField(ref _locked, value, ModelChanges.Appearance);
+    }
     /// <summary>
     /// Whether the model is rendered; raises <see cref="VisibilityChanged"/> when it changes. With <see
     /// cref="Options.DiagramVirtualizationOptions"/> enabled, virtualization overwrites it for the models it covers.
@@ -74,6 +81,12 @@ public abstract class Model
             return;
         }
 
+        if (_suspended > 0)
+        {
+            _held |= changes;
+            return;
+        }
+
         if (changes.HasFlag(ModelChanges.Geometry))
             UpdateGeometry();
 
@@ -88,6 +101,13 @@ public abstract class Model
     /// vertices use their parent's.
     /// </summary>
     internal virtual ChangeTracker? Tracker => _tracker;
+
+    /// <summary>
+    /// Defers what this model marks until the returned handle is disposed, so a method that changes several
+    /// properties raises and recomputes once. In a diagram this is the tracker's suspension; elsewhere it holds back
+    /// this model's own marks.
+    /// </summary>
+    internal IDisposable Suspend() => Tracker?.Suspend() ?? new LocalSuspension(this);
 
     /// <summary>Set by a layer when it adds this model, and cleared when it removes it.</summary>
     internal void AttachTracker(ChangeTracker? tracker) => _tracker = tracker;
@@ -110,5 +130,28 @@ public abstract class Model
         field = value;
         MarkChanged(changes);
         return true;
+    }
+
+    private sealed class LocalSuspension : IDisposable
+    {
+        private Model? _model;
+
+        public LocalSuspension(Model model)
+        {
+            _model = model;
+            model._suspended++;
+        }
+
+        public void Dispose()
+        {
+            var model = _model;
+            _model = null;
+            if (model == null || --model._suspended > 0 || model._held == ModelChanges.None)
+                return;
+
+            var held = model._held;
+            model._held = ModelChanges.None;
+            model.MarkChanged(held);
+        }
     }
 }

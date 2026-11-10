@@ -46,7 +46,7 @@ public class ObstacleRouter : Router
         {
             for (var pass = 0; pass <= reroutePasses; pass++)
                 foreach (var link in links)
-                    link.Refresh();
+                    link.MarkChanged(ModelChanges.Geometry);
         });
     }
 
