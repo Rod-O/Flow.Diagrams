@@ -1,0 +1,6 @@
+- `Model.Changed` is `Action<Model, ModelChanges>`. Handlers take the reason. Breaking.
+- `RaiseChanged` removed. Breaking for subclasses in the library's assembly only.
+- `RefreshAll` and `RefreshLinks` on nodes, ports and links are obsolete: setting a property redraws what depends on it. They still work. Keep `Refresh()` for state the diagram cannot see.
+- A `Changed` handler now runs once per model per batch or input event, after the batch, not at each change. Breaking for handlers that read intermediate states.
+- `Selected` now notifies, and selecting a link redraws it without re-routing it.
+- Input events no longer raise `Diagram.Changed`: a pointer move with no gesture renders no canvas. A node's measured resize flushes once without raising it.

@@ -10,7 +10,19 @@ A [LinkModel](xref:Flow.Diagrams.Core.Models.LinkModel) joins two anchors. The c
 
 The other constructors take two nodes, and the link then ends where it crosses each node's outline ([links without ports](examples/portless-links)), or any two anchors ([dynamic anchors](examples/dynamic-anchors)).
 
-`AddLabel`, `AddVertex`, `InsertVertex`, `SetSource` and `SetTarget` do not redraw the link. When you change a link that is already in the diagram, call `link.Refresh()` afterwards.
+Changing a link that is already in the diagram redraws it, and re-routes it when the change affects its shape; there is nothing to call afterwards. Many changes go in one `Diagram.Batch`. Call `link.Refresh()` only for state the diagram cannot see.
+
+| Member | Marks |
+|---|---|
+| `Model.Locked` | Appearance |
+| `SelectableModel.Selected` | Appearance (selecting a link redraws it; it does not re-route it) |
+| `BaseLinkModel.Router`, `PathGenerator`, `SourceMarker`, `TargetMarker`, `SetSource`, `SetTarget`, `AddVertex` | Geometry |
+| `BaseLinkModel.Segmentable`, `AddLabel` | Appearance |
+| `LinkModel.Color`, `SelectedColor`, `Width` | Appearance |
+| `LinkLabelModel.Content`, `Distance`, `Offset` | Appearance |
+| `LinkVertexModel.SetPosition` | Geometry |
+
+`Labels` and `Vertices` are lists: changing them directly is not tracked. Use `AddLabel` and `AddVertex`. `BaseLinkModel.RefreshLinks` is obsolete.
 
 ## Drawing links by dragging
 

@@ -51,11 +51,24 @@ The widget draws in the node's own coordinates: `(0, 0)` is the node's top-left 
 
 SVG nodes need a controlled size. A measured SVG node's box includes everything drawn, ports sticking out of the shape included; a widget that draws to `Node.Size` then grows, is measured bigger, and grows again on every render.
 
-To resize a controlled node, call `SetSize(size)`: it sets `Size`, refreshes the node and the links attached to it, and calls `ReinitializePorts()` so the ports are measured at their new places, as the renderer does when it measures a node. Setting `Size` alone does none of that.
+To resize a controlled node, call `SetSize(size)`: it sets `Size`, which redraws the node and re-routes the links attached to it, and calls `ReinitializePorts()` so the ports are measured at their new places, as the renderer does when it measures a node. Setting `Size` alone does not re-measure the ports.
 
 ## Adding and removing at run time
 
-The diagram redraws from the model: `Diagram.Nodes.Add` and `Remove` work at any time, and removing a node removes its links too. Change a node's own properties and call `node.Refresh()`, or the node keeps showing the old values.
+The diagram redraws from the model: `Diagram.Nodes.Add` and `Remove` work at any time, and removing a node removes its links too. Setting a node's properties redraws it; call `node.Refresh()` only for state the diagram cannot see, such as a property you added.
+
+A node, port and group mark their changes as follows. A mark is `Appearance` (redraw) or `Geometry` (redraw, and recompute what depends on the shape: links, group bounds).
+
+| Member | Marks |
+|---|---|
+| `Model.Locked` | Appearance |
+| `SelectableModel.Selected` | Appearance |
+| `MovableModel.Position` (setter) | Geometry |
+| `NodeModel.Title` | Appearance |
+| `NodeModel.Size` (still raises `SizeChanged`) | Geometry |
+| `PortModel.Position`, `PortModel.Size` | Geometry |
+
+`NodeModel.RefreshAll` and `RefreshLinks` are obsolete: the marks above replace them.
 
 {{example dynamic-nodes}}
 
