@@ -119,6 +119,33 @@ public class ChangeTrackerTests
     }
 
     [Fact]
+    public void AGroupThatMovesWhileRefitting_ShouldBeRaisedAndItsPortLinksRoutedOncePerFlush()
+    {
+        // Arrange
+        var (diagram, child, sibling, _) = CreateLinkedNodes();
+        var group = diagram.Groups.Group(child, sibling);
+        var outside = diagram.Nodes.Add(new NodeModel(new Point(900, 0)) { Size = new Size(100, 50) });
+        var router = new CountingRouter();
+        var link = diagram.Links.Add(new LinkModel(group.AddPort(PortAlignment.Right), outside.AddPort(PortAlignment.Left))
+        {
+            Router = router
+        });
+        router.Calls = 0;
+        var raisedGroup = Record(group);
+        var raisedLink = Record(link);
+        var groupPositionBefore = group.Position;
+
+        // Act
+        diagram.Batch(() => child.UpdatePositionSilently(-200, -100));
+
+        // Assert
+        group.Position.Should().NotBe(groupPositionBefore);
+        raisedGroup.Should().Equal(AppearanceAndGeometry);
+        raisedLink.Should().Equal(AppearanceAndGeometry);
+        router.Calls.Should().Be(1);
+    }
+
+    [Fact]
     public void MarksMadeByAChangedHandler_ShouldFlushInTheSameFlush_AsAFurtherPass()
     {
         // Arrange

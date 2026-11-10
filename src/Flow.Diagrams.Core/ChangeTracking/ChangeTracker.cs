@@ -16,30 +16,40 @@ internal sealed class ChangeTracker
 
     private List<Model> _order = new();
     private Dictionary<Model, ModelChanges> _pending = new(ReferenceEqualityComparer.Instance);
+    private List<Model> _passOrder = new();
+    private Dictionary<Model, ModelChanges> _passChanges = new(ReferenceEqualityComparer.Instance);
+    private Phase _phase;
+    private Model? _updating;
     private int _depth;
+
+    private enum Phase { Idle, NodeGeometry, LinkGeometry, Raise }
 
     /// <summary>Whether a flush is running; marks made meanwhile are raised in a further pass of the same flush.</summary>
     public bool IsFlushing { get; private set; }
 
     /// <summary>
     /// Adds <paramref name="changes"/> to what is pending for <paramref name="model"/>; the first geometry mark of a
-    /// model in a pass also marks its dependents. Flushes at once when not suspended and not already flushing.
+    /// model in a pass also marks its dependents. Flushes at once when not suspended and not already flushing. While
+    /// geometry is being recomputed, a model marking itself and a link marked before the links are routed join the
+    /// current pass, so neither is recomputed or raised twice.
     /// </summary>
     public void Mark(Model model, ModelChanges changes)
     {
-        if (_pending.TryGetValue(model, out var pending))
+        if (_phase is Phase.NodeGeometry or Phase.LinkGeometry && ReferenceEquals(model, _updating))
         {
-            _pending[model] = pending | changes;
-        }
-        else
-        {
-            pending = ModelChanges.None;
-            _pending[model] = changes;
-            _order.Add(model);
+            _passChanges[model] |= changes;
+            if (changes.HasFlag(ModelChanges.Geometry))
+                model.PropagateGeometry(this);
+            return;
         }
 
-        if (changes.HasFlag(ModelChanges.Geometry) && !pending.HasFlag(ModelChanges.Geometry))
-            model.PropagateGeometry(this);
+        if (_phase == Phase.NodeGeometry && model is BaseLinkModel)
+        {
+            Add(_passOrder, _passChanges, model, changes);
+            return;
+        }
+
+        Add(_order, _pending, model, changes);
 
         if (_depth == 0 && !IsFlushing)
             Flush();
@@ -50,6 +60,23 @@ internal sealed class ChangeTracker
     {
         _depth++;
         return new Suspension(this);
+    }
+
+    private void Add(List<Model> order, Dictionary<Model, ModelChanges> pending, Model model, ModelChanges changes)
+    {
+        if (pending.TryGetValue(model, out var previous))
+        {
+            pending[model] = previous | changes;
+        }
+        else
+        {
+            previous = ModelChanges.None;
+            pending[model] = changes;
+            order.Add(model);
+        }
+
+        if (changes.HasFlag(ModelChanges.Geometry) && !previous.HasFlag(ModelChanges.Geometry))
+            model.PropagateGeometry(this);
     }
 
     private void Resume()
@@ -67,23 +94,25 @@ internal sealed class ChangeTracker
         {
             for (var pass = 1; pass <= MaxPasses && _order.Count > 0; pass++)
             {
-                var order = _order;
-                var changes = _pending;
+                _passOrder = _order;
+                _passChanges = _pending;
                 _order = new List<Model>();
                 _pending = new Dictionary<Model, ModelChanges>(ReferenceEqualityComparer.Instance);
 
                 // Links route against the geometry of the nodes and groups they attach to, so those go first.
-                UpdateGeometry(order, changes, links: false);
-                UpdateGeometry(order, changes, links: true);
+                UpdateGeometry(Phase.NodeGeometry);
+                UpdateGeometry(Phase.LinkGeometry);
 
-                foreach (var model in order)
+                _phase = Phase.Raise;
+                for (var i = 0; i < _passOrder.Count; i++)
                 {
+                    var model = _passOrder[i];
                     if (model.Tracker != this)
                         continue;
 
                     try
                     {
-                        model.RaiseChanged(changes[model] | ModelChanges.Appearance);
+                        model.RaiseChanged(_passChanges[model] | ModelChanges.Appearance);
                     }
                     catch (Exception e)
                     {
@@ -102,6 +131,10 @@ internal sealed class ChangeTracker
         }
         finally
         {
+            _phase = Phase.Idle;
+            _updating = null;
+            _passOrder = new List<Model>();
+            _passChanges = new Dictionary<Model, ModelChanges>(ReferenceEqualityComparer.Instance);
             IsFlushing = false;
         }
 
@@ -109,15 +142,29 @@ internal sealed class ChangeTracker
             ExceptionDispatchInfo.Capture(firstFailure).Throw();
     }
 
-    private void UpdateGeometry(List<Model> order, Dictionary<Model, ModelChanges> changes, bool links)
+    private void UpdateGeometry(Phase phase)
     {
-        foreach (var model in order)
+        _phase = phase;
+        var links = phase == Phase.LinkGeometry;
+        // Indexed, because links marked while the nodes update are appended to this pass.
+        for (var i = 0; i < _passOrder.Count; i++)
         {
+            var model = _passOrder[i];
             if (model is BaseLinkModel != links || model.Tracker != this)
                 continue;
 
-            if (changes[model].HasFlag(ModelChanges.Geometry))
+            if (!_passChanges[model].HasFlag(ModelChanges.Geometry))
+                continue;
+
+            _updating = model;
+            try
+            {
                 model.UpdateGeometry();
+            }
+            finally
+            {
+                _updating = null;
+            }
         }
     }
 
