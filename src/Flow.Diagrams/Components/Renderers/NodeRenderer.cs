@@ -77,7 +77,8 @@ public class NodeRenderer : ComponentBase, IDisposable
             return;
         }
 
-        Node.SetSize(size);
+        using (BlazorDiagram.Changes.Suspend())
+            Node.SetSize(size);
     }
 
     /// <inheritdoc />
@@ -171,6 +172,8 @@ public class NodeRenderer : ComponentBase, IDisposable
             // and the component is disposed. It can be ignored
         }
     }
+
+    private void OnNodeChanged(Model model, ModelChanges changes) => OnNodeChanged(model);
 
     private void OnNodeChanged(Model _)
     {

@@ -50,12 +50,12 @@ Two ports that face each other on one line, with nothing in between, get a strai
 
 ## When links are re-routed
 
-A link is routed when it refreshes: when it is added, when its own nodes or ports move or resize, and when you call `link.Refresh()`. Two consequences:
+A link is routed when the diagram flushes a geometry change that concerns it: when it is added, when its own nodes or ports move or resize, when its router, path generator, markers or ends change, and when you call `link.Refresh()`. Each link is routed once per flush, however many changes reached it. Two consequences:
 
 - Moving a node into another link's way does not re-route that link. It is routed again only when one of its own ends moves.
 - Each link is routed against the routes the other links have at that moment, so the result depends on the order. Links routed one by one as they are added often box each other in.
 
-`RouteAll(diagram, reroutePasses = 2)` fixes both: it refreshes every link whose router is this instance (its own `Router`, or the default router) once, then again for each pass, in one batch. Call it once the nodes have their sizes, and after the user moves something; a node raises `Moved` once when a drag ends (see [MovableModel](xref:Flow.Diagrams.Core.Models.Base.MovableModel)). While a node is being dragged, its own links are re-routed on every pointer move.
+`RouteAll(diagram, reroutePasses = 2)` fixes both: it routes every link whose router is this instance (its own `Router`, or the default router) once, then again for each pass (`reroutePasses + 1` routings per link), in one batch, and each link raises `Changed` once. Call it once the nodes have their sizes, and after the user moves something; a node raises `Moved` once when a drag ends (see [MovableModel](xref:Flow.Diagrams.Core.Models.Base.MovableModel)). While a node is being dragged, its own links are re-routed once per pointer move.
 
 ## Nets
 

@@ -1,4 +1,5 @@
 ﻿using Flow.Diagrams.Core.Anchors;
+using Flow.Diagrams.Core.ChangeTracking;
 using Flow.Diagrams.Core.Geometry;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,11 @@ namespace Flow.Diagrams.Core.Models.Base;
 public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 {
     private readonly List<BaseLinkModel> _links = new();
+    private Router? _router;
+    private PathGenerator? _pathGenerator;
+    private LinkMarker? _sourceMarker;
+    private LinkMarker? _targetMarker;
+    private bool _segmentable;
 
     /// <summary>Raised by <see cref="SetSource"/> with the link, the old anchor and the new anchor.</summary>
     public event Action<BaseLinkModel, Anchor, Anchor>? SourceChanged;
@@ -53,12 +59,12 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// </summary>
     public Diagram? Diagram { get; internal set; }
     /// <summary>
-    /// The points the router produced at the last <see cref="Refresh"/>, or <c>null</c> when the link has no diagram
+    /// The points the router produced at the last geometry update, or <c>null</c> when the link has no diagram
     /// or an anchor has no position.
     /// </summary>
     public Point[]? Route { get; private set; }
     /// <summary>
-    /// The drawable path generated from <see cref="Route"/> at the last <see cref="Refresh"/>, or <c>null</c> when
+    /// The drawable path generated from <see cref="Route"/> at the last geometry update, or <c>null</c> when
     /// there is no route.
     /// </summary>
     public PathGeneratorResult? PathGeneratorResult { get; private set; }
@@ -68,48 +74,72 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     /// </summary>
     public bool IsAttached => Source is not PositionAnchor && Target is not PositionAnchor;
     /// <summary>
-    /// The router of this link; <c>null</c> uses <see cref="Options.DiagramLinkOptions.DefaultRouter"/>. Takes effect
-    /// on the next <see cref="Refresh"/>.
+    /// The router of this link; <c>null</c> uses <see cref="Options.DiagramLinkOptions.DefaultRouter"/>. A change
+    /// routes the link again and raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>.
     /// </summary>
-    public Router? Router { get; set; }
+    public Router? Router
+    {
+        get => _router;
+        set => SetField(ref _router, value, ModelChanges.Geometry);
+    }
     /// <summary>
     /// The path generator of this link; <c>null</c> uses <see
-    /// cref="Options.DiagramLinkOptions.DefaultPathGenerator"/>. Takes effect on the next <see cref="Refresh"/>.
+    /// cref="Options.DiagramLinkOptions.DefaultPathGenerator"/>. A change generates the path again and raises <see
+    /// cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>.
     /// </summary>
-    public PathGenerator? PathGenerator { get; set; }
-    /// <summary>The marker drawn at the source end, or <c>null</c> for none.</summary>
-    public LinkMarker? SourceMarker { get; set; }
-    /// <summary>The marker drawn at the target end, or <c>null</c> for none.</summary>
-    public LinkMarker? TargetMarker { get; set; }
+    public PathGenerator? PathGenerator
+    {
+        get => _pathGenerator;
+        set => SetField(ref _pathGenerator, value, ModelChanges.Geometry);
+    }
+    /// <summary>
+    /// The marker drawn at the source end, or <c>null</c> for none. A change routes the link again (the line is
+    /// shortened by the marker) and raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>.
+    /// </summary>
+    public LinkMarker? SourceMarker
+    {
+        get => _sourceMarker;
+        set => SetField(ref _sourceMarker, value, ModelChanges.Geometry);
+    }
+    /// <summary>
+    /// The marker drawn at the target end, or <c>null</c> for none. A change routes the link again (the line is
+    /// shortened by the marker) and raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>.
+    /// </summary>
+    public LinkMarker? TargetMarker
+    {
+        get => _targetMarker;
+        set => SetField(ref _targetMarker, value, ModelChanges.Geometry);
+    }
     /// <summary>
     /// Whether pressing the pointer on a segment of the link creates a vertex there and starts dragging it. Has no
-    /// effect when the link's router does not <see cref="Routers.Router.FollowsVertices"/>.
+    /// effect when the link's router does not <see cref="Routers.Router.FollowsVertices"/>. A change raises <see
+    /// cref="Model.Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public bool Segmentable { get; set; } = false;
+    public bool Segmentable
+    {
+        get => _segmentable;
+        set => SetField(ref _segmentable, value, ModelChanges.Appearance);
+    }
     /// <summary>
     /// The waypoints the route passes through, in order from source to target. Prefer <see cref="AddVertex"/>, <see
     /// cref="InsertVertex"/> and <see cref="RemoveVertex"/>: editing the list directly raises neither <see
-    /// cref="VertexAdded"/> nor <see cref="VertexRemoved"/>. Neither way refreshes the link.
+    /// cref="VertexAdded"/> nor <see cref="VertexRemoved"/>, and changes made to the list directly are not tracked:
+    /// call <see cref="Model.Refresh"/> after them.
     /// </summary>
     public List<LinkVertexModel> Vertices { get; } = new();
 
     /// <summary>Where this link crosses links drawn below it; set by <see cref="Behaviors.LinkHalosBehavior"/>.</summary>
     public IReadOnlyList<LinkHalo> Halos { get; private set; } = Array.Empty<LinkHalo>();
-    /// <summary>The labels drawn along the link. Prefer <see cref="AddLabel"/>.</summary>
+    /// <summary>
+    /// The labels drawn along the link. Prefer <see cref="AddLabel"/>: changes made to the list directly are not
+    /// tracked, so call <see cref="Model.Refresh"/> after them.
+    /// </summary>
     public List<LinkLabelModel> Labels { get; } = new();
     /// <summary>The links attached to this link.</summary>
     public IReadOnlyList<BaseLinkModel> Links => _links;
 
-    /// <summary>
-    /// Recomputes <see cref="Route"/> and <see cref="PathGeneratorResult"/>, then raises <see cref="Model.Changed"/>.
-    /// </summary>
-    public override void Refresh()
-    {
-        GeneratePath();
-        base.Refresh();
-    }
-
     /// <summary>Refreshes each link attached to this link.</summary>
+    [Obsolete("Changes are tracked: setting a property redraws what depends on it. Call Refresh() for state the diagram cannot see.")]
     public void RefreshLinks()
     {
         foreach (var link in Links)
@@ -119,52 +149,55 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
     }
 
     /// <summary>
-    /// Creates a label with the given text and position, appends it to <see cref="Labels"/> and returns it. Does not
-    /// refresh the link. See <see cref="LinkLabelModel.Distance"/> for <paramref name="distance"/>.
+    /// Creates a label with the given text and position, appends it to <see cref="Labels"/>, redraws the link and
+    /// returns the label. See <see cref="LinkLabelModel.Distance"/> for <paramref name="distance"/>.
     /// </summary>
     public LinkLabelModel AddLabel(string content, double? distance = null, Point? offset = null)
     {
         var label = new LinkLabelModel(this, content, distance, offset);
         Labels.Add(label);
+        MarkChanged(ModelChanges.Appearance);
         return label;
     }
 
     /// <summary>
     /// Creates a vertex at <paramref name="position"/> (the origin when <c>null</c>), appends it to <see
-    /// cref="Vertices"/>, raises <see cref="VertexAdded"/> and returns it. Does not refresh the link.
+    /// cref="Vertices"/>, raises <see cref="VertexAdded"/>, routes the link again and returns the vertex.
     /// </summary>
     public LinkVertexModel AddVertex(Point? position = null) => InsertVertex(Vertices.Count, position);
 
     /// <summary>
     /// Creates a vertex at <paramref name="position"/> (the origin when <c>null</c>), inserts it in <see
-    /// cref="Vertices"/> at <paramref name="index"/>, raises <see cref="VertexAdded"/> and returns it. Does not refresh
-    /// the link.
+    /// cref="Vertices"/> at <paramref name="index"/>, raises <see cref="VertexAdded"/>, routes the link again and
+    /// returns the vertex.
     /// </summary>
     public LinkVertexModel InsertVertex(int index, Point? position = null)
     {
         var vertex = new LinkVertexModel(this, position);
         Vertices.Insert(index, vertex);
+        MarkChanged(ModelChanges.Geometry);
         VertexAdded?.Invoke(this, vertex);
         return vertex;
     }
 
     /// <summary>
-    /// Removes <paramref name="vertex"/> from <see cref="Vertices"/> and raises <see cref="VertexRemoved"/>; false, and no
-    /// event, when it is not a vertex of this link. Does not refresh the link.
+    /// Removes <paramref name="vertex"/> from <see cref="Vertices"/>, routes the link again and raises <see
+    /// cref="VertexRemoved"/>; false, and no event, when it is not a vertex of this link.
     /// </summary>
     public bool RemoveVertex(LinkVertexModel vertex)
     {
         if (!Vertices.Remove(vertex))
             return false;
 
+        MarkChanged(ModelChanges.Geometry);
         VertexRemoved?.Invoke(this, vertex);
         return true;
     }
 
     /// <summary>
     /// Re-attaches the start of the link to <paramref name="anchor"/> and raises <see cref="SourceChanged"/>; does
-    /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Does not
-    /// refresh the link.
+    /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Routes the
+    /// link again.
     /// </summary>
     public void SetSource(Anchor anchor)
     {
@@ -175,13 +208,14 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
         var old = Source;
         Source = anchor;
+        MarkChanged(ModelChanges.Geometry);
         SourceChanged?.Invoke(this, old, Source);
     }
 
     /// <summary>
     /// Re-attaches the end of the link to <paramref name="anchor"/> and raises <see cref="TargetChanged"/>; does
-    /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Does not
-    /// refresh the link.
+    /// nothing if it is the current anchor. Throws <see cref="ArgumentNullException"/> for <c>null</c>. Routes the
+    /// link again.
     /// </summary>
     public void SetTarget(Anchor anchor)
     {
@@ -192,6 +226,7 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
         var old = Target;
         Target = anchor;
+        MarkChanged(ModelChanges.Geometry);
         TargetChanged?.Invoke(this, old, Target);
     }
 
@@ -228,7 +263,7 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
             return;
 
         Halos = halos;
-        base.Refresh();
+        MarkChanged(ModelChanges.Appearance);
     }
 
     /// <summary>
@@ -238,6 +273,25 @@ public abstract class BaseLinkModel : SelectableModel, IHasBounds, ILinkable
 
     /// <summary>Raises <see cref="SourceAttached"/>.</summary>
     public void TriggerSourceAttached() => SourceAttached?.Invoke(this);
+
+    /// <summary>Recomputes <see cref="Route"/> and <see cref="PathGeneratorResult"/>.</summary>
+    protected internal override void UpdateGeometry() => GeneratePath();
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
+
+        for (var i = 0; i < Labels.Count; i++)
+            tracker.Mark(Labels[i], ModelChanges.Appearance);
+
+        for (var i = 0; i < Vertices.Count; i++)
+            tracker.Mark(Vertices[i], ModelChanges.Appearance);
+    }
+
+    /// <summary>Recomputes the route now, without marking or raising; for callers that route a link repeatedly inside one flush.</summary>
+    // Follow it with a Geometry mark: LinkHalosBehavior recomputes halos only on Geometry marks.
+    internal void RegenerateRoute() => GeneratePath();
 
     private void GeneratePath()
     {

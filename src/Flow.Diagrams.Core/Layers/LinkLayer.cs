@@ -12,14 +12,14 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
 
     /// <summary>
     /// Sets the link's <see cref="BaseLinkModel.Diagram"/>, registers it with the models its anchors point to,
-    /// refreshes it and follows later anchor changes.
+    /// marks its geometry so the next flush routes it, and follows later anchor changes.
     /// </summary>
     protected override void OnItemAdded(BaseLinkModel link)
     {
         link.Diagram = Diagram;
         HandleAnchor(link, link.Source, true);
         HandleAnchor(link, link.Target, true);
-        link.Refresh();
+        link.MarkChanged(ModelChanges.Geometry);
 
         link.SourceChanged += OnLinkSourceChanged;
         link.TargetChanged += OnLinkTargetChanged;
@@ -34,7 +34,7 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
         link.Diagram = null;
         HandleAnchor(link, link.Source, false);
         HandleAnchor(link, link.Target, false);
-        link.Refresh();
+        link.MarkChanged(ModelChanges.Geometry);
 
         link.SourceChanged -= OnLinkSourceChanged;
         link.TargetChanged -= OnLinkTargetChanged;
@@ -68,7 +68,7 @@ public class LinkLayer : BaseLayer<BaseLinkModel>
 
         if (anchor.Model is Model model)
         {
-            model.Refresh();
+            model.MarkChanged(ModelChanges.Appearance);
         }
     }
 }

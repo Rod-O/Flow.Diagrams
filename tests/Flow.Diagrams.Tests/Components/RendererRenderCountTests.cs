@@ -39,6 +39,28 @@ public class RendererRenderCountTests
     }
 
     [Fact]
+    public void NodeRenderer_OnResize_ShouldRaiseTheNodeOnceAndNotRaiseDiagramChanged()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var diagram = new BlazorDiagram();
+        var node = diagram.Nodes.Add(new NodeModel(new Point(0, 0)));
+        var cut = ctx.RenderComponent<NodeRenderer>(p => p.Add(n => n.Node, node).AddCascadingValue(diagram));
+        var nodeRaised = 0;
+        var diagramRaised = 0;
+        node.Changed += (_, _) => nodeRaised++;
+        diagram.Changed += () => diagramRaised++;
+
+        // Act
+        cut.Instance.OnResize(new Size(120, 80));
+
+        // Assert
+        nodeRaised.Should().Be(1);
+        diagramRaised.Should().Be(0);
+    }
+
+    [Fact]
     public void GroupRenderer_ShouldNotRenderAgain_WhenItsParentRendersWithTheSameGroup()
     {
         // Arrange

@@ -1,4 +1,5 @@
 ﻿using Flow.Diagrams.Core.Behaviors;
+using Flow.Diagrams.Core.ChangeTracking;
 using Flow.Diagrams.Core.Extensions;
 using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Layers;
@@ -146,6 +147,8 @@ public abstract class Diagram
     /// While <c>true</c>, <see cref="Refresh"/> does nothing. Prefer <see cref="Batch"/>, which restores it for you.
     /// </summary>
     public bool SuspendRefresh { get; set; }
+    /// <summary>Collects model changes so each model is raised once per <see cref="Batch"/>.</summary>
+    internal ChangeTracker Changes { get; } = new();
     /// <summary>
     /// While <c>true</c>, changing <see cref="SelectableModel.Order"/> or <see cref="SelectableModel.Layer"/> does
     /// not re-sort <see cref="OrderedSelectables"/>. The ordering methods set it internally and always restore it;
@@ -170,10 +173,13 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Runs <paramref name="action"/> with refreshes suspended and calls <see cref="Refresh"/> once afterwards.
-    /// Inside an outer batch (or any suspended refresh) it only runs the action and leaves the refresh to the outer
-    /// caller. If the action throws, refreshes are still restored and the diagram refreshed (whatever the action
-    /// changed before throwing is drawn), then the exception propagates.
+    /// Runs <paramref name="action"/> with refreshes suspended and model changes deferred, then raises each changed
+    /// model's <see cref="Model.Changed"/> once and calls <see cref="Refresh"/> once. Inside an outer batch it only
+    /// runs the action and leaves both to the outer batch. While <see cref="SuspendRefresh"/> was set by hand it also
+    /// only runs the action, and does not defer model changes: outside an input event each flushes as it is made. If
+    /// the action throws, the models are still raised, refreshes restored and the diagram refreshed (whatever the
+    /// action changed before throwing is drawn), then the action's exception propagates; an exception from a model's
+    /// handler propagates only when the action did not throw.
     /// </summary>
     public void Batch(Action action)
     {
@@ -186,9 +192,20 @@ public abstract class Diagram
         }
 
         SuspendRefresh = true;
+        var suspension = Changes.Suspend();
         try
         {
-            action();
+            try
+            {
+                action();
+            }
+            catch
+            {
+                suspension.DisposeAfterFailure();
+                throw;
+            }
+
+            suspension.Dispose();
         }
         finally
         {
@@ -231,7 +248,7 @@ public abstract class Diagram
     }
 
     /// <summary>
-    /// Selects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>. With <paramref
+    /// Selects <paramref name="model"/>, redraws it and raises <see cref="SelectionChanged"/>. With <paramref
     /// name="unselectOthers"/>, everything else is unselected first. If it is already selected, it is left as is
     /// (no refresh, no event for it); only the others are unselected.
     /// </summary>
@@ -250,12 +267,11 @@ public abstract class Diagram
             return;
 
         model.Selected = true;
-        model.Refresh();
         SelectionChanged?.Invoke(model);
     }
 
     /// <summary>
-    /// Unselects <paramref name="model"/>, refreshes it and raises <see cref="SelectionChanged"/>; does nothing if it
+    /// Unselects <paramref name="model"/>, redraws it and raises <see cref="SelectionChanged"/>; does nothing if it
     /// is not selected.
     /// </summary>
     public void UnselectModel(SelectableModel model)
@@ -264,19 +280,17 @@ public abstract class Diagram
             return;
 
         model.Selected = false;
-        model.Refresh();
         SelectionChanged?.Invoke(model);
     }
 
     /// <summary>
-    /// Unselects every selected model, refreshing each and raising <see cref="SelectionChanged"/> once per model.
+    /// Unselects every selected model, redrawing each and raising <see cref="SelectionChanged"/> once per model.
     /// </summary>
     public void UnselectAll()
     {
         foreach (var model in GetSelectedModels())
         {
             model.Selected = false;
-            model.Refresh();
             // Todo: will result in many events, maybe one event for all of them?
             SelectionChanged?.Invoke(model);
         }
@@ -583,37 +597,97 @@ public abstract class Diagram
     /// <summary>
     /// Raises <see cref="PointerDown"/>. The renderer calls it; call it yourself to simulate input.
     /// </summary>
-    public void TriggerPointerDown(Model? model, PointerEventArgs e) => PointerDown?.Invoke(model, e);
+    public void TriggerPointerDown(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerDown, model, e);
+    }
 
     /// <summary>Raises <see cref="PointerMove"/>.</summary>
-    public void TriggerPointerMove(Model? model, PointerEventArgs e) => PointerMove?.Invoke(model, e);
+    public void TriggerPointerMove(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerMove, model, e);
+    }
 
     /// <summary>Raises <see cref="PointerUp"/>.</summary>
-    public void TriggerPointerUp(Model? model, PointerEventArgs e) => PointerUp?.Invoke(model, e);
+    public void TriggerPointerUp(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerUp, model, e);
+    }
 
     /// <summary>Raises <see cref="PointerEnter"/>.</summary>
-    public void TriggerPointerEnter(Model? model, PointerEventArgs e) => PointerEnter?.Invoke(model, e);
+    public void TriggerPointerEnter(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerEnter, model, e);
+    }
 
     /// <summary>Raises <see cref="PointerLeave"/>.</summary>
-    public void TriggerPointerLeave(Model? model, PointerEventArgs e) => PointerLeave?.Invoke(model, e);
+    public void TriggerPointerLeave(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerLeave, model, e);
+    }
 
     /// <summary>Raises <see cref="KeyDown"/>.</summary>
-    public void TriggerKeyDown(KeyboardEventArgs e) => KeyDown?.Invoke(e);
+    public void TriggerKeyDown(KeyboardEventArgs e)
+    {
+        RaiseInput(KeyDown, e);
+    }
 
     /// <summary>Raises <see cref="Wheel"/>.</summary>
-    public void TriggerWheel(WheelEventArgs e) => Wheel?.Invoke(e);
+    public void TriggerWheel(WheelEventArgs e)
+    {
+        RaiseInput(Wheel, e);
+    }
 
     /// <summary>
     /// Raises <see cref="PointerClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it when a press and release
     /// land on the same model without movement.
     /// </summary>
-    public void TriggerPointerClick(Model? model, PointerEventArgs e) => PointerClick?.Invoke(model, e);
+    public void TriggerPointerClick(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerClick, model, e);
+    }
 
     /// <summary>
     /// Raises <see cref="PointerDoubleClick"/>; <see cref="Behaviors.EventsBehavior"/> calls it for two clicks within
     /// 500 ms.
     /// </summary>
-    public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e) => PointerDoubleClick?.Invoke(model, e);
+    public void TriggerPointerDoubleClick(Model? model, PointerEventArgs e)
+    {
+        RaiseInput(PointerDoubleClick, model, e);
+    }
+
+    // An input event flushes once at its end, like a Batch: the handler's exception wins over one from the flush.
+    private void RaiseInput<T>(Action<T>? handler, T e)
+    {
+        var suspension = Changes.Suspend();
+        try
+        {
+            handler?.Invoke(e);
+        }
+        catch
+        {
+            suspension.DisposeAfterFailure();
+            throw;
+        }
+
+        suspension.Dispose();
+    }
+
+    private void RaiseInput<T>(Action<Model?, T>? handler, Model? model, T e)
+    {
+        var suspension = Changes.Suspend();
+        try
+        {
+            handler?.Invoke(model, e);
+        }
+        catch
+        {
+            suspension.DisposeAfterFailure();
+            throw;
+        }
+
+        suspension.Dispose();
+    }
 
     #endregion
 }

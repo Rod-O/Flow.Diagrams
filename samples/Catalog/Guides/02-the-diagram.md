@@ -68,7 +68,7 @@ Events are plain .NET events, raised outside your component's render cycle: when
 | `KeyDown`, `Wheel` | Keyboard (while the canvas has focus) and wheel input. |
 | `PanChanged`, `ZoomChanged`, `ContainerChanged` | After the viewport or the canvas size changes. |
 | `Nodes.Added`, `Nodes.Removed` (and `Links`, `Groups`) | For each item added or removed. |
-| `Changed` | On every refresh; the canvas listens to it to redraw. |
+| `Changed` | When the diagram needs to redraw (models added or removed, pan, zoom, drawing order); the canvas listens to it. A pointer move with no gesture does not raise it. |
 
 Two node events are easy to confuse: `Moved` fires once when a drag that moved the node ends, and never for `SetPosition`; `Moving` fires on every `SetPosition`, including each step of a drag.
 
@@ -80,11 +80,11 @@ Two node events are easy to confuse: `Moved` fires once when a drag that moved t
 
 ## Refresh and Batch
 
-Every change calls `Refresh`, which raises `Changed`, and the canvas redraws. `Batch` runs an action with refreshes suspended and refreshes once at the end, also when the action throws; an inner batch leaves the refresh to the outer one.
+Models track their own changes: setting a property redraws the model and what depends on it, and the diagram collects those changes and flushes them once. `Batch` runs an action with the flush suspended and flushes once at the end, also when the action throws; an inner batch leaves the flush to the outer one. Outside a batch, a change flushes at once.
 
 {{source diagram-options DiagramOptions.razor batch}}
 
-Changing a model's property (a node's `Title`, a link's `Color`) does not redraw it. Call `Refresh()` on that model: nodes and links redraw only on their own `Changed`, so `Diagram.Refresh()` is not enough.
+Changing a model's property (a node's `Title`, a link's `Color`) redraws it; there is nothing to call. Use `Batch` for many changes. Keep `model.Refresh()` for state the diagram cannot see, such as a widget that reads your own object: nodes and links redraw only on their own `Changed`, so `Diagram.Refresh()` is not enough.
 
 ## Locking
 
@@ -98,4 +98,4 @@ Set `Locked` on a node, group, link or port:
 
 {{example locked}}
 
-A locked node can still be selected. Setting `Locked` does not refresh the model, and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.
+A locked node can still be selected. Setting `Locked` redraws the model (the `locked` CSS class), and does not stop code: `SetPosition` and `Remove` still work. For a read-only diagram, unregister the editing behaviors: `Diagram.UnregisterBehavior<DragMovablesBehavior>()`, and likewise `DragNewLinkBehavior` and `KeyboardShortcutsBehavior`.

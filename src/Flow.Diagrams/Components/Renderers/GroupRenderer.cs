@@ -68,7 +68,6 @@ public class GroupRenderer : ComponentBase, IDisposable
             if (_lastSize == null || !_lastSize.Equals(Group.Size))
             {
                 Group.ReinitializePorts();
-                Group.RefreshLinks();
                 _lastSize = Group.Size;
             }
         }
@@ -78,6 +77,8 @@ public class GroupRenderer : ComponentBase, IDisposable
             // and the component is disposed. It can be ignored
         }
     }
+
+    private void OnGroupChanged(Model model, ModelChanges changes) => OnGroupChanged(model);
 
     private void OnGroupChanged(Model _)
     {

@@ -1,0 +1,8 @@
+- `Model.Changed` is `Action<Model, ModelChanges>`. Handlers take the reason. Breaking.
+- The library no longer calls `Refresh()` when a model is added, moved, selected, resized or attached to a link; it marks the change instead. Breaking for subclasses that override `Refresh()`: the override no longer runs on those paths. Override `UpdateGeometry()` for derived geometry.
+- A link added to `Diagram.Links` is routed at the next flush, not during `Add`. Breaking for `Links.Added` handlers, which now see `Route` and `PathGeneratorResult` still `null`.
+- `RefreshAll` and `RefreshLinks` on nodes, ports and links are obsolete: setting a property redraws what depends on it. They still work. Keep `Refresh()` for state the diagram cannot see.
+- A `Changed` handler now runs once per model per batch or input event, after the batch, not at each change. Breaking for handlers that read intermediate states.
+- Outside a batch, `NodeModel.SizeChanged` and `Moving` fire after the flush has raised `Changed` for the node and its links; inside a batch, before it.
+- `Selected` now notifies, and selecting a link redraws it without re-routing it.
+- A pointer move with no gesture raises no `Diagram.Changed`, so it renders no canvas. A node's measured resize flushes once without raising it.

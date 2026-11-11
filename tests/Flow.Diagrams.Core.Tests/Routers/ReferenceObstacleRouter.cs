@@ -35,9 +35,13 @@ internal class ReferenceObstacleRouter : Router
         var links = diagram.Links.Where(l => ReferenceEquals(l.Router ?? diagram.Options.Links.DefaultRouter, this)).ToList();
         diagram.Batch(() =>
         {
-            for (var pass = 0; pass <= reroutePasses; pass++)
+            // The original passes route each link at once; inside a batch only the last pass can be a mark.
+            for (var pass = 0; pass < reroutePasses; pass++)
                 foreach (var link in links)
-                    link.Refresh();
+                    link.RegenerateRoute();
+
+            foreach (var link in links)
+                link.Refresh();
         });
     }
 

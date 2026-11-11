@@ -1,4 +1,5 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
 
 namespace Flow.Diagrams.Core.Models;
@@ -18,11 +19,8 @@ public class LinkVertexModel : MovableModel
     /// <summary>The link the vertex belongs to.</summary>
     public BaseLinkModel Parent { get; }
 
-    /// <summary>Moves the vertex and refreshes the parent link so it is routed through the new position.</summary>
-    public override void SetPosition(double x, double y)
-    {
-        base.SetPosition(x, y);
-        Refresh();
-        Parent.Refresh();
-    }
+    internal override ChangeTracker? Tracker => Parent.Tracker;
+
+    // Moving a vertex routes the parent link through the new position.
+    internal override void PropagateGeometry(ChangeTracker tracker) => tracker.Mark(Parent, ModelChanges.Geometry);
 }

@@ -1,5 +1,7 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
+using System;
 using System.Collections.Generic;
 
 namespace Flow.Diagrams.Core.Models;
@@ -11,6 +13,8 @@ namespace Flow.Diagrams.Core.Models;
 public class PortModel : Model, IHasBounds, IHasShape, ILinkable
 {
     private readonly List<BaseLinkModel> _links = new(4);
+    private Point _position;
+    private Size _size;
 
     /// <summary>
     /// Creates a port of <paramref name="parent"/> on the given side. <paramref name="position"/> and <paramref
@@ -22,8 +26,8 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
     {
         Parent = parent;
         Alignment = alignment;
-        Position = position ?? Point.Zero;
-        Size = size ?? Size.Zero;
+        _position = position ?? Point.Zero;
+        _size = size ?? Size.Zero;
     }
 
     /// <summary>
@@ -34,31 +38,55 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
     {
         Parent = parent;
         Alignment = alignment;
-        Position = position ?? Point.Zero;
-        Size = size ?? Size.Zero;
+        _position = position ?? Point.Zero;
+        _size = size ?? Size.Zero;
     }
 
     /// <summary>The node the port belongs to.</summary>
     public NodeModel Parent { get; }
+
+    internal override ChangeTracker? Tracker => Parent.Tracker;
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
+    }
     /// <summary>
     /// The side or corner of the node the port sits on; routers and anchors use it to leave the node in the right
     /// direction.
     /// </summary>
     public PortAlignment Alignment { get; }
-    /// <summary>Top-left corner of the port in diagram units; moved together with the node.</summary>
-    public Point Position { get; set; }
+    /// <summary>
+    /// Top-left corner of the port in diagram units; moved together with the node. A change raises <see
+    /// cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>, so the port's links are routed again.
+    /// </summary>
+    public Point Position
+    {
+        get => _position;
+        set => SetField(ref _position, value, ModelChanges.Geometry);
+    }
     /// <summary>Center of the port in diagram units.</summary>
     public Point MiddlePosition => new(Position.X + (Size.Width / 2), Position.Y + (Size.Height / 2));
-    /// <summary>Size of the port in diagram units; zero until measured.</summary>
-    public Size Size { get; set; }
+    /// <summary>
+    /// Size of the port in diagram units; zero until measured. A change raises <see cref="Model.Changed"/> with <see
+    /// cref="ModelChanges.Geometry"/>, so the port's links are routed again.
+    /// </summary>
+    public Size Size
+    {
+        get => _size;
+        set => SetField(ref _size, value, ModelChanges.Geometry);
+    }
     /// <summary>The links attached to this port.</summary>
     public IReadOnlyList<BaseLinkModel> Links => _links;
     /// <summary>
-    /// If set to false, a call to Refresh() will force the port to update its position/size
+    /// If set to false, the renderer measures the port again the next time it is marked as changed, and updates its
+    /// position and size.
     /// </summary>
     public bool Initialized { get; set; }
 
     /// <summary>Refreshes the port, then its links.</summary>
+    [Obsolete("Changes are tracked: setting a property redraws what depends on it. Call Refresh() for state the diagram cannot see.")]
     public void RefreshAll()
     {
         Refresh();
@@ -66,6 +94,7 @@ public class PortModel : Model, IHasBounds, IHasShape, ILinkable
     }
 
     /// <summary>Refreshes the links attached to this port and the links attached to those.</summary>
+    [Obsolete("Changes are tracked: setting a property redraws what depends on it. Call Refresh() for state the diagram cannot see.")]
     public void RefreshLinks()
     {
         foreach (var link in Links)

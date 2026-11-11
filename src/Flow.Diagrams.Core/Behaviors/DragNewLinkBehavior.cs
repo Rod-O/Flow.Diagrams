@@ -69,8 +69,6 @@ public class DragNewLinkBehavior : Behavior
         _draggingSource = source;
         _targetPositionAnchor = new PositionAnchor(CalculateTargetPosition(clientX, clientY));
         SetDraggedEnd(_targetPositionAnchor);
-        OngoingLink.Refresh();
-        OngoingLink.RefreshLinks();
     }
 
     private void OnPointerDown(Model? model, MouseEventArgs e)
@@ -113,8 +111,8 @@ public class DragNewLinkBehavior : Behavior
             }
         }
 
-        OngoingLink.Refresh();
-        OngoingLink.RefreshLinks();
+        // The anchor moved in place, so the link cannot see it.
+        OngoingLink.MarkChanged(ModelChanges.Geometry);
     }
 
     private void OnPointerUp(Model? model, MouseEventArgs e)
@@ -134,8 +132,6 @@ public class DragNewLinkBehavior : Behavior
             var targetAnchor = Diagram.Options.Links.TargetAnchorFactory(Diagram, OngoingLink, linkable);
             SetDraggedEnd(targetAnchor);
             TriggerDraggedEndAttached();
-            OngoingLink.Refresh();
-            OngoingLink.RefreshLinks();
         }
         else if (Diagram.Options.Links.RequireTarget)
         {
@@ -143,7 +139,7 @@ public class DragNewLinkBehavior : Behavior
         }
         else
         {
-            OngoingLink.Refresh();
+            OngoingLink.MarkChanged(ModelChanges.Geometry);
         }
 
         OngoingLink = null;

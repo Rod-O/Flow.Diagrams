@@ -89,6 +89,8 @@ public partial class NavigatorWidget : IDisposable
 
     private void OnNodeRemoved(NodeModel node) => node.Changed -= OnNodeChanged;
 
+    private void OnNodeChanged(Model model, ModelChanges changes) => OnNodeChanged(model);
+
     private void OnNodeChanged(Model _) => Refresh();
 
     private void Refresh()

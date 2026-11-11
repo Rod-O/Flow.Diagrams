@@ -96,6 +96,8 @@ public class LinkRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    private void OnLinkChanged(Model model, ModelChanges changes) => OnLinkChanged(model);
+
     private void OnLinkChanged(Model _)
     {
         _shouldRender = true;

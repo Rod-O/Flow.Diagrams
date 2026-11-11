@@ -80,6 +80,8 @@ public class LinkVertexRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    private void OnVertexChanged(Model model, ModelChanges changes) => OnVertexChanged(model);
+
     private void OnVertexChanged(Model _)
     {
         _shouldRender = true;
@@ -99,6 +101,5 @@ public class LinkVertexRenderer : ComponentBase, IDisposable
     private void OnDoubleClick(MouseEventArgs e)
     {
         Vertex.Parent.RemoveVertex(Vertex);
-        Vertex.Parent.Refresh();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Flow.Diagrams.Core.Geometry;
+﻿using Flow.Diagrams.Core.ChangeTracking;
+using Flow.Diagrams.Core.Geometry;
 using Flow.Diagrams.Core.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     private readonly List<PortModel> _ports = new();
     private readonly List<BaseLinkModel> _links = new();
     private Size? _size;
+    private string? _title;
 
     /// <summary>
     /// Raised when <see cref="Size"/> is set to a different value, normally after the renderer measures the node.
@@ -42,19 +44,17 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
 
     /// <summary>
     /// The node's size in diagram units, or <c>null</c> until it is measured or assigned; bounds, ports and links
-    /// need it. Raises <see cref="SizeChanged"/> when it changes; it does not refresh the node, so to resize a <see
-    /// cref="ControlledSize"/> node use <see cref="SetSize"/>.
+    /// need it. A change raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Geometry"/>, so the links
+    /// attached to the node are routed again, and then <see cref="SizeChanged"/>. To resize a <see
+    /// cref="ControlledSize"/> node and have its ports measured again use <see cref="SetSize"/>.
     /// </summary>
     public Size? Size
     {
         get => _size;
         set
         {
-            if (value?.Equals(_size) == true)
-                return;
-
-            _size = value;
-            SizeChanged?.Invoke(this);
+            if (SetField(ref _size, value, ModelChanges.Geometry))
+                SizeChanged?.Invoke(this);
         }
     }
     /// <summary>
@@ -64,28 +64,33 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     public bool ControlledSize { get; init; }
 
     /// <summary>
-    /// Sets <see cref="Size"/>, then refreshes the node and the links attached to it and calls <see
-    /// cref="ReinitializePorts"/> so the ports are measured at their new places: what the renderer does when it measures
-    /// a new size, for a <see cref="ControlledSize"/> node. Does nothing when <paramref name="size"/> equals the current size.
+    /// Sets <see cref="Size"/> and calls <see cref="ReinitializePorts"/> so the ports are measured at their new
+    /// places: what the renderer does when it measures a new size, for a <see cref="ControlledSize"/> node. The node
+    /// and its links are marked once. Does nothing when <paramref name="size"/> equals the current size.
     /// </summary>
     public void SetSize(Size size)
     {
         if (size.Equals(_size))
             return;
 
-        Size = size;
-        Refresh();
-        RefreshLinks();
-        ReinitializePorts();
+        using (Suspend())
+        {
+            Size = size;
+            ReinitializePorts();
+        }
     }
 
     /// <summary>The group that contains this node, or <c>null</c>.</summary>
     public GroupModel? Group { get; internal set; }
     /// <summary>
-    /// The text the default node widget shows ("Title" when <c>null</c>); custom widgets may ignore it. Setting it does
-    /// not redraw the node: call <see cref="Model.Refresh"/>.
+    /// The text the default node widget shows ("Title" when <c>null</c>); custom widgets may ignore it. A change
+    /// raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public string? Title { get; set; }
+    public string? Title
+    {
+        get => _title;
+        set => SetField(ref _title, value, ModelChanges.Appearance);
+    }
 
     /// <summary>The ports of this node, in the order they were added.</summary>
     public IReadOnlyList<PortModel> Ports => _ports;
@@ -129,6 +134,7 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     #region Refreshing
 
     /// <summary>Refreshes the node and each of its ports with their links.</summary>
+    [Obsolete("Changes are tracked: setting a property redraws what depends on it. Call Refresh() for state the diagram cannot see.")]
     public void RefreshAll()
     {
         Refresh();
@@ -136,6 +142,7 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     }
 
     /// <summary>Refreshes the links attached to the node and the links attached to those.</summary>
+    [Obsolete("Changes are tracked: setting a property redraws what depends on it. Call Refresh() for state the diagram cannot see.")]
     public void RefreshLinks()
     {
         foreach (var link in Links)
@@ -146,44 +153,51 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     }
 
     /// <summary>
-    /// Marks every port as not initialized and refreshes it, so the renderer measures its position and size again.
+    /// Marks every port as not initialized and raises its <see cref="Model.Changed"/>, so the renderer measures its
+    /// position and size again.
     /// </summary>
     public void ReinitializePorts()
     {
-        foreach (var port in Ports)
+        using (Suspend())
         {
-            port.Initialized = false;
-            port.Refresh();
+            foreach (var port in Ports)
+            {
+                port.Initialized = false;
+                port.MarkChanged(ModelChanges.Appearance);
+            }
         }
     }
 
     #endregion
 
     /// <summary>
-    /// Moves the node, moves its ports by the same offset, refreshes the node and its links and raises <see
+    /// Moves the node and its ports by the same offset, marks the node and routes its links once, then raises <see
     /// cref="Moving"/>.
     /// </summary>
     public override void SetPosition(double x, double y)
     {
         var deltaX = x - Position.X;
         var deltaY = y - Position.Y;
-        base.SetPosition(x, y);
+        using (Suspend())
+        {
+            base.SetPosition(x, y);
+            UpdatePortPositions(deltaX, deltaY);
+        }
 
-        UpdatePortPositions(deltaX, deltaY);
-        Refresh();
-        RefreshLinks();
         Moving?.Invoke(this);
     }
 
     /// <summary>
-    /// Moves the node and its ports by the given offset in diagram units and refreshes the node, but does not refresh
-    /// links or raise <see cref="Moving"/>. Used when a group moves its children.
+    /// Moves the node and its ports by the given offset in diagram units without raising <see cref="Moving"/>; its
+    /// links are routed again. Used when a group moves its children.
     /// </summary>
     public virtual void UpdatePositionSilently(double deltaX, double deltaY)
     {
-        base.SetPosition(Position.X + deltaX, Position.Y + deltaY);
-        UpdatePortPositions(deltaX, deltaY);
-        Refresh();
+        using (Suspend())
+        {
+            base.SetPosition(Position.X + deltaX, Position.Y + deltaY);
+            UpdatePortPositions(deltaX, deltaY);
+        }
     }
 
     /// <summary>The node's rectangle, or <c>null</c> while <see cref="Size"/> is unknown.</summary>
@@ -232,7 +246,6 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
         foreach (var port in _ports)
         {
             port.Position = new Point(port.Position.X + deltaX, port.Position.Y + deltaY);
-            port.RefreshLinks();
         }
     }
 
@@ -240,6 +253,18 @@ public class NodeModel : MovableModel, IHasBounds, IHasShape, ILinkable
     protected void TriggerMoving()
     {
         Moving?.Invoke(this);
+    }
+
+    internal override void PropagateGeometry(ChangeTracker tracker)
+    {
+        for (var i = 0; i < _links.Count; i++)
+            tracker.Mark(_links[i], ModelChanges.Geometry);
+
+        for (var i = 0; i < _ports.Count; i++)
+            _ports[i].PropagateGeometry(tracker);
+
+        if (Group != null)
+            tracker.Mark(Group, ModelChanges.Geometry);
     }
 
     void ILinkable.AddLink(BaseLinkModel link) => _links.Add(link);

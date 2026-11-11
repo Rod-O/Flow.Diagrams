@@ -58,6 +58,8 @@ public class ControlsLayer
     /// <summary>Whether <paramref name="model"/> has a container whose controls are shown.</summary>
     public bool AreVisibleFor(Model model) => GetFor(model)?.Visible ?? false;
 
+    private void RefreshIfVisible(Model cause, ModelChanges changes) => RefreshIfVisible(cause);
+
     private void RefreshIfVisible(Model cause)
     {
         if (!AreVisibleFor(cause))

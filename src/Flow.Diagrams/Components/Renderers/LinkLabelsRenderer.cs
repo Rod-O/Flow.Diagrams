@@ -48,5 +48,7 @@ public class LinkLabelsRenderer : ComponentBase, IDisposable
         builder.CloseElement();
     }
 
+    private void OnLinkChanged(Model model, ModelChanges changes) => OnLinkChanged(model);
+
     private void OnLinkChanged(Core.Models.Base.Model _) => InvokeAsync(StateHasChanged);
 }

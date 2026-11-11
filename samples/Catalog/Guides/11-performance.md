@@ -10,19 +10,21 @@ Every drawn piece is a component that redraws only when its own model says so. T
 
 | Component | Redraws when |
 |---|---|
-| [DiagramCanvas](xref:Flow.Diagrams.Components.DiagramCanvas) | The diagram raises `Changed`, that is when `Diagram.Refresh()` runs: models added or removed, pan, zoom, drawing order. |
-| `NodeRenderer`, `GroupRenderer`, `LinkRenderer`, `PortRenderer` | Their model raises `Changed` (`model.Refresh()`) or its `Visible` changes. |
+| [DiagramCanvas](xref:Flow.Diagrams.Components.DiagramCanvas) | The diagram raises `Changed`: models added or removed, pan, zoom, drawing order. A pointer move with no gesture raises no `Diagram.Changed`, so it renders no canvas. |
+| `NodeRenderer`, `GroupRenderer`, `LinkRenderer`, `PortRenderer` | Their model raises `Changed` (a property was set, or `model.Refresh()` ran) or its `Visible` changes. |
 | `ControlsLayerRenderer` | The controls of a model in its layer are shown, hidden, changed, or their model changes while they are shown. |
 
-So a pan redraws the canvas, which moves the two layers with a CSS transform and walks the list of models, but no node or link widget runs. Dragging a node refreshes that node and its links, and each link refresh recomputes its route and path.
+So a pan redraws the canvas, which moves the two layers with a CSS transform and walks the list of models, but no node or link widget runs. Dragging a node redraws that node and its links, and each of those links recomputes its route and path once per pointer move.
 
-The consequence for your code: **after changing a property of your own model, call `Refresh()` on that model.** `Diagram.Refresh()` is not enough; it redraws the canvas, and the canvas skips every node whose model did not raise `Changed`. `SetPosition` and selecting or unselecting refresh the model for you; setting `Size`, `Title` or a property you added does not.
+The consequence for your code: **setting a library property redraws its model and what depends on it.** The model marks the change, the diagram collects the marks and flushes them once, and a flush recomputes geometry (link routes, group bounds) once and passes it on to dependents: a node to its links and group, a port to its links, a link to the links, labels and vertices attached to it. For state the diagram cannot see, a property you added to your own model for example, call `Refresh()` on that model. `Diagram.Refresh()` is not enough; it redraws the canvas, and the canvas skips every node whose model did not raise `Changed`.
 
 ## Batch your changes
 
-Each `Add`, `Remove` and `Clear` on `Diagram.Nodes`, `Links` and `Groups` already refreshes the diagram once for its whole call, and `Add(IEnumerable<T>)` adds many items under one refresh. For a sequence of different changes, wrap them in `Diagram.Batch(...)`: refreshes are suspended while the action runs and the diagram refreshes once at the end. Batches nest; only the outermost one refreshes.
+Each `Add`, `Remove` and `Clear` on `Diagram.Nodes`, `Links` and `Groups` already refreshes the diagram once for its whole call, and `Add(IEnumerable<T>)` adds many items under one refresh. For a sequence of different changes, wrap them in `Diagram.Batch(...)`: the flush is suspended while the action runs and happens once at the end, so a model changed many times raises `Changed` once and a link is routed once. Batches nest; only the outermost one flushes.
 
-If the action throws, `Batch` still restores refreshes and refreshes once (whatever the action changed before throwing is drawn), then lets the exception propagate. Setting `SuspendRefresh` by hand gives none of that: clear it in a `finally`.
+An input event (`Diagram.Trigger*`, which the canvas calls for every pointer, key and wheel event) flushes the same way, once at its end, so a handler that changes many models needs no batch of its own. Outside a batch or an input event, a change flushes at once. A `Changed` handler runs after the flush, so it sees the final state, not each step. A handler that keeps marking models stops after 64 passes with a `DiagramsException`.
+
+If the action throws, `Batch` still restores refreshes and flushes once (whatever the action changed before throwing is drawn), then lets the exception propagate. Setting `SuspendRefresh` by hand gives none of that: clear it in a `finally`.
 
 ## Virtualization
 
@@ -66,6 +68,6 @@ Hundreds of links over a few dozen nodes stay light here because nothing has to 
 - Give nodes a size and `ControlledSize = true` when you know their size.
 - Prefer node-to-node links when the attachment point does not matter.
 - Turn on virtualization for diagrams larger than the screen, and call `CheckVisibility()` after changing the options.
-- Call `Refresh()` on the one model you changed, not on the diagram.
+- Set properties and let the diagram redraw; use `Batch` for many changes, and `Refresh()` on the one model only for state the diagram cannot see.
 
 The two examples are on the [Many nodes](examples/many-nodes) and [Many links](examples/many-links) pages.

@@ -7,6 +7,9 @@ namespace Flow.Diagrams.Core.Models;
 public class LinkModel : BaseLinkModel
 {
     private LinkFlow? _flow;
+    private string? _color;
+    private string? _selectedColor;
+    private double _width = 2;
 
     /// <summary>Creates a link between two anchors.</summary>
     public LinkModel(Anchor source, Anchor target) : base(source, target) { }
@@ -34,15 +37,32 @@ public class LinkModel : BaseLinkModel
         : base(id, new ShapeIntersectionAnchor(sourceNode), new ShapeIntersectionAnchor(targetNode)) { }
 
     /// <summary>
-    /// Stroke color as any SVG color string; <c>null</c> uses the Blazor options' default link color.
+    /// Stroke color as any SVG color string; <c>null</c> uses the Blazor options' default link color. A change
+    /// raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public string? Color { get; set; }
+    public string? Color
+    {
+        get => _color;
+        set => SetField(ref _color, value, ModelChanges.Appearance);
+    }
     /// <summary>
-    /// Stroke color while the link is selected; <c>null</c> uses the Blazor options' default selected color.
+    /// Stroke color while the link is selected; <c>null</c> uses the Blazor options' default selected color. A change
+    /// raises <see cref="Model.Changed"/> with <see cref="ModelChanges.Appearance"/>.
     /// </summary>
-    public string? SelectedColor { get; set; }
-    /// <summary>Stroke width in diagram units; 2 by default.</summary>
-    public double Width { get; set; } = 2;
+    public string? SelectedColor
+    {
+        get => _selectedColor;
+        set => SetField(ref _selectedColor, value, ModelChanges.Appearance);
+    }
+    /// <summary>
+    /// Stroke width in diagram units; 2 by default. A change raises <see cref="Model.Changed"/> with <see
+    /// cref="ModelChanges.Appearance"/>.
+    /// </summary>
+    public double Width
+    {
+        get => _width;
+        set => SetField(ref _width, value, ModelChanges.Appearance);
+    }
     /// <summary>
     /// Marching dashes along the stroke showing what flows through the link, or <c>null</c> (the default) for a plain
     /// stroke. Drawn by <c>LinkWidget</c>; changing it redraws the link.
@@ -50,13 +70,6 @@ public class LinkModel : BaseLinkModel
     public LinkFlow? Flow
     {
         get => _flow;
-        set
-        {
-            if (Equals(value, _flow))
-                return;
-
-            _flow = value;
-            RaiseChanged();
-        }
+        set => SetField(ref _flow, value, ModelChanges.Appearance);
     }
 }
